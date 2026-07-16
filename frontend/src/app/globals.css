@@ -1,0 +1,192 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f6f7f9;
+    --bg-card: #ffffff;
+    --text: #0a0a0a;
+    --text-secondary: #6b7280;
+    --border: #e5e7eb;
+    --brand: #0f766e;
+    --brand-light: #ecfdf5;
+    --accent: #f97316;
+    --ink-soft: #111827;
+    --toast-bg: #ffffff;
+    --toast-color: #0a0a0a;
+    --toast-border: #e5e7eb;
+  }
+
+  .dark {
+    --bg: #0a0a0a;
+    --bg-secondary: #111111;
+    --bg-card: #161616;
+    --text: #f5f5f5;
+    --text-secondary: #9ca3af;
+    --border: #222222;
+    --brand: #2dd4bf;
+    --brand-light: #0f2f2b;
+    --accent: #fb923c;
+    --ink-soft: #f3f4f6;
+    --toast-bg: #161616;
+    --toast-color: #f5f5f5;
+    --toast-border: #222222;
+  }
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 shadow-lg shadow-teal-900/15;
+  }
+
+  .btn-secondary {
+    @apply border border-teal-700 text-teal-700 hover:bg-teal-700 hover:text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 dark:border-teal-300 dark:text-teal-300;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-gray-100 dark:hover:bg-white/10 text-[var(--text)] font-medium px-4 py-2 rounded-xl transition-all duration-200;
+  }
+
+  .card {
+    @apply bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-sm;
+  }
+
+  .glass {
+    @apply backdrop-blur-md bg-white/10 dark:bg-black/30 border border-white/20 dark:border-white/10;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-teal-500 via-emerald-500 to-orange-500 bg-clip-text text-transparent;
+  }
+
+  .section-title {
+    @apply text-2xl md:text-3xl font-bold text-[var(--text)] mb-2 tracking-normal;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .input {
+    @apply w-full bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl px-4 py-3 text-[var(--text)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200;
+  }
+
+  .shimmer-bg {
+    background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-secondary) 50%, var(--bg-card) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .level-bronze { @apply text-orange-600 bg-orange-100 dark:bg-orange-900/30; }
+  .level-silver { @apply text-gray-500 bg-gray-100 dark:bg-gray-800; }
+  .level-gold { @apply text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30; }
+  .level-diamond { @apply text-blue-600 bg-blue-100 dark:bg-blue-900/30; }
+  .level-vip { @apply text-purple-600 bg-purple-100 dark:bg-purple-900/30; }
+
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 z-50 bg-[var(--bg-card)] border-t border-[var(--border)] flex items-center justify-around px-2 py-2 md:hidden;
+  }
+}
+
+/* Swiper custom */
+.swiper-pagination-bullet {
+  background: #0f766e !important;
+}
+.swiper-button-next,
+.swiper-button-prev {
+  color: #0f766e !important;
+}
+
+/* Product card hover */
+.product-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+/* Sticky add to cart button glow */
+.sticky-cart-btn {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Admin sidebar */
+.admin-nav-item {
+  @apply flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--bg-secondary)] transition-all duration-200 cursor-pointer;
+}
+.admin-nav-item.active {
+  @apply bg-blue-500/10 text-blue-500;
+}
+
+/* Price tag */
+.price-tag {
+  @apply font-bold text-lg text-[var(--text)];
+}
+.sale-price {
+  @apply font-bold text-lg text-blue-500;
+}
+.original-price {
+  @apply text-sm text-[var(--text-secondary)] line-through;
+}
+
+/* Affiliate level badge styles */
+.level-badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
