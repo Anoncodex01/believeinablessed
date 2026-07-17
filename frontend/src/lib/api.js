@@ -1,8 +1,9 @@
 // lib/api.js
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { API_URL } from './config';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export { API_URL } from './config';
 
 // Create axios instance
 const api = axios.create({

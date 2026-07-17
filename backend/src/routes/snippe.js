@@ -7,11 +7,14 @@
 import express from 'express';
 import { supabase } from '../config/supabase.js';
 import { snippe, SnippeService } from '../services/snippe.js';
-import { confirmOrderCommission, cancelOrderCommission } from '../utils/affiliateCommission.js';
+import { confirmOrderCommission } from '../utils/affiliateCommission.js';
 
 const router = express.Router();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.believeinablessed.com';
+const FRONTEND_URL = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+if (!FRONTEND_URL) {
+  console.warn('⚠️ FRONTEND_URL is not set — card payment redirects will fail');
+}
 const MIN_AMOUNT_TZS = 500;
 
 // Reuse existing payment columns until 2026_07_snippe_payment.sql is applied.
@@ -35,50 +38,63 @@ function mapChannelToMethod(channel) {
 }
 
 async function markOrderPaid(order, paymentData = {}) {
-  if (order.payment_status === 'paid') {
-    // Payment already marked — still try to confirm affiliate if stuck pending
-    if (order.affiliate_id) {
-      await confirmOrderCommission(order.id, order.affiliate_id, 'Snippe payment already paid');
+  // Always load a full order row so affiliate_id / commission_status are present
+  let workingOrder = order;
+  if (!order?.affiliate_id || order.commission_status === undefined) {
+    const { data: fullOrder } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', order.id)
+      .single();
+    if (fullOrder) workingOrder = fullOrder;
+  }
+
+  if (workingOrder.payment_status === 'paid') {
+    // Payment already marked — still try to confirm affiliate if stuck pending/cancelled
+    if (workingOrder.affiliate_id && workingOrder.commission_status !== 'confirmed') {
+      await confirmOrderCommission(workingOrder.id, workingOrder.affiliate_id, 'Snippe payment already paid — retry confirm');
     }
-    return { alreadyPaid: true, order };
+    return { alreadyPaid: true, order: workingOrder };
   }
 
   const channelMethod = mapChannelToMethod(paymentData.channel);
   const update = {
     payment_status: 'paid',
     status: 'confirmed',
-    [COL.reference]: paymentData.reference || order[COL.reference],
-    [COL.external]: paymentData.external_reference || order[COL.external] || null,
+    [COL.reference]: paymentData.reference || workingOrder[COL.reference],
+    [COL.external]: paymentData.external_reference || workingOrder[COL.external] || null,
     [COL.channel]: paymentData.channel
       ? `${paymentData.channel.type || ''}:${paymentData.channel.provider || ''}`
-      : order[COL.channel] || null,
+      : workingOrder[COL.channel] || null,
     payment_method:
-      channelMethod !== 'snippe' ? channelMethod : order.payment_method || 'snippe',
+      channelMethod !== 'snippe' ? channelMethod : workingOrder.payment_method || 'snippe',
     updated_at: new Date().toISOString(),
   };
 
   const { data: updated, error } = await supabase
     .from('orders')
     .update(update)
-    .eq('id', order.id)
+    .eq('id', workingOrder.id)
     .neq('payment_status', 'paid')
-    .select()
+    .select('*')
     .single();
 
   if (error && error.code !== 'PGRST116') {
     throw error;
   }
 
-  const finalOrder = updated || order;
+  const finalOrder = updated || workingOrder;
 
   // Confirm affiliate commission as soon as payment succeeds
-  const affiliateId = finalOrder.affiliate_id || order.affiliate_id;
+  const affiliateId = finalOrder.affiliate_id || workingOrder.affiliate_id;
   if (affiliateId) {
     try {
       await confirmOrderCommission(finalOrder.id, affiliateId, 'Snippe payment confirmed');
     } catch (affErr) {
       console.error('⚠️ Affiliate commission confirm failed:', affErr.message);
     }
+  } else {
+    console.log(`ℹ️ Order ${finalOrder.order_number} has no affiliate — skipping commission`);
   }
 
   try {
@@ -120,21 +136,17 @@ async function markOrderFailed(order, paymentData = {}) {
     })
     .eq('id', order.id)
     .neq('payment_status', 'paid')
-    .select()
+    .select('*')
     .single();
 
   const failedOrder = data || order;
-  if (failedOrder.affiliate_id) {
-    try {
-      await cancelOrderCommission(
-        failedOrder.id,
-        failedOrder.affiliate_id,
-        paymentData.failure_reason || 'Payment failed'
-      );
-    } catch (affErr) {
-      console.error('⚠️ Affiliate commission cancel failed:', affErr.message);
-    }
-  }
+
+  // Do NOT cancel affiliate commission on payment failure.
+  // Customer can retry payment on the same order; cancelling would leave
+  // commission stuck and never credit the affiliate after a successful retry.
+  console.log(
+    `⚠️ Payment failed for ${failedOrder.order_number} — keeping affiliate commission pending for retry`
+  );
 
   return failedOrder;
 }
@@ -278,7 +290,7 @@ router.get('/status/:orderId', async (req, res) => {
 
     const { data: order, error } = await supabase
       .from('orders')
-      .select(`id, order_number, payment_status, status, total, ${COL.reference}`)
+      .select('*')
       .eq('id', orderId)
       .single();
 
@@ -287,6 +299,14 @@ router.get('/status/:orderId', async (req, res) => {
     }
 
     if (order.payment_status === 'paid') {
+      // Retry commission confirm if payment succeeded earlier but affiliate credit got stuck
+      if (order.affiliate_id && order.commission_status !== 'confirmed') {
+        try {
+          await confirmOrderCommission(order.id, order.affiliate_id, 'Status poll — paid order retry confirm');
+        } catch (affErr) {
+          console.error('⚠️ Paid-order commission retry failed:', affErr.message);
+        }
+      }
       return res.json({
         success: true,
         payment_status: 'paid',

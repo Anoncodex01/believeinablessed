@@ -2,6 +2,7 @@
 import express from 'express';
 import supabase from '../config/supabase.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { ensureNameBasedReferralCode } from '../utils/referralCode.js';
 
 const router = express.Router();
 
@@ -356,7 +357,7 @@ router.put('/approve-affiliate/:id', authenticate, requireAdmin, async (req, res
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('role, affiliate_approved, email, name')
+      .select('id, role, affiliate_approved, email, name, referral_code')
       .eq('id', id)
       .single();
 
@@ -372,17 +373,8 @@ router.put('/approve-affiliate/:id', authenticate, requireAdmin, async (req, res
       return res.status(400).json({ success: false, error: 'Affiliate already approved' });
     }
 
-    // Generate referral code if not exists
-    const { data: userData } = await supabase
-      .from('users')
-      .select('referral_code')
-      .eq('id', id)
-      .single();
-
-    let referralCode = userData?.referral_code;
-    if (!referralCode) {
-      referralCode = `BIB${id.substring(0, 6).toUpperCase()}`;
-    }
+    // Generate name-based referral code if missing / legacy BIB…
+    const referralCode = await ensureNameBasedReferralCode(user);
 
     const { data, error } = await supabase
       .from('users')

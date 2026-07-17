@@ -29,8 +29,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['var(--font-display)', 'system-ui'],
-        body: ['var(--font-body)', 'system-ui'],
+        display: ['var(--font-display)', 'Syne', 'sans-serif'],
+        body: ['var(--font-body)', 'Figtree', 'sans-serif'],
       },
       animation: {
         'fade-up': 'fadeUp 0.5s ease-out forwards',

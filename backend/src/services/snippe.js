@@ -251,9 +251,7 @@ export class SnippeService {
 const snippeConfig = {
   apiKey: process.env.SNIPPE_API_KEY || '',
   baseUrl: process.env.SNIPPE_BASE_URL || 'https://api.snippe.sh',
-  webhookUrl:
-    process.env.SNIPPE_WEBHOOK_URL ||
-    `${process.env.BACKEND_URL || 'https://backend-calm-meadowland-7817.fly.dev'}/api/snippe/webhook`,
+  webhookUrl: process.env.SNIPPE_WEBHOOK_URL || '',
 };
 
 if (!snippeConfig.apiKey) {

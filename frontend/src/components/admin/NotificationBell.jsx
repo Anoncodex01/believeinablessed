@@ -7,23 +7,22 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '@/lib/config';
 
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'order':
-      return <ShoppingBag className="w-4 h-4 text-blue-500" />;
+      return <ShoppingBag className="h-4 w-4 text-sky-600" />;
     case 'affiliate':
-      return <Users className="w-4 h-4 text-purple-500" />;
+      return <Users className="h-4 w-4 text-teal-700" />;
     case 'withdrawal':
-      return <DollarSign className="w-4 h-4 text-yellow-500" />;
+      return <DollarSign className="h-4 w-4 text-amber-600" />;
     case 'review':
-      return <Star className="w-4 h-4 text-green-500" />;
+      return <Star className="h-4 w-4 text-emerald-600" />;
     case 'product':
-      return <Package className="w-4 h-4 text-orange-500" />;
+      return <Package className="h-4 w-4 text-orange-600" />;
     default:
-      return <Bell className="w-4 h-4 text-gray-500" />;
+      return <Bell className="h-4 w-4 text-[var(--text-secondary)]" />;
   }
 };
 
@@ -55,7 +54,7 @@ export default function NotificationBell() {
     // Try to get from cookies first (your API uses this)
     const token = Cookies.get('bib_token');
     if (token) return token;
-    
+
     // Fallback to localStorage
     if (typeof window !== 'undefined') {
       return localStorage.getItem('bib_token');
@@ -75,9 +74,9 @@ export default function NotificationBell() {
         limit: 10,
         ...(unreadOnly && { unread_only: 'true' })
       });
-      
+
       const response = await fetch(`${API_URL}/notifications?${params}`, {
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
@@ -93,7 +92,7 @@ export default function NotificationBell() {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setNotifications(data.notifications || []);
         setUnreadCount(data.unread_count || 0);
@@ -106,12 +105,12 @@ export default function NotificationBell() {
   useEffect(() => {
     // Initial fetch
     fetchNotifications();
-    
+
     // Poll every 15 seconds
     const interval = setInterval(() => {
       fetchNotifications(true);
     }, 15000);
-    
+
     // Click outside to close
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -119,7 +118,7 @@ export default function NotificationBell() {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     return () => {
       clearInterval(interval);
       document.removeEventListener('mousedown', handleClickOutside);
@@ -137,7 +136,7 @@ export default function NotificationBell() {
     try {
       const response = await fetch(`${API_URL}/notifications/${id}/read`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         }
@@ -150,9 +149,9 @@ export default function NotificationBell() {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(n => n.id === id ? { ...n, read: true } : n)
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
@@ -175,7 +174,7 @@ export default function NotificationBell() {
     try {
       const response = await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         }
@@ -188,9 +187,9 @@ export default function NotificationBell() {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(n => ({ ...n, read: true }))
         );
         setUnreadCount(0);
@@ -213,7 +212,7 @@ export default function NotificationBell() {
     try {
       const response = await fetch(`${API_URL}/notifications/${id}`, {
         method: 'DELETE',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
@@ -226,7 +225,7 @@ export default function NotificationBell() {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setNotifications(prev => prev.filter(n => n.id !== id));
         const deleted = notifications.find(n => n.id === id);
@@ -245,12 +244,12 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+        className="relative p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-[var(--text-secondary)] hover:text-[var(--text)]" />
+        <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+          <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center border border-[var(--bg-card)] bg-red-600 text-[10px] font-bold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -259,18 +258,18 @@ export default function NotificationBell() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: -10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: -10, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-[420px] max-h-[80vh] bg-[var(--bg-card)] rounded-xl border border-[var(--border)] shadow-2xl overflow-hidden z-50"
+            className="absolute right-0 z-50 mt-2 max-h-[80vh] w-[420px] overflow-hidden border border-[var(--border)] bg-[var(--bg-card)] shadow-2xl"
           >
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+            <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
               <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-[var(--text)]" />
+                <Bell className="h-4 w-4 text-[var(--text)]" />
                 <span className="font-semibold text-[var(--text)]">Notifications</span>
                 {unreadCount > 0 && (
-                  <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">
+                  <span className="border border-red-600/25 bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:text-red-400">
                     {unreadCount} new
                   </span>
                 )}
@@ -279,58 +278,58 @@ export default function NotificationBell() {
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
+                    className="p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
                     title="Mark all as read"
                   >
-                    <CheckCheck className="w-4 h-4" />
+                    <CheckCheck className="h-4 w-4" />
                   </button>
                 )}
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
+                  className="p-1.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
-            <div className="overflow-y-auto max-h-[400px]">
+            <div className="max-h-[400px] overflow-y-auto">
               {notifications.length === 0 ? (
-                <div className="text-center py-12">
-                  <Bell className="w-12 h-12 text-[var(--text-secondary)] mx-auto mb-3 opacity-30" />
+                <div className="py-12 text-center">
+                  <Bell className="mx-auto mb-3 h-12 w-12 text-[var(--text-secondary)] opacity-30" />
                   <p className="text-[var(--text-secondary)]">No notifications</p>
-                  <p className="text-xs text-[var(--text-secondary)] opacity-60">You're all caught up!</p>
+                  <p className="text-xs text-[var(--text-secondary)] opacity-60">You&apos;re all caught up!</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[var(--border)]">
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`p-4 hover:bg-[var(--bg-secondary)] transition-colors ${
-                        !notification.read ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''
+                      className={`p-4 transition-colors hover:bg-[var(--bg-secondary)] ${
+                        !notification.read ? 'border-l-2 border-teal-700 bg-teal-700/5' : ''
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-0.5">
+                        <div className="mt-0.5 flex-shrink-0">
                           {getNotificationIcon(notification.type)}
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <p className={`text-sm ${!notification.read ? 'font-semibold text-[var(--text)]' : 'text-[var(--text)]'}`}>
                                 {notification.title}
                               </p>
-                              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                              <p className="mt-1 text-xs text-[var(--text-secondary)]">
                                 {notification.message}
                               </p>
-                              <div className="flex items-center gap-2 mt-2">
+                              <div className="mt-2 flex items-center gap-2">
                                 <span className="text-[10px] text-[var(--text-secondary)]">
                                   {getTimeAgo(notification.created_at)}
                                 </span>
                                 {notification.link && (
                                   <Link
                                     href={notification.link}
-                                    className="text-xs text-blue-500 hover:underline"
+                                    className="text-xs text-teal-700 hover:underline"
                                     onClick={() => {
                                       if (!notification.read) {
                                         handleMarkAsRead(notification.id);
@@ -343,22 +342,22 @@ export default function NotificationBell() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex flex-shrink-0 items-center gap-1">
                               {!notification.read && (
                                 <button
                                   onClick={() => handleMarkAsRead(notification.id)}
-                                  className="p-1 rounded-lg hover:bg-blue-500/10 text-blue-500 transition-colors"
+                                  className="p-1 text-teal-700 transition-colors hover:bg-teal-700/10"
                                   title="Mark as read"
                                 >
-                                  <Check className="w-3.5 h-3.5" />
+                                  <Check className="h-3.5 w-3.5" />
                                 </button>
                               )}
                               <button
                                 onClick={() => handleDelete(notification.id)}
-                                className="p-1 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
+                                className="p-1 text-red-600 transition-colors hover:bg-red-500/10"
                                 title="Delete"
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>
@@ -370,10 +369,10 @@ export default function NotificationBell() {
               )}
             </div>
 
-            <div className="p-3 border-t border-[var(--border)] text-center">
+            <div className="border-t border-[var(--border)] p-3 text-center">
               <Link
                 href="/admin/notifications"
-                className="text-xs text-blue-500 hover:text-blue-600 font-medium"
+                className="text-xs font-medium text-teal-700 hover:text-teal-800"
                 onClick={() => setIsOpen(false)}
               >
                 View all notifications

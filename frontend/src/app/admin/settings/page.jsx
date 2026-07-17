@@ -35,7 +35,7 @@ export default function AdminSettings() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="space-y-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 shimmer-bg rounded-xl" />)}</div>;
+  if (loading) return <div className="space-y-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 shimmer-bg" />)}</div>;
 
   const sections = [
     {
@@ -63,25 +63,30 @@ export default function AdminSettings() {
   ];
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      <div>
-        <h2 className="text-xl font-display font-bold text-[var(--text)]">Settings</h2>
-        <p className="text-sm text-[var(--text-secondary)]">Configure platform settings</p>
+    <div className="max-w-2xl space-y-6">
+      <div className="border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-6 sm:px-6">
+        <p className="section-kicker">Configuration</p>
+        <h2 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+          Settings
+        </h2>
+        <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">
+          Configure platform-wide storefront and commission settings.
+        </p>
       </div>
 
       {sections.map((section, si) => (
         <motion.div key={si} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: si * 0.1 }}
-          className="card p-5">
-          <h3 className="font-semibold text-[var(--text)] mb-4 pb-3 border-b border-[var(--border)]">{section.title}</h3>
+          className="border border-[var(--border)] bg-[var(--bg-card)] p-5">
+          <h3 className="mb-4 border-b border-[var(--border)] pb-3 font-semibold text-[var(--text)]">{section.title}</h3>
           <div className="space-y-4">
             {section.fields.map(f => (
               <div key={f.key}>
-                <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1 block">{f.label}</label>
+                <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">{f.label}</label>
                 <input
                   type={f.type}
                   value={settings[f.key] || ''}
                   onChange={e => set(f.key, e.target.value)}
-                  className="input"
+                  className="input h-12"
                 />
               </div>
             ))}
@@ -93,9 +98,9 @@ export default function AdminSettings() {
         whileTap={{ scale: 0.97 }}
         onClick={handleSave}
         disabled={saving}
-        className="btn-primary flex items-center gap-2 disabled:opacity-50"
+        className="inline-flex h-12 items-center justify-center gap-2 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
       >
-        <Save className="w-4 h-4" />
+        <Save className="h-4 w-4" />
         {saving ? 'Saving...' : 'Save Settings'}
       </motion.button>
     </div>

@@ -16,19 +16,19 @@ function formatDate(date) {
 }
 
 function statusTone(status) {
-  if (status === 'approved') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-  if (status === 'rejected') return 'border-red-200 bg-red-50 text-red-700';
-  return 'border-amber-200 bg-amber-50 text-amber-700';
+  if (status === 'approved') return 'border-emerald-600/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400';
+  if (status === 'rejected') return 'border-red-600/25 bg-red-500/10 text-red-700 dark:text-red-400';
+  return 'border-amber-600/25 bg-amber-500/10 text-amber-700 dark:text-amber-400';
 }
 
 function StatCard({ icon: Icon, label, value, dark = false }) {
   return (
-    <div className={`rounded-3xl border p-5 ${dark ? 'border-neutral-900 bg-neutral-950 text-white' : 'border-black/10 bg-white text-neutral-950'}`}>
-      <div className={`mb-5 flex h-11 w-11 items-center justify-center rounded-full ${dark ? 'bg-white/10' : 'bg-neutral-100'}`}>
+    <div className={`border p-5 ${dark ? 'border-neutral-900 bg-neutral-950 text-white' : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)]'}`}>
+      <div className={`mb-4 flex h-10 w-10 items-center justify-center ${dark ? 'bg-white/10' : 'bg-teal-700/10 text-teal-700'}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className={`mt-1 text-sm ${dark ? 'text-white/60' : 'text-[var(--text-secondary)]'}`}>{label}</p>
+      <p className="font-display text-2xl font-semibold tracking-tight">{value}</p>
+      <p className={`mt-1 text-[11px] font-semibold tracking-[0.14em] uppercase ${dark ? 'text-white/55' : 'text-[var(--text-secondary)]'}`}>{label}</p>
     </div>
   );
 }
@@ -39,10 +39,10 @@ function renderStars(rating) {
       {[1, 2, 3, 4, 5].map(star => (
         <Star
           key={star}
-          className={`h-4 w-4 ${star <= rating ? 'text-yellow-400 fill-current' : 'text-neutral-200'}`}
+          className={`h-4 w-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-neutral-300'}`}
         />
       ))}
-      <span className="text-xs text-[var(--text-secondary)] ml-1">({rating})</span>
+      <span className="ml-1 text-xs text-[var(--text-secondary)]">({rating})</span>
     </div>
   );
 }
@@ -110,11 +110,21 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Reviews</p>
-        <button onClick={loadReviews} title="Refresh" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white transition hover:border-neutral-950">
-          <RefreshCw className="h-4 w-4" />
-        </button>
+      <div className="border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-6 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="section-kicker">Moderation</p>
+            <h2 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+              Reviews
+            </h2>
+            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">
+              Approve, reject, or remove customer product reviews.
+            </p>
+          </div>
+          <button onClick={loadReviews} title="Refresh" className="inline-flex h-11 w-11 items-center justify-center border border-[var(--border)] bg-[var(--bg-card)] transition hover:border-teal-700">
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -124,12 +134,12 @@ export default function AdminReviewsPage() {
         <StatCard icon={X} label="Rejected" value={rejectedCount} />
       </div>
 
-      <div className="rounded-3xl border border-black/10 bg-white p-4">
+      <div className="border border-[var(--border)] bg-[var(--bg-card)] p-4">
         <div className="flex flex-wrap gap-3">
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="h-12 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold outline-none"
+            className="input h-12 px-4 text-sm font-semibold"
           >
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
@@ -139,7 +149,7 @@ export default function AdminReviewsPage() {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="h-12 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold outline-none"
+            className="input h-12 px-4 text-sm font-semibold"
           >
             <option value="newest">Newest</option>
             <option value="highest">Highest Rating</option>
@@ -149,10 +159,10 @@ export default function AdminReviewsPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-black/10 bg-white">
+      <div className="overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px]">
-            <thead className="border-b border-black/10 bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+            <thead className="border-b border-[var(--border)] bg-[var(--bg-secondary)] text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               <tr>
                 <th className="px-5 py-4">User</th>
                 <th className="px-5 py-4">Product</th>
@@ -163,52 +173,52 @@ export default function AdminReviewsPage() {
                 <th className="px-5 py-4">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/5 text-sm">
+            <tbody className="divide-y divide-[var(--border)] text-sm">
               {loading ? Array.from({ length: 6 }).map((_, index) => (
-                <tr key={index}><td colSpan={7} className="px-5 py-4"><div className="h-12 rounded-xl shimmer-bg" /></td></tr>
+                <tr key={index}><td colSpan={7} className="px-5 py-4"><div className="h-12 shimmer-bg" /></td></tr>
               )) : reviews.map(review => (
                 <tr key={review.id} className="align-middle">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       {review.user_avatar ? (
-                        <img src={review.user_avatar} alt={review.user_name} className="h-9 w-9 rounded-full object-cover" />
+                        <img src={review.user_avatar} alt={review.user_name} className="h-9 w-9 object-cover" />
                       ) : (
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold text-neutral-950">
+                        <div className="flex h-9 w-9 items-center justify-center bg-teal-700/10 text-sm font-semibold text-teal-700">
                           {review.user_name?.charAt(0) || 'U'}
                         </div>
                       )}
-                      <p className="font-semibold text-neutral-950 truncate max-w-[120px]">{review.user_name}</p>
+                      <p className="max-w-[120px] truncate font-semibold text-[var(--text)]">{review.user_name}</p>
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <Link href={`/products/${review.product_id}`} target="_blank" className="font-semibold text-neutral-950 hover:underline truncate max-w-[140px] block">
+                    <Link href={`/products/${review.product_id}`} target="_blank" className="block max-w-[140px] truncate font-semibold text-[var(--text)] hover:text-teal-700">
                       {review.product_name || 'Unknown Product'}
                     </Link>
                   </td>
                   <td className="px-5 py-4">{renderStars(review.rating)}</td>
-                  <td className="px-5 py-4 max-w-[200px]">
-                    {review.title && <p className="font-semibold text-neutral-950 truncate">{review.title}</p>}
-                    <p className="text-[var(--text-secondary)] truncate">{review.comment}</p>
+                  <td className="max-w-[200px] px-5 py-4">
+                    {review.title && <p className="truncate font-semibold text-[var(--text)]">{review.title}</p>}
+                    <p className="truncate text-[var(--text-secondary)]">{review.comment}</p>
                   </td>
                   <td className="px-5 py-4">
-                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${statusTone(review.status)}`}>
+                    <span className={`inline-flex border px-2.5 py-1 text-[11px] font-semibold uppercase ${statusTone(review.status)}`}>
                       {review.status}
                     </span>
                   </td>
                   <td className="px-5 py-4 text-xs text-[var(--text-secondary)]">{formatDate(review.created_at)}</td>
                   <td className="px-5 py-4">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex flex-wrap items-center gap-2">
                       {review.status === 'pending' && (
                         <>
                           <button
                             onClick={() => handleApprove(review.id)}
-                            className="inline-flex h-8 items-center gap-1 rounded-full bg-neutral-950 px-3 text-xs font-semibold text-white"
+                            className="inline-flex h-8 items-center gap-1 bg-neutral-950 px-3 text-xs font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                           >
                             <Check className="h-3 w-3" /> Approve
                           </button>
                           <button
                             onClick={() => handleReject(review.id)}
-                            className="inline-flex h-8 items-center gap-1 rounded-full border border-black/10 px-3 text-xs font-semibold text-red-600"
+                            className="inline-flex h-8 items-center gap-1 border border-[var(--border)] px-3 text-xs font-semibold text-red-600 transition hover:border-red-500"
                           >
                             <X className="h-3 w-3" /> Reject
                           </button>
@@ -216,14 +226,14 @@ export default function AdminReviewsPage() {
                       )}
                       <button
                         onClick={() => handleDelete(review.id)}
-                        className="inline-flex h-8 items-center gap-1 rounded-full border border-black/10 px-3 text-xs font-semibold text-red-600"
+                        className="inline-flex h-8 items-center gap-1 border border-[var(--border)] px-3 text-xs font-semibold text-red-600 transition hover:border-red-500"
                       >
                         <Trash2 className="h-3 w-3" /> Delete
                       </button>
                       <Link
                         href={`/products/${review.product_id}`}
                         target="_blank"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-[var(--text-secondary)] hover:border-neutral-950"
+                        className="inline-flex h-8 w-8 items-center justify-center border border-[var(--border)] text-[var(--text-secondary)] transition hover:border-teal-700"
                       >
                         <Eye className="h-3.5 w-3.5" />
                       </Link>

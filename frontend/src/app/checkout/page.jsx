@@ -198,6 +198,12 @@ function CheckoutContent() {
       newErrors.customer_email = 'Email is required for card payments';
     }
     if (items.length === 0) newErrors.cart = 'Your cart is empty';
+    const missingVariant = items.find((item) =>
+      (item.sizes?.length > 0 && !item.size) || (item.colors?.length > 0 && !item.color)
+    );
+    if (missingVariant) {
+      newErrors.cart = `Select size and color for "${missingVariant.name || 'an item'}" before checkout.`;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -209,8 +215,8 @@ function CheckoutContent() {
     const orderItems = items.map((i) => ({
       product_id: i.id,
       quantity: i.quantity,
-      size: i.size,
-      color: i.color,
+      size: i.size || null,
+      color: i.color || null,
       price: i.sale_price || i.price,
     }));
 
@@ -307,22 +313,22 @@ function CheckoutContent() {
   };
 
   const CountrySelector = () => (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowCountrySelector(false)}>
-      <div className="bg-[var(--bg)] rounded-xl max-w-md w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-[var(--border)] flex justify-between items-center">
-          <h3 className="font-semibold text-[var(--text)]">Select Country</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCountrySelector(false)}>
+      <div className="max-h-[80vh] w-full max-w-md overflow-hidden border border-[var(--border)] bg-[var(--bg)]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-[var(--border)] p-4">
+          <h3 className="font-display text-base font-semibold tracking-tight text-[var(--text)]">Select Country</h3>
           <button onClick={() => setShowCountrySelector(false)} className="text-[var(--text-secondary)] hover:text-[var(--text)]">✕</button>
         </div>
-        <div className="p-4 overflow-y-auto max-h-[60vh]">
+        <div className="max-h-[60vh] overflow-y-auto p-4">
           <div className="relative mb-4">
             <input type="text" placeholder="Search countries..." className="input pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {getFilteredCountries().map(([code, info]) => (
               <button
                 key={code}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+                className="flex w-full items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--bg-secondary)]"
                 onClick={() => {
                   setField('country_code', code);
                   setField('customer_phone', '');
@@ -331,12 +337,12 @@ function CheckoutContent() {
                 }}
               >
                 <span className="text-xl">{info.flag}</span>
-                <span className="flex-1 text-left text-[var(--text)]">{info.name}</span>
+                <span className="flex-1 text-left text-sm tracking-tight text-[var(--text)]">{info.name}</span>
                 <span className="text-sm text-[var(--text-secondary)]">{info.code}</span>
               </button>
             ))}
             {getFilteredCountries().length === 0 && (
-              <p className="text-center text-[var(--text-secondary)] py-4">No countries found</p>
+              <p className="py-4 text-center text-[var(--text-secondary)]">No countries found</p>
             )}
           </div>
         </div>
@@ -360,20 +366,22 @@ function CheckoutContent() {
 
   if (items.length === 0) {
     return (
-      <main className="min-h-screen bg-[var(--bg)] pt-16 pb-24 md:pb-0">
+      <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-24 pt-16 md:pb-0">
         <Navbar />
-        <div className="mx-auto flex max-w-[900px] flex-col items-center px-4 py-24 text-center sm:px-8">
-          <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#f6f4f0] text-neutral-950 dark:bg-white/10 dark:text-white">
-            <ShoppingBag className="h-9 w-9" />
+        <div className="home-shell flex flex-col items-center py-24 text-center">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center border border-[var(--border)] bg-[var(--surface-warm)] text-neutral-950 dark:text-white">
+            <ShoppingBag className="h-7 w-7" />
           </div>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Checkout</p>
-          <h1 className="font-display text-4xl font-semibold text-[var(--text)] sm:text-5xl">Your bag is empty</h1>
-          <p className="mt-4 max-w-md text-sm leading-6 text-[var(--text-secondary)]">
+          <p className="section-kicker">Checkout</p>
+          <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">
+            Your bag is empty
+          </h1>
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-[var(--text-secondary)]">
             Add a product to your bag first, then come back here to complete your order.
           </p>
           <Link
             href="/products"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-950"
+            className="mt-8 inline-flex items-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
           >
             Shop Products <ArrowRight className="h-4 w-4" />
           </Link>
@@ -385,31 +393,31 @@ function CheckoutContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] pt-16 pb-24 md:pb-0">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-24 pt-16 md:pb-0">
       <Navbar />
       {showCountrySelector && <CountrySelector />}
 
       <AnimatePresence>
         {showSnippeModal && snippePaymentData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="max-h-[90vh] w-full max-w-md overflow-y-auto border border-[var(--border)] bg-[var(--bg-card)] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-5 border-b border-[var(--border)] flex items-center justify-between sticky top-0 bg-[var(--bg-card)] z-10">
-                <h3 className="font-bold text-[var(--text)] flex items-center gap-2">
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg-card)] p-5">
+                <h3 className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
                   {snippePaymentData.paymentType === 'card' ? (
-                    <CreditCard className="w-5 h-5" />
+                    <CreditCard className="h-5 w-5" />
                   ) : (
-                    <Smartphone className="w-5 h-5" />
+                    <Smartphone className="h-5 w-5" />
                   )}
                   Pay with Snippe
                 </h3>
-                <button onClick={handleSnippeClose} className="p-2 hover:bg-[var(--bg-secondary)] rounded-lg">
-                  <X className="w-5 h-5" />
+                <button onClick={handleSnippeClose} className="p-2 transition hover:bg-[var(--bg-secondary)]">
+                  <X className="h-5 w-5" />
                 </button>
               </div>
               <div className="p-5">
@@ -433,27 +441,30 @@ function CheckoutContent() {
         )}
       </AnimatePresence>
 
-      <div className="mx-auto max-w-[1500px] px-4 py-8 sm:px-8 lg:px-12 lg:py-12">
-        <section className="mb-8 rounded-[28px] bg-[#f6f4f0] px-5 py-8 sm:px-8 lg:px-10 dark:bg-white/5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Secure Checkout</p>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="home-shell py-8 sm:py-12 lg:py-14">
+        <section className="relative mb-10 overflow-hidden border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-10 sm:px-8 sm:py-12 lg:px-12">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(15,118,110,0.08),_transparent_55%)]" />
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="font-display text-5xl font-semibold leading-none text-[var(--text)]">Checkout</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+              <p className="section-kicker">Secure checkout</p>
+              <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl lg:text-[3.25rem]">
+                Checkout
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
                 Review your pieces, confirm delivery details, and pay securely with Snippe.
               </p>
             </div>
-            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-3 text-xs font-medium text-neutral-700 shadow-sm dark:bg-white/10 dark:text-white">
-              <Lock className="h-4 w-4" />
+            <div className="inline-flex w-fit items-center gap-2 border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-xs font-medium tracking-tight text-[var(--text-secondary)]">
+              <Lock className="h-3.5 w-3.5 text-teal-700" />
               Powered by Snippe
             </div>
           </div>
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-10">
           <div className="space-y-4">
-            <div className="card p-5">
-              <h2 className="font-semibold text-[var(--text)] mb-4">
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
+              <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
                 Contact Information <span className="text-red-500">*</span>
               </h2>
               <div className="space-y-3">
@@ -505,8 +516,8 @@ function CheckoutContent() {
               </div>
             </div>
 
-            <div className="card p-5">
-              <h2 className="font-semibold text-[var(--text)] mb-4">
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
+              <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
                 Delivery Address <span className="text-red-500">*</span>
               </h2>
               <div className="space-y-3">
@@ -532,36 +543,36 @@ function CheckoutContent() {
               </div>
             </div>
 
-            <div className="card p-5">
-              <h2 className="font-semibold text-[var(--text)] mb-4">
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
+              <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
                 Pay with Snippe <span className="text-red-500">*</span>
               </h2>
               <div className="space-y-3">
                 <button
                   type="button"
                   onClick={() => setField('payment_type', 'mobile')}
-                  className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`w-full border-2 p-4 text-left transition-all ${
                     form.payment_type === 'mobile'
-                      ? 'border-neutral-950 bg-neutral-950/5 shadow-lg dark:border-white dark:bg-white/10'
+                      ? 'border-neutral-950 bg-neutral-950/[0.03] dark:border-white dark:bg-white/10'
                       : 'border-[var(--border)] hover:border-neutral-400'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      className={`flex h-12 w-12 flex-shrink-0 items-center justify-center ${
                         form.payment_type === 'mobile'
                           ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
                           : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                       }`}
                     >
-                      <Smartphone className="w-7 h-7" />
+                      <Smartphone className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="text-base font-semibold text-[var(--text)]">Mobile Money</p>
-                        {form.payment_type === 'mobile' && <CheckCircle className="w-5 h-5 text-[var(--text)]" />}
+                        <p className="text-base font-semibold tracking-tight text-[var(--text)]">Mobile Money</p>
+                        {form.payment_type === 'mobile' && <CheckCircle className="h-5 w-5 text-teal-700" />}
                       </div>
-                      <p className="text-sm text-[var(--text-secondary)] mt-1">
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
                         M-Pesa, Airtel Money, Tigo Pesa & more — USSD prompt on your phone
                       </p>
                     </div>
@@ -571,39 +582,39 @@ function CheckoutContent() {
                 <button
                   type="button"
                   onClick={() => setField('payment_type', 'card')}
-                  className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  className={`w-full border-2 p-4 text-left transition-all ${
                     form.payment_type === 'card'
-                      ? 'border-neutral-950 bg-neutral-950/5 shadow-lg dark:border-white dark:bg-white/10'
+                      ? 'border-neutral-950 bg-neutral-950/[0.03] dark:border-white dark:bg-white/10'
                       : 'border-[var(--border)] hover:border-neutral-400'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <div
-                      className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      className={`flex h-12 w-12 flex-shrink-0 items-center justify-center ${
                         form.payment_type === 'card'
                           ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
                           : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                       }`}
                     >
-                      <CreditCard className="w-7 h-7" />
+                      <CreditCard className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="text-base font-semibold text-[var(--text)]">Card</p>
-                        {form.payment_type === 'card' && <CheckCircle className="w-5 h-5 text-[var(--text)]" />}
+                        <p className="text-base font-semibold tracking-tight text-[var(--text)]">Card</p>
+                        {form.payment_type === 'card' && <CheckCircle className="h-5 w-5 text-teal-700" />}
                       </div>
-                      <p className="text-sm text-[var(--text-secondary)] mt-1">
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
                         Visa / Mastercard — secure redirect via Snippe
                       </p>
                     </div>
                   </div>
                 </button>
               </div>
-              {errors.payment_type && <p className="text-xs text-red-500 mt-2">{errors.payment_type}</p>}
+              {errors.payment_type && <p className="mt-2 text-xs text-red-500">{errors.payment_type}</p>}
             </div>
 
-            <div className="card p-5">
-              <h2 className="font-semibold text-[var(--text)] mb-3">Coupon</h2>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
+              <h2 className="mb-4 font-display text-lg font-semibold tracking-tight text-[var(--text)]">Coupon</h2>
               <div className="flex gap-2">
                 <input
                   placeholder="Enter coupon code"
@@ -619,18 +630,20 @@ function CheckoutContent() {
           </div>
 
           <div className="h-fit lg:sticky lg:top-24">
-            <div className="rounded-[24px] border border-black/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-2xl font-semibold text-[var(--text)]">Order Summary</h2>
-                  <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  <h2 className="font-display text-2xl font-semibold tracking-tight text-[var(--text)]">
+                    Order Summary
+                  </h2>
+                  <p className="mt-1 text-xs tracking-[0.06em] text-[var(--text-secondary)] uppercase">
                     {items.length} {items.length === 1 ? 'item' : 'items'} in your bag
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium text-red-500 transition hover:bg-red-500/10"
+                  className="inline-flex items-center gap-2 px-2 py-2 text-xs font-medium text-red-500 transition hover:bg-red-500/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Clear
@@ -647,31 +660,33 @@ function CheckoutContent() {
                   return (
                     <div
                       key={item.cartKey}
-                      className="rounded-2xl border border-black/10 bg-[#f7f6f4] p-3 dark:border-white/10 dark:bg-white/5"
+                      className="border border-[var(--border)] bg-[var(--surface-warm)] p-3"
                     >
                       <div className="flex gap-3">
-                        <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-white dark:bg-white/10">
-                          <Image src={image} alt={item.name} fill className="object-contain p-2" sizes="80px" />
+                        <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
+                          <Image src={image} alt={item.name} fill className="object-cover" sizes="80px" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <p className="line-clamp-1 text-sm font-medium text-[var(--text)]">{item.name}</p>
+                              <p className="line-clamp-1 font-display text-sm font-medium tracking-tight text-[var(--text)]">
+                                {item.name}
+                              </p>
                               <p className="mt-1 text-xs text-[var(--text-secondary)]">
                                 {item.size ? `Size ${item.size}` : 'Selected item'}
                                 {item.color ? ` • ${item.color}` : ''}
                               </p>
                             </div>
-                            <p className="shrink-0 text-sm font-semibold text-[var(--text)]">
+                            <p className="shrink-0 text-sm font-semibold tracking-tight text-[var(--text)]">
                               {formatPrice(itemPrice * item.quantity)}
                             </p>
                           </div>
                           <div className="mt-3 flex items-center justify-between gap-3">
-                            <div className="inline-flex items-center rounded-full border border-black/10 bg-white p-1 dark:border-white/10 dark:bg-white/10">
+                            <div className="inline-flex items-center border border-[var(--border)] bg-[var(--bg-card)] p-0.5">
                               <button
                                 type="button"
                                 onClick={() => updateQuantity(item.cartKey, item.quantity - 1)}
-                                className="flex h-7 w-7 items-center justify-center rounded-full transition hover:bg-[#f1efeb] dark:hover:bg-white/10"
+                                className="flex h-7 w-7 items-center justify-center transition hover:bg-[var(--bg-secondary)]"
                               >
                                 <Minus className="h-3.5 w-3.5" />
                               </button>
@@ -681,7 +696,7 @@ function CheckoutContent() {
                               <button
                                 type="button"
                                 onClick={() => updateQuantity(item.cartKey, item.quantity + 1)}
-                                className="flex h-7 w-7 items-center justify-center rounded-full transition hover:bg-[#f1efeb] dark:hover:bg-white/10"
+                                className="flex h-7 w-7 items-center justify-center transition hover:bg-[var(--bg-secondary)]"
                               >
                                 <Plus className="h-3.5 w-3.5" />
                               </button>
@@ -689,7 +704,7 @@ function CheckoutContent() {
                             <button
                               type="button"
                               onClick={() => removeItem(item.cartKey)}
-                              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-2 text-xs font-medium text-red-500 transition hover:bg-red-500/10"
+                              className="inline-flex items-center gap-1.5 px-2 py-2 text-xs font-medium text-red-500 transition hover:bg-red-500/10"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               Remove
@@ -702,7 +717,7 @@ function CheckoutContent() {
                 })}
               </div>
 
-              <div className="border-t border-[var(--border)] pt-3 space-y-2 mb-4">
+              <div className="mb-4 space-y-2 border-t border-[var(--border)] pt-4">
                 <div className="flex justify-between text-sm text-[var(--text-secondary)]">
                   <span>Subtotal</span>
                   <span>{formatPrice(total)}</span>
@@ -717,22 +732,22 @@ function CheckoutContent() {
                     <span>-{formatPrice(discount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-[var(--text)] text-lg pt-2 border-t border-[var(--border)]">
+                <div className="flex justify-between border-t border-[var(--border)] pt-3 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
                   <span>Total</span>
                   <span>{formatPrice(total - discount)}</span>
                 </div>
               </div>
 
-              <div className="mb-4 overflow-hidden rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-white/5">
+              <div className="mb-3 overflow-hidden border border-[var(--border)]">
                 <button
                   onClick={() => setShippingExpanded(!shippingExpanded)}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left transition hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-[var(--bg-secondary)]"
                 >
                   <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-neutral-950 dark:text-white" />
-                    <span className="text-sm font-medium text-[var(--text)]">Shipping Information</span>
+                    <Truck className="h-4 w-4 text-teal-700" />
+                    <span className="text-sm font-medium tracking-tight text-[var(--text)]">Shipping Information</span>
                   </div>
-                  {shippingExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  {shippingExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </button>
                 <AnimatePresence>
                   {shippingExpanded && (
@@ -740,30 +755,26 @@ function CheckoutContent() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="px-4 pb-4 text-sm"
+                      className="border-t border-[var(--border)] px-4 pb-4 pt-3 text-sm"
                     >
-                      <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-white/[0.04]">
-                        <p className="font-semibold text-[var(--text)]">Shipping confirmed before dispatch</p>
-                        <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
-                          Local delivery, East Africa courier, and international shipping options are confirmed with your
-                          order.
-                        </p>
-                      </div>
+                      <p className="text-xs leading-5 text-[var(--text-secondary)]">
+                        Local delivery, East Africa courier, and international shipping options are confirmed with your order.
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              <div className="mb-4 overflow-hidden rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-white/5">
+              <div className="mb-5 overflow-hidden border border-[var(--border)]">
                 <button
                   onClick={() => setReturnsExpanded(!returnsExpanded)}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left transition hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-[var(--bg-secondary)]"
                 >
                   <div className="flex items-center gap-2">
-                    <RotateCcw className="w-4 h-4 text-neutral-950 dark:text-white" />
-                    <span className="text-sm font-medium text-[var(--text)]">Returns & Refund Policy</span>
+                    <RotateCcw className="h-4 w-4 text-teal-700" />
+                    <span className="text-sm font-medium tracking-tight text-[var(--text)]">Returns & Refund Policy</span>
                   </div>
-                  {returnsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  {returnsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </button>
                 <AnimatePresence>
                   {returnsExpanded && (
@@ -771,14 +782,11 @@ function CheckoutContent() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="px-4 pb-4 text-sm"
+                      className="border-t border-[var(--border)] px-4 pb-4 pt-3 text-sm"
                     >
-                      <div className="rounded-2xl bg-neutral-50 p-4 dark:bg-white/[0.04]">
-                        <p className="font-semibold text-[var(--text)]">Returns within 14 days</p>
-                        <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
-                          Items must be unworn, unwashed, and returned with original tags attached.
-                        </p>
-                      </div>
+                      <p className="text-xs leading-5 text-[var(--text-secondary)]">
+                        Returns within 14 days. Items must be unworn, unwashed, and returned with original tags attached.
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -788,28 +796,28 @@ function CheckoutContent() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleSubmit}
                 disabled={isCreatingOrder || items.length === 0}
-                className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 text-base py-4"
+                className="flex w-full items-center justify-center gap-2 bg-neutral-950 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
               >
                 {isCreatingOrder ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     Creating Order...
                   </>
                 ) : form.payment_type === 'card' ? (
                   <>
-                    <CreditCard className="w-5 h-5" />
+                    <CreditCard className="h-5 w-5" />
                     Pay with Card
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </>
                 ) : (
                   <>
-                    <Smartphone className="w-5 h-5" />
+                    <Smartphone className="h-5 w-5" />
                     Pay with Mobile Money
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </motion.button>
-              <p className="text-xs text-[var(--text-secondary)] text-center mt-3">
+              <p className="mt-3 text-center text-xs text-[var(--text-secondary)]">
                 Secure payment by Snippe · WhatsApp +255 747 110 777
               </p>
             </div>

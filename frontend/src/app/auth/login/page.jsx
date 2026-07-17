@@ -5,32 +5,28 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Sparkles, User, Zap } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const heroImage =
-  'https://res.cloudinary.com/drn2khjxq/image/upload/v1783808187/believeinablessed/products/mfyoi3pgzad7welrkmlc.jpg';
-
-const loginModes = [
-  { id: 'customer', label: 'Customer', icon: User, title: 'Welcome back', note: 'Track orders, manage your bag, and shop faster.' },
-  { id: 'affiliate', label: 'Affiliate', icon: Zap, title: 'Affiliate login', note: 'Open your dashboard and share product links.' },
-];
+  'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=1400&fit=crop&auto=format';
 
 function LoginContent() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect');
-  const [mode, setMode] = useState(searchParams.get('type') || 'customer');
+  const initialMode = searchParams.get('type') === 'affiliate' ? 'affiliate' : 'customer';
+
+  const [mode, setMode] = useState(initialMode);
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
 
-  const activeMode = loginModes.find(item => item.id === mode) || loginModes[0];
-  const ActiveIcon = activeMode.icon;
-  const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+  const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -42,9 +38,8 @@ function LoginContent() {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      toast.success(`Welcome back, ${user.name || 'Admin'}!`);
+      toast.success(`Welcome back, ${user.name || 'there'}!`);
 
-      // Always honor redirect (e.g. /checkout) so shoppers finish their purchase
       if (redirect) {
         router.push(redirect);
       } else if (user.role === 'admin') {
@@ -62,143 +57,180 @@ function LoginContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f6f3] pt-16 dark:bg-neutral-950">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-20 pt-16 md:pb-0">
       <Navbar />
-      <section className="mx-auto grid min-h-[calc(100vh-64px)] max-w-[1500px] items-stretch gap-0 px-4 py-6 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-12">
+
+      <div className="home-shell grid min-h-[calc(100vh-4rem)] items-stretch gap-0 py-8 sm:py-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
+        {/* Left — brand panel (desktop) */}
         <motion.div
-          initial={{ opacity: 0, x: -18 }}
+          initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
-          className="relative hidden overflow-hidden rounded-[32px] bg-neutral-950 lg:block"
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="relative hidden overflow-hidden bg-stone-900 lg:block"
         >
-          <Image src={heroImage} alt="Believe in a Blessed fashion edit" fill priority className="object-cover opacity-88" sizes="50vw" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
-          <div className="absolute left-8 top-8 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-950">
-            BelieveinaBlessed
-          </div>
-          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
-              <Sparkles className="h-4 w-4" />
-              Clean fashion, confident checkout
+          <Image
+            src={heroImage}
+            alt="BelieveinaBlessed"
+            fill
+            priority
+            className="object-cover"
+            sizes="50vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
+          <div className="relative flex h-full flex-col justify-end p-10">
+            <p className="mb-4 font-display text-sm font-semibold tracking-[0.28em] text-white/85 uppercase">
+              BelieveinaBlessed
             </p>
-            <h1 className="max-w-xl font-display text-6xl font-semibold leading-none">Sign in to your style account.</h1>
-            <p className="mt-5 max-w-md text-sm leading-6 text-white/75">
-              One secure account for shopping, affiliate earnings, and store management.
+            <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-white xl:text-5xl">
+              Sign in to your account
+            </h1>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
+              Shop, track orders, or manage your affiliate dashboard — all in one place.
             </p>
           </div>
         </motion.div>
 
-        <div className="flex items-center justify-center py-8 lg:pl-10">
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[520px]">
-            <div className="mb-8 lg:hidden">
-              <div className="relative mb-5 aspect-[1.7] overflow-hidden rounded-[28px]">
-                <Image src={heroImage} alt="Believe in a Blessed fashion edit" fill className="object-cover" sizes="100vw" />
-                <div className="absolute inset-0 bg-black/25" />
-              </div>
+        {/* Right — form */}
+        <div className="flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md"
+          >
+            <div className="mb-8">
+              <p className="section-kicker">Account</p>
+              <h2 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+                {mode === 'affiliate' ? 'Affiliate login' : 'Welcome back'}
+              </h2>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                {mode === 'affiliate'
+                  ? 'Access your dashboard and earnings.'
+                  : 'Sign in to shop and track your orders.'}
+              </p>
             </div>
 
-            <div className="mb-7">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Account access</p>
-              <h2 className="mt-2 font-display text-5xl font-semibold leading-none text-[var(--text)]">{activeMode.title}</h2>
-              <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{activeMode.note}</p>
+            {/* Mode toggle */}
+            <div className="mb-6 flex border border-[var(--border)] p-1">
+              {[
+                { id: 'customer', label: 'Customer' },
+                { id: 'affiliate', label: 'Affiliate' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setMode(item.id)}
+                  className={`flex-1 py-2.5 text-sm font-medium tracking-tight transition ${
+                    mode === item.id
+                      ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
 
-            <div className="mb-5 grid grid-cols-2 gap-2 rounded-full bg-white p-1 shadow-sm dark:bg-white/10">
-              {loginModes.map(item => {
-                const Icon = item.icon;
-                const selected = item.id === mode;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setMode(item.id)}
-                    className={`flex min-h-11 items-center justify-center gap-2 rounded-full px-2 text-xs font-semibold transition sm:text-sm ${
-                      selected
-                        ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <form onSubmit={handleLogin} className="rounded-[28px] border border-black/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6">
-              <div className="mb-5 flex items-center gap-3 rounded-2xl bg-[#f7f6f3] p-4 dark:bg-white/[0.04]">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950">
-                  <ActiveIcon className="h-5 w-5" />
-                </div>
+            <form
+              onSubmit={handleLogin}
+              className="border border-[var(--border)] bg-[var(--bg-card)] p-6 sm:p-8"
+            >
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-[var(--text)]">{activeMode.label} sign in</p>
-                  <p className="text-xs text-[var(--text-secondary)]">Use your registered email and password.</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="relative block">
-                  <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
+                  <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                    Email
+                  </label>
                   <input
                     type="email"
-                    placeholder="Email address"
+                    placeholder="you@example.com"
                     value={form.email}
-                    onChange={event => set('email', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11"
+                    onChange={(e) => set('email', e.target.value)}
+                    className="input"
                     autoComplete="email"
+                    required
                   />
-                </label>
-                <label className="relative block">
-                  <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={form.password}
-                    onChange={event => set('password', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11 pr-12"
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw(prev => !prev)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] transition hover:text-[var(--text)]"
-                    aria-label={showPw ? 'Hide password' : 'Show password'}
-                  >
-                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </label>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={form.password}
+                      onChange={(e) => set('password', e.target.value)}
+                      className="input pr-11"
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] transition hover:text-[var(--text)]"
+                      aria-label={showPw ? 'Hide password' : 'Show password'}
+                    >
+                      {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              <motion.button
+              <button
                 type="submit"
-                whileTap={{ scale: 0.98 }}
                 disabled={loading}
-                className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950"
+                className="mt-6 flex w-full items-center justify-center gap-2 bg-neutral-950 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {loading ? 'Signing in…' : 'Sign in'}
                 {!loading && <ArrowRight className="h-4 w-4" />}
-              </motion.button>
+              </button>
             </form>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <Link href={redirect ? `/auth/register?redirect=${encodeURIComponent(redirect)}` : '/auth/register'} className="rounded-2xl border border-black/10 bg-white p-4 text-sm transition hover:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:hover:border-white">
-                <span className="font-semibold text-[var(--text)]">Create customer account</span>
-                <span className="mt-1 block text-xs leading-5 text-[var(--text-secondary)]">Shop faster and track orders.</span>
+            <p className="mt-6 text-center text-sm text-[var(--text-secondary)]">
+              Don&apos;t have an account?{' '}
+              <Link
+                href={
+                  redirect
+                    ? `/auth/register?redirect=${encodeURIComponent(redirect)}`
+                    : mode === 'affiliate'
+                    ? '/auth/register?type=affiliate'
+                    : '/auth/register'
+                }
+                className="font-semibold text-teal-700 transition hover:opacity-70 dark:text-teal-300"
+              >
+                Create one
               </Link>
-              <Link href="/auth/register?type=affiliate" className="rounded-2xl border border-black/10 bg-white p-4 text-sm transition hover:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:hover:border-white">
-                <span className="font-semibold text-[var(--text)]">Register as affiliate</span>
-                <span className="mt-1 block text-xs leading-5 text-[var(--text-secondary)]">Apply and earn commission.</span>
+            </p>
+
+            <div className="mt-8 border-t border-[var(--border)] pt-6 text-center">
+              <Link
+                href="/products"
+                className="text-sm font-medium tracking-tight text-[var(--text-secondary)] transition hover:text-teal-700"
+              >
+                Continue shopping without an account →
               </Link>
             </div>
           </motion.div>
         </div>
-      </section>
+      </div>
+
+      <Footer />
     </main>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-[#f7f6f3] dark:bg-neutral-950" />}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[var(--bg)]">
+          <div className="font-display text-sm tracking-[0.2em] text-[var(--text-secondary)] uppercase">
+            Loading
+          </div>
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );

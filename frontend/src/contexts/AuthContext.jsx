@@ -3,8 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '@/lib/config';
 
 const AuthContext = createContext(null);
 const cookieOptions = { expires: 7, path: '/', sameSite: 'lax', secure: process.env.NODE_ENV === 'production' };
@@ -35,7 +34,7 @@ export function AuthProvider({ children }) {
 
   const fetchMe = async () => {
     try {
-      const { data } = await axios.get(`${API}/auth/me`);
+      const { data } = await axios.get(`${API_URL}/auth/me`);
       setUser(data.user);
       Cookies.set('bib_user', JSON.stringify(data.user), cookieOptions);
       if (typeof window !== 'undefined') localStorage.setItem('bib_user', JSON.stringify(data.user));
@@ -64,7 +63,7 @@ export function AuthProvider({ children }) {
       Cookies.set('bib_token', token, cookieOptions);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      const { data } = await axios.get(`${API}/auth/me`);
+      const { data } = await axios.get(`${API_URL}/auth/me`);
       if (data.user) {
         setUser(data.user);
         Cookies.set('bib_user', JSON.stringify(data.user), cookieOptions);
@@ -79,7 +78,7 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (email, password) => {
-    const { data } = await axios.post(`${API}/auth/login`, { email, password });
+    const { data } = await axios.post(`${API_URL}/auth/login`, { email, password });
     Cookies.set('bib_token', data.token, cookieOptions);
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
     setUser(data.user);
@@ -92,7 +91,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (formData) => {
-    const { data } = await axios.post(`${API}/auth/register`, formData);
+    const { data } = await axios.post(`${API_URL}/auth/register`, formData);
     Cookies.set('bib_token', data.token, cookieOptions);
     axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
     setUser(data.user);

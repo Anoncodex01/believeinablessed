@@ -474,15 +474,23 @@ function TrackContent() {
               <div className="rounded-3xl border border-black/10 bg-white p-5">
                 <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-neutral-400">Items ({order.items.length})</p>
                 <div className="divide-y divide-black/5">
-                  {order.items.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between gap-3 py-3 text-sm">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-neutral-950 truncate">{item.product_name || 'Item'}</p>
-                        <p className="text-xs text-neutral-400">Qty: {item.quantity}{item.size ? ` · Size: ${item.size}` : ''}</p>
+                  {order.items.map((item, i) => {
+                    const size = item.size || item.selected_size || null;
+                    const color = item.color || item.selected_color || null;
+                    return (
+                      <div key={i} className="flex items-start justify-between gap-3 py-3 text-sm">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-neutral-950 truncate">{item.product_name || 'Item'}</p>
+                          <p className="mt-1 text-xs text-neutral-400">Qty: {item.quantity}</p>
+                          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500">
+                            <span>Size: <strong className="font-semibold text-neutral-950">{size || '—'}</strong></span>
+                            <span>Color: <strong className="font-semibold text-neutral-950">{color || '—'}</strong></span>
+                          </div>
+                        </div>
+                        <span className="font-bold text-neutral-950 whitespace-nowrap">{formatPrice((item.unit_price || item.price || 0) * item.quantity)}</span>
                       </div>
-                      <span className="font-bold text-neutral-950 whitespace-nowrap">{formatPrice(item.unit_price * item.quantity)}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

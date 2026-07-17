@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLang } from '@/contexts/LangContext';
-import { Instagram, Mail, Phone } from 'lucide-react';
+import { ArrowRight, Instagram, Mail, Phone } from 'lucide-react';
 
 export default function Footer() {
   const { t } = useLang();
@@ -18,85 +18,77 @@ export default function Footer() {
     setEmail('');
   };
 
+  const shopLinks = [
+    { label: t('all_products'), href: '/products' },
+    { label: t('trending'), href: '/products?trending=true' },
+    { label: 'Affiliate Program', href: '/affiliate' },
+    { label: t('competition'), href: '/competition' },
+  ];
+
+  const companyLinks = [
+    { label: 'About Us', href: '/about' },
+    { label: 'Contact Us', href: '/contact' },
+    { label: t('home'), href: '/' },
+    { label: 'Track Order', href: '/track' },
+  ];
+
   return (
-    <footer className="border-t border-black/10 bg-[#f7f6f3] pb-20 md:pb-0 dark:border-white/10 dark:bg-neutral-950">
-      <div className="mx-auto max-w-[1500px] px-4 py-14 sm:px-8 lg:px-12">
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_0.8fr_1fr]">
+    <footer className="border-t border-[var(--border)] bg-[var(--surface-warm)] pb-20 md:pb-0">
+      <div className="home-shell py-14 sm:py-16">
+        <div className="mb-12 grid gap-10 border-b border-[var(--border)] pb-12 lg:grid-cols-[1.3fr_0.9fr] lg:items-end">
           <div>
-            <div className="mb-6 flex items-center">
-              <Image
-                src="/logo.png"
-                alt="Believe in a Blessed"
-                width={170}
-                height={72}
-                className="h-auto w-36 object-contain dark:brightness-0 dark:invert sm:w-44"
-              />
-            </div>
-
-            <p className="max-w-md text-base leading-7 text-[var(--text-secondary)]">
-              Tanzania's premier fashion destination for clean, confident everyday style.
+            <Image
+              src="/logo.png"
+              alt="Believe in a Blessed"
+              width={170}
+              height={72}
+              className="h-auto w-36 object-contain dark:brightness-0 dark:invert sm:w-40"
+            />
+            <p className="mt-5 max-w-md text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+              Tanzania&apos;s modern fashion destination for clean, confident everyday style —
+              built on faith, purpose, and self-belief.
             </p>
-
-            <div className="mt-6">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text)]">Stay in the loop</p>
-              {subscribed ? (
-                <p className="text-sm font-semibold text-emerald-600">You're subscribed!</p>
-              ) : (
-                <form onSubmit={handleSubscribe} className="flex gap-2">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="Your email address"
-                    className="h-11 flex-1 rounded-full border border-black/15 bg-white px-5 text-sm outline-none transition focus:border-neutral-950 dark:border-white/15 dark:bg-white/5 dark:text-white dark:placeholder:text-neutral-500"
-                  />
-                  <button
-                    type="submit"
-                    className="h-11 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              )}
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <a 
-                href="https://www.instagram.com/believeinablessed?igsh=anM5aWRpenQ5aTEx&utm_source=qr" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-neutral-950 shadow-sm transition hover:-translate-y-0.5 hover:text-pink-500 dark:bg-white/10 dark:text-white"
-              >
-                <Instagram className="h-4 w-4" />
-              </a>
-
-              <a 
-                href="https://www.tiktok.com/@believeinablessed" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                aria-label="TikTok"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-neutral-950 shadow-sm transition hover:-translate-y-0.5 dark:bg-white/10 dark:text-white"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/>
-                </svg>
-              </a>
-            </div>
           </div>
 
           <div>
-            <h3 className="mb-5 text-sm font-semibold uppercase text-[var(--text)]">Quick Links</h3>
-            <ul className="space-y-3">
-              {[
-                { label: t('home'), href: '/' },
-                { label: t('all_products'), href: '/products' },
-                { label: t('trending'), href: '/products?trending=true' },
-                { label: t('competition'), href: '/competition' },
-                { label: 'Affiliate Program', href: '/affiliate' },
-              ].map(link => (
+            <p className="mb-3 text-[11px] font-semibold tracking-[0.18em] text-[var(--text-secondary)] uppercase">
+              Stay in the loop
+            </p>
+            {subscribed ? (
+              <p className="font-display text-lg font-semibold text-teal-700">You&apos;re subscribed!</p>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address"
+                  className="h-11 flex-1 border border-[var(--border)] bg-[var(--bg-card)] px-4 text-sm outline-none transition focus:border-teal-700"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="inline-flex h-11 items-center gap-2 bg-neutral-950 px-5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                >
+                  Subscribe <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <h3 className="mb-4 font-display text-sm font-semibold tracking-[0.16em] text-[var(--text)] uppercase">
+              Shop
+            </h3>
+            <ul className="space-y-2.5">
+              {shopLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-sm text-[var(--text-secondary)] transition hover:text-neutral-950 dark:hover:text-white">
+                  <Link
+                    href={link.href}
+                    className="text-sm text-[var(--text-secondary)] transition hover:text-teal-700"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -105,45 +97,108 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-5 text-sm font-semibold uppercase text-[var(--text)]">{t('contact_us')}</h3>
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-950 shadow-sm dark:bg-white/10 dark:text-white">
-                  <Phone className="h-4 w-4 flex-shrink-0" />
-                </span>
-                <a href="tel:+255747110777" className="transition hover:text-neutral-950 dark:hover:text-white">+255 747 110 777</a>
-              </li>
+            <h3 className="mb-4 font-display text-sm font-semibold tracking-[0.16em] text-[var(--text)] uppercase">
+              Company
+            </h3>
+            <ul className="space-y-2.5">
+              {companyLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-[var(--text-secondary)] transition hover:text-teal-700"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-              <li className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-neutral-950 shadow-sm dark:bg-white/10 dark:text-white">
-                  <Mail className="h-4 w-4 flex-shrink-0" />
-                </span>
-                <a href="mailto:believeinablessed@gmail.com" className="transition hover:text-neutral-950 dark:hover:text-white">
+          <div>
+            <h3 className="mb-4 font-display text-sm font-semibold tracking-[0.16em] text-[var(--text)] uppercase">
+              {t('contact_us')}
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <a
+                  href="tel:+255747110777"
+                  className="inline-flex items-center gap-2.5 text-sm text-[var(--text-secondary)] transition hover:text-teal-700"
+                >
+                  <Phone className="h-3.5 w-3.5 shrink-0" />
+                  +255 747 110 777
+                </a>
+              </li>
+              <li>
+                <a
+                  href="mailto:believeinablessed@gmail.com"
+                  className="inline-flex items-center gap-2.5 text-sm text-[var(--text-secondary)] transition hover:text-teal-700"
+                >
+                  <Mail className="h-3.5 w-3.5 shrink-0" />
                   believeinablessed@gmail.com
                 </a>
               </li>
-
-              <li className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-green-600 shadow-sm dark:bg-white/10">
-                  <svg className="h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <li>
+                <a
+                  href="https://wa.me/255747110777"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2.5 text-sm text-[var(--text-secondary)] transition hover:text-teal-700"
+                >
+                  <svg className="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347" />
                   </svg>
-                </span>
-                <a href="https://wa.me/255747110777" target="_blank" rel="noopener noreferrer" className="transition hover:text-green-600">
                   {t('whatsapp_chat')}
                 </a>
               </li>
             </ul>
           </div>
+
+          <div>
+            <h3 className="mb-4 font-display text-sm font-semibold tracking-[0.16em] text-[var(--text)] uppercase">
+              Follow
+            </h3>
+            <div className="flex gap-2">
+              <a
+                href="https://www.instagram.com/believeinablessed?igsh=anM5aWRpenQ5aTEx&utm_source=qr"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="flex h-10 w-10 items-center justify-center border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)] transition hover:border-teal-700 hover:text-teal-700"
+              >
+                <Instagram className="h-4 w-4" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@believeinablessed"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TikTok"
+                className="flex h-10 w-10 items-center justify-center border border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)] transition hover:border-teal-700 hover:text-teal-700"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z" />
+                </svg>
+              </a>
+            </div>
+            <Link
+              href="/contact"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-[var(--text)] transition hover:text-teal-700"
+            >
+              Get in touch <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-black/10 pt-6 sm:flex-row sm:items-center sm:justify-between dark:border-white/10">
+        <div className="mt-12 flex flex-col gap-4 border-t border-[var(--border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-[var(--text-secondary)]">
             © {new Date().getFullYear()} Believe in a Blessed. {t('all_rights')}.
           </p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="text-xs text-[var(--text-secondary)] transition hover:text-neutral-950 dark:hover:text-white">{t('privacy_policy')}</Link>
-            <Link href="/terms" className="text-xs text-[var(--text-secondary)] transition hover:text-neutral-950 dark:hover:text-white">{t('terms')}</Link>
+          <div className="flex gap-5">
+            <Link href="/privacy" className="text-xs text-[var(--text-secondary)] transition hover:text-teal-700">
+              {t('privacy_policy')}
+            </Link>
+            <Link href="/terms" className="text-xs text-[var(--text-secondary)] transition hover:text-teal-700">
+              {t('terms')}
+            </Link>
           </div>
         </div>
       </div>

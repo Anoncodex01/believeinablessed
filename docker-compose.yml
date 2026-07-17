@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bib-backend
+    restart: unless-stopped
+    env_file: ./backend/.env
+    ports:
+      - '8080:8080'
+    networks:
+      - bib-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bib-frontend
+    restart: unless-stopped
+    env_file: ./frontend/.env
+    ports:
+      - '80:3000'
+    depends_on:
+      - backend
+    networks:
+      - bib-network
+
+networks:
+  bib-network:
+    driver: bridge

@@ -8,6 +8,7 @@ import {
   confirmOrderCommission,
   cancelOrderCommission,
   restoreOrderCommission,
+  updateAffiliateTier,
 } from '../utils/affiliateCommission.js';
 
 const router = express.Router();
@@ -87,21 +88,32 @@ router.post('/', authenticate, async (req, res) => {
     for (const item of items) {
       const { data: product } = await supabase
         .from('products')
-        .select('id,name,price,sale_price,stock,images,commission_rate')
+        .select('id,name,price,sale_price,stock,images,commission_rate,sizes,colors')
         .eq('id', item.product_id)
         .single();
 
       if (!product) return res.status(400).json({ error: `Product ${item.product_id} not found` });
       if (product.stock < item.quantity) return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
 
+      const size = item.size || item.selected_size || null;
+      const color = item.color || item.selected_color || null;
+      if (Array.isArray(product.sizes) && product.sizes.length > 0 && !size) {
+        return res.status(400).json({ error: `Size is required for ${product.name}` });
+      }
+      if (Array.isArray(product.colors) && product.colors.length > 0 && !color) {
+        return res.status(400).json({ error: `Color is required for ${product.name}` });
+      }
+
       const unitPrice = product.sale_price || product.price;
       subtotal += unitPrice * item.quantity;
       enrichedItems.push({
-        ...item,
+        product_id: product.id,
+        quantity: Number(item.quantity) || 1,
+        size,
+        color,
         unit_price: unitPrice,
         product_name: product.name,
         commission_rate: product.commission_rate || 10,
-        product_id: product.id
       });
     }
 

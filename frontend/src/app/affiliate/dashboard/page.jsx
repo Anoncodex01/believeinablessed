@@ -18,6 +18,7 @@ import {
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
+import { SITE_URL as CONFIG_SITE_URL } from '@/lib/config';
 
 function formatPrice(n) {
   return new Intl.NumberFormat('sw-TZ', { style: 'currency', currency: 'TZS', maximumFractionDigits: 0 }).format(n || 0);
@@ -28,7 +29,7 @@ function formatPrice(n) {
 // Update the TIER_CONFIG at the top of the file
 const TIER_CONFIG = {
   bronze: {
-    icon: '🥉',
+    icon: 'B',
     color: 'text-orange-500',
     bgColor: 'bg-orange-500/10',
     borderColor: 'border-orange-500/20',
@@ -41,7 +42,7 @@ const TIER_CONFIG = {
     level: 1
   },
   silver: {
-    icon: '🥈',
+    icon: 'S',
     color: 'text-gray-400',
     bgColor: 'bg-gray-500/10',
     borderColor: 'border-gray-500/20',
@@ -54,7 +55,7 @@ const TIER_CONFIG = {
     level: 2
   },
   gold: {
-    icon: '🥇',
+    icon: 'G',
     color: 'text-yellow-500',
     bgColor: 'bg-yellow-500/10',
     borderColor: 'border-yellow-500/20',
@@ -67,7 +68,7 @@ const TIER_CONFIG = {
     level: 3
   },
   platinum: {
-    icon: '💎',
+    icon: 'P',
     color: 'text-cyan-400',
     bgColor: 'bg-cyan-500/10',
     borderColor: 'border-cyan-500/20',
@@ -80,7 +81,7 @@ const TIER_CONFIG = {
     level: 4
   },
   vip: {
-    icon: '👑',
+    icon: 'V',
     color: 'text-purple-400',
     bgColor: 'bg-purple-500/10',
     borderColor: 'border-purple-500/20',
@@ -143,12 +144,10 @@ function getTierEarningsBreakdown(orders) {
   return breakdown;
 }
 
-// Always prefer the real browser origin for share links - this way, even if
-// NEXT_PUBLIC_SITE_URL is ever misconfigured (e.g. pointed at the backend),
-// affiliates never share a broken/wrong-domain link.
+// Prefer the real browser origin for share links so affiliates never share a wrong domain.
 const SITE_URL = typeof window !== 'undefined' && window.location?.origin
   ? window.location.origin
-  : (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.believeinablessed.com');
+  : CONFIG_SITE_URL;
 
 export default function AffiliateDashboard() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -309,17 +308,17 @@ export default function AffiliateDashboard() {
   };
 
   if (authLoading || loading) return (
-    <main className="min-h-screen bg-[#f5f4f1] p-4 dark:bg-neutral-950">
-      <div className="mx-auto max-w-6xl rounded-[28px] border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-white/[0.04]">
+    <main className="min-h-screen bg-[var(--bg)] p-4">
+      <div className="mx-auto max-w-6xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
         <div className="mb-6 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-neutral-950 dark:bg-white" />
+          <div className="h-10 w-10 bg-neutral-950 dark:bg-white" />
           <div>
-            <div className="h-4 w-36 rounded bg-neutral-200 dark:bg-white/10" />
-            <div className="mt-2 h-3 w-24 rounded bg-neutral-100 dark:bg-white/5" />
+            <div className="h-4 w-36 shimmer-bg" />
+            <div className="mt-2 h-3 w-24 shimmer-bg" />
           </div>
         </div>
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 shimmer-bg rounded-2xl" />)}
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 shimmer-bg" />)}
       </div>
       </div>
     </main>
@@ -374,8 +373,8 @@ export default function AffiliateDashboard() {
   const statCards = [
     { label: 'Total Earnings', val: formatPrice(stats.total_earnings || earningsFromDelivered), icon: DollarSign, color: 'text-green-500 bg-green-500/10' },
     { label: 'Pending Earnings', val: formatPrice(stats.pending_earnings || pendingEarnings), icon: Clock, color: 'text-yellow-500 bg-yellow-500/10' },
-    { label: 'Withdrawable', val: formatPrice(stats.withdrawable_balance || 0), icon: ArrowUpRight, color: 'text-blue-500 bg-blue-500/10' },
-    { label: 'Total Clicks', val: stats.total_clicks || 0, icon: MousePointer, color: 'text-purple-500 bg-purple-500/10' },
+    { label: 'Withdrawable', val: formatPrice(stats.withdrawable_balance || 0), icon: ArrowUpRight, color: 'text-teal-700 bg-teal-500/10 dark:text-teal-300' },
+    { label: 'Total Clicks', val: stats.total_clicks || 0, icon: MousePointer, color: 'text-teal-700 bg-teal-500/10 dark:text-teal-300' },
     { label: 'Delivered Orders', val: deliveredOrders.length || 0, icon: Truck, color: 'text-green-500 bg-green-500/10' },
     { label: 'Pending Orders', val: pendingOrders.length || 0, icon: Clock, color: 'text-yellow-500 bg-yellow-500/10' },
   ];
@@ -399,26 +398,26 @@ export default function AffiliateDashboard() {
   // Status badge for orders
   const getStatusBadge = (status) => {
     const statusMap = {
-      'pending': { color: 'bg-yellow-500/10 text-yellow-500', icon: <Clock className="w-3 h-3" />, label: 'Pending Delivery' },
-      'confirmed': { color: 'bg-blue-500/10 text-blue-500', icon: <CheckCircle className="w-3 h-3" />, label: 'Confirmed' },
-      'delivered': { color: 'bg-green-500/10 text-green-500', icon: <Truck className="w-3 h-3" />, label: 'Delivered ✓' },
-      'cancelled': { color: 'bg-red-500/10 text-red-500', icon: <XCircle className="w-3 h-3" />, label: 'Cancelled' },
-      'paid': { color: 'bg-blue-500/10 text-blue-500', icon: <DollarSign className="w-3 h-3" />, label: 'Paid' }
+      'pending': { color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400', icon: <Clock className="w-3 h-3" />, label: 'Pending Delivery' },
+      'confirmed': { color: 'bg-teal-500/10 text-teal-700 dark:text-teal-300', icon: <CheckCircle className="w-3 h-3" />, label: 'Confirmed' },
+      'delivered': { color: 'bg-green-500/10 text-green-600 dark:text-green-400', icon: <Truck className="w-3 h-3" />, label: 'Delivered' },
+      'cancelled': { color: 'bg-red-500/10 text-red-600 dark:text-red-400', icon: <XCircle className="w-3 h-3" />, label: 'Cancelled' },
+      'paid': { color: 'bg-teal-500/10 text-teal-700 dark:text-teal-300', icon: <DollarSign className="w-3 h-3" />, label: 'Paid' }
     };
     return statusMap[status] || statusMap.pending;
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f4f1] text-neutral-950 dark:bg-neutral-950 dark:text-white">
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-black/10 bg-white shadow-2xl shadow-black/5 transition-transform duration-300 dark:border-white/10 dark:bg-neutral-950 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-        <div className="border-b border-black/10 p-5 dark:border-white/10">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[var(--border)] bg-[var(--bg-card)] transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <div className="border-b border-[var(--border)] p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-neutral-950 text-sm font-bold text-white dark:bg-white dark:text-neutral-950">
+            <div className="flex h-10 w-10 items-center justify-center bg-neutral-950 text-sm font-bold text-white dark:bg-white dark:text-neutral-950">
               B
             </div>
             <div>
-              <p className="font-display text-sm font-bold text-neutral-950 dark:text-white">BelieveinaBlessed</p>
-              <p className="text-xs text-neutral-500">Affiliate Portal</p>
+              <p className="font-display text-sm font-bold tracking-tight text-[var(--text)]">BelieveinaBlessed</p>
+              <p className="text-xs text-[var(--text-secondary)]">Affiliate Portal</p>
             </div>
           </div>
         </div>
@@ -435,16 +434,16 @@ export default function AffiliateDashboard() {
                   setTab(tabItem.id);
                   setSidebarOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
+                className={`flex w-full items-center gap-3 px-3 py-3 text-left transition ${
                   selected
-                    ? 'bg-neutral-950 text-white shadow-sm dark:bg-white dark:text-neutral-950'
-                    : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950 dark:hover:bg-white/10 dark:hover:text-white'
+                    ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]'
                 }`}
               >
                 <Icon className="h-4 w-4 flex-shrink-0" />
                 <span className="min-w-0">
                   <span className="block text-sm font-semibold">{tabItem.label}</span>
-                  <span className={`block text-[11px] ${selected ? 'text-white/60 dark:text-black/55' : 'text-neutral-500'}`}>
+                  <span className={`block text-[11px] ${selected ? 'text-white/60 dark:text-black/55' : 'text-[var(--text-secondary)]'}`}>
                     {tabItem.note}
                   </span>
                 </span>
@@ -453,15 +452,15 @@ export default function AffiliateDashboard() {
           })}
         </nav>
 
-        <div className="border-t border-black/10 p-3 dark:border-white/10">
-          <div className="mb-3 rounded-2xl bg-neutral-100 p-3 dark:bg-white/10">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Referral Code</p>
+        <div className="border-t border-[var(--border)] p-3">
+          <div className="mb-3 border border-[var(--border)] bg-[var(--bg-secondary)] p-3">
+              <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-[var(--text-secondary)]">Your Code</p>
             <div className="mt-2 flex items-center justify-between gap-2">
-              <p className="truncate font-mono text-sm font-bold text-neutral-950 dark:text-white">{stats.referral_code || 'Pending'}</p>
+              <p className="truncate font-mono text-sm font-bold text-[var(--text)]">{stats.referral_code || 'Pending'}</p>
               <button
                 type="button"
                 onClick={() => copyToClipboard(stats.referral_code || '', 'sidebar-code')}
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-neutral-950 dark:bg-neutral-950 dark:text-white"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                 aria-label="Copy referral code"
               >
                 {copied === 'sidebar-code' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -470,12 +469,12 @@ export default function AffiliateDashboard() {
           </div>
 
           <div className="flex items-center gap-3 px-2 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-neutral-950 to-neutral-700 text-xs font-bold text-white">
+            <div className="flex h-9 w-9 items-center justify-center bg-neutral-950 text-xs font-bold text-white dark:bg-white dark:text-neutral-950">
               {affiliateInitial}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-neutral-950 dark:text-white">{user?.name || 'Affiliate'}</p>
-              <p className="truncate text-[10px] text-neutral-500">{user?.email}</p>
+              <p className="truncate text-xs font-semibold text-[var(--text)]">{user?.name || 'Affiliate'}</p>
+              <p className="truncate text-[10px] text-[var(--text-secondary)]">{user?.email}</p>
             </div>
           </div>
 
@@ -483,7 +482,7 @@ export default function AffiliateDashboard() {
             <button
               type="button"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="flex items-center justify-center gap-1 rounded-lg p-2 text-xs text-neutral-500 transition hover:bg-neutral-100 dark:hover:bg-white/10"
+              className="flex items-center justify-center gap-1 p-2 text-xs text-[var(--text-secondary)] transition hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
             >
               {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
               Theme
@@ -494,13 +493,13 @@ export default function AffiliateDashboard() {
                 logout();
                 router.push('/');
               }}
-              className="flex items-center justify-center gap-1 rounded-lg p-2 text-xs text-red-500 transition hover:bg-red-500/10"
+              className="flex items-center justify-center gap-1 p-2 text-xs text-red-600 dark:text-red-400 transition hover:bg-red-500/10"
             >
               <LogOut className="h-3.5 w-3.5" />
               Logout
             </button>
           </div>
-          <Link href="/" className="mt-2 flex items-center justify-center gap-1 py-1 text-xs text-neutral-500 transition hover:text-neutral-950 dark:hover:text-white">
+          <Link href="/" className="mt-2 flex items-center justify-center gap-1 py-1 text-xs text-[var(--text-secondary)] transition hover:text-[var(--text)]">
             <Home className="h-3.5 w-3.5" />
             Back to Store
           </Link>
@@ -510,23 +509,23 @@ export default function AffiliateDashboard() {
       {sidebarOpen && <button type="button" aria-label="Close menu" className="fixed inset-0 z-40 bg-black/45 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
       <div className="min-h-screen lg:ml-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-black/10 bg-white/90 px-4 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/90 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--bg-card)] px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="rounded-xl p-2 transition hover:bg-neutral-100 dark:hover:bg-white/10 lg:hidden"
+              className="p-2 transition hover:bg-[var(--bg-secondary)] lg:hidden"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-3">
-              <div className="hidden h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 dark:bg-white/10 sm:flex">
+              <div className="hidden h-10 w-10 items-center justify-center bg-[var(--bg-secondary)] sm:flex">
                 <ActiveTabIcon className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Affiliate / {activeTab.label}</p>
-                <h1 className="text-sm font-semibold text-neutral-950 dark:text-white sm:text-base">{activeTab.label}</h1>
+                <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-[var(--text-secondary)]">Affiliate / {activeTab.label}</p>
+                <h1 className="font-display text-sm font-semibold tracking-tight text-[var(--text)] sm:text-base">{activeTab.label}</h1>
               </div>
             </div>
           </div>
@@ -536,7 +535,7 @@ export default function AffiliateDashboard() {
               type="button"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="hidden h-10 items-center gap-2 rounded-xl border border-black/10 px-3 text-sm font-medium transition hover:border-neutral-950 dark:border-white/10 dark:hover:border-white sm:flex"
+              className="hidden h-10 items-center gap-2 border border-[var(--border)] px-3 text-sm font-medium transition hover:border-teal-700 dark:hover:border-teal-300 sm:flex"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               {refreshing ? 'Updating' : 'Refresh'}
@@ -544,7 +543,7 @@ export default function AffiliateDashboard() {
             <button
               type="button"
               onClick={() => copyToClipboard(productReferralLink, 'product')}
-              className="flex h-10 items-center gap-2 rounded-xl bg-neutral-950 px-3 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-950"
+              className="flex h-10 items-center gap-2 bg-neutral-950 px-3 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
             >
               {copied === 'product' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               <span className="hidden sm:inline">Share Store</span>
@@ -554,164 +553,131 @@ export default function AffiliateDashboard() {
 
         <main className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8">
 
-        <div className="mb-6 overflow-hidden rounded-[28px] bg-neutral-950 p-6 text-white dark:bg-white dark:text-neutral-950 sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/55 dark:text-black/50">Affiliate Dashboard</p>
-              <h2 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">Grow your referrals.</h2>
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-white/70 dark:text-black/60">
-                <span>{currentTierInfo.icon} {currentTierInfo.label} Affiliate</span>
-                <span>•</span>
-                <span>Code: <strong>{stats.referral_code || 'Pending'}</strong></span>
-                {lastUpdated && <span>• Updated {lastUpdated.toLocaleTimeString()}</span>}
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => copyToClipboard(productReferralLink, 'product-hero')}
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-neutral-950 dark:bg-neutral-950 dark:text-white"
-              >
-                {copied === 'product-hero' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                Share Store
-              </button>
-              <button
-                type="button"
-                onClick={() => copyToClipboard(registrationLink, 'reg')}
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-white/20 px-5 text-sm font-semibold text-white dark:border-black/20 dark:text-neutral-950"
-              >
-                {copied === 'reg' ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
-                Recruit Affiliates
-              </button>
-            </div>
-          </div>
-        </div>
-
         {tab === 'overview' && (
           <>
           {!isApprovedAffiliate && (
-          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 mb-6">
+          <div className="border border-[var(--border)] bg-[var(--surface-warm)] p-5 mb-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-neutral-950">Affiliate account pending approval</h3>
-                  <p className="mt-1 text-sm leading-6 text-neutral-600">
+                  <h3 className="font-display font-semibold tracking-tight text-[var(--text)]">Affiliate account pending approval</h3>
+                  <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
                     You can explore the dashboard, copy your referral code, and prepare links now. Commissions, click tracking, and withdrawals activate after admin approval.
                   </p>
                 </div>
               </div>
-              <div className="rounded-2xl bg-white/70 px-4 py-3 text-center dark:bg-white/10">
-                <p className="text-xs text-neutral-500">Referral code</p>
-                <p className="font-mono text-lg font-bold text-neutral-950 dark:text-white">{stats.referral_code || 'Pending'}</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-center">
+                <p className="text-xs text-[var(--text-secondary)]">Your affiliate code</p>
+                <p className="font-mono text-lg font-bold text-[var(--text)]">{stats.referral_code || 'Pending'}</p>
               </div>
             </div>
           </div>
           )}
 
         {/* Tier card + withdraw notice merged */}
-        <div className="rounded-3xl border border-black/10 bg-white mb-6 overflow-hidden">
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] mb-6 overflow-hidden">
           <div className="flex items-center justify-between gap-4 px-6 py-5">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">{currentTierInfo.icon}</span>
+              <span className="flex h-11 w-11 items-center justify-center bg-teal-700/10 text-sm font-bold text-teal-700 dark:bg-teal-300/10 dark:text-teal-300 flex-shrink-0">{currentTierInfo.icon}</span>
               <div>
-                <h3 className="font-bold text-neutral-950 dark:text-white">{currentTierInfo.label} Tier</h3>
-                <p className="text-sm text-neutral-500">{currentTierInfo.commission} commission · {currentTierInfo.payout} payout</p>
+                <h3 className="font-display font-bold tracking-tight text-[var(--text)]">{currentTierInfo.label} Tier</h3>
+                <p className="text-sm text-[var(--text-secondary)]">{currentTierInfo.commission} commission · {currentTierInfo.payout} payout</p>
               </div>
             </div>
             {nextTierInfo ? (
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-semibold text-neutral-950 dark:text-white">{ordersToNext} to {nextTierInfo.label}</p>
-                <p className="text-xs text-neutral-500">{nextTierInfo.commission} · {nextTierInfo.payout}</p>
+                <p className="text-sm font-semibold text-[var(--text)]">{ordersToNext} to {nextTierInfo.label}</p>
+                <p className="text-xs text-[var(--text-secondary)]">{nextTierInfo.commission} · {nextTierInfo.payout}</p>
               </div>
             ) : (
-              <span className="inline-flex items-center rounded-full bg-neutral-950 px-3 py-1 text-xs font-semibold text-white">MAX LEVEL</span>
+              <span className="inline-flex items-center bg-neutral-950 px-3 py-1 text-xs font-semibold text-white dark:bg-white dark:text-neutral-950">MAX LEVEL</span>
             )}
           </div>
 
           {nextTierInfo && (
             <div className="px-6 pb-4">
-              <div className="flex justify-between text-xs text-neutral-400 mb-1.5">
+              <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-1.5">
                 <span>Progress to {nextTierInfo.label}</span>
                 <span>{Math.round(progressToNext)}%</span>
               </div>
-              <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[var(--bg-secondary)] overflow-hidden">
                 <motion.div
                   key={totalOrders}
                   initial={{ width: 0 }}
                   animate={{ width: `${progressToNext}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="h-full bg-neutral-950 rounded-full"
+                  className="h-full bg-teal-700 dark:bg-teal-300"
                 />
               </div>
             </div>
           )}
 
           {!isEligibleForWithdraw && (
-            <div className="mx-6 mb-5 flex items-center gap-2.5 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
-              <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0" />
-              <p className="text-sm text-amber-800">Need {currentTierInfo.withdrawRequirement - totalOrders} more delivered orders to unlock withdrawals</p>
+            <div className="mx-6 mb-5 flex items-center gap-2.5 border border-[var(--border)] bg-[var(--surface-warm)] px-4 py-3">
+              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+              <p className="text-sm text-[var(--text-secondary)]">Need {currentTierInfo.withdrawRequirement - totalOrders} more delivered orders to unlock withdrawals</p>
             </div>
           )}
         </div>
 
         {/* Performance summary — single flat card */}
-        <div className="rounded-3xl border border-black/10 bg-white mb-6 overflow-hidden">
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] mb-6 overflow-hidden">
           {/* Top dark row: total earnings */}
-          <div className="flex items-center justify-between px-6 py-5 bg-neutral-950 text-white">
+          <div className="flex items-center justify-between px-6 py-5 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+              <div className="h-9 w-9 bg-white/10 dark:bg-black/10 flex items-center justify-center flex-shrink-0">
                 <DollarSign className="h-4 w-4" />
               </div>
-              <p className="text-sm font-medium text-white/70">Total Earnings</p>
+              <p className="text-sm font-medium text-white/70 dark:text-black/60">Total Earnings</p>
             </div>
             <p className="text-xl font-bold">{formatPrice(stats.total_earnings || earningsFromDelivered)}</p>
           </div>
           {/* Pending earnings */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-black/5">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                <Clock className="h-4 w-4 text-neutral-400" />
+              <div className="h-9 w-9 bg-[var(--bg-secondary)] flex items-center justify-center flex-shrink-0">
+                <Clock className="h-4 w-4 text-[var(--text-secondary)]" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-neutral-950 dark:text-white">Pending Earnings</p>
-                <p className="text-xs text-amber-500">Awaiting delivery</p>
+                <p className="text-sm font-semibold text-[var(--text)]">Pending Earnings</p>
+                <p className="text-xs text-yellow-600 dark:text-yellow-400">Awaiting delivery</p>
               </div>
             </div>
-            <p className="text-base font-bold text-neutral-950 dark:text-white">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
+            <p className="text-base font-bold text-[var(--text)]">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
           </div>
           {/* Withdrawable */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-black/5">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                <ArrowUpRight className="h-4 w-4 text-neutral-400" />
+              <div className="h-9 w-9 bg-[var(--bg-secondary)] flex items-center justify-center flex-shrink-0">
+                <ArrowUpRight className="h-4 w-4 text-[var(--text-secondary)]" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-neutral-950 dark:text-white">Withdrawable</p>
-                <p className="text-xs text-emerald-500">Ready to withdraw</p>
+                <p className="text-sm font-semibold text-[var(--text)]">Withdrawable</p>
+                <p className="text-xs text-teal-700 dark:text-teal-300">Ready to withdraw</p>
               </div>
             </div>
-            <p className="text-base font-bold text-neutral-950 dark:text-white">{formatPrice(stats.withdrawable_balance || 0)}</p>
+            <p className="text-base font-bold text-[var(--text)]">{formatPrice(stats.withdrawable_balance || 0)}</p>
           </div>
           {/* Orders + clicks footer */}
-          <div className="grid grid-cols-4 divide-x divide-black/5">
+          <div className="grid grid-cols-4 divide-x divide-[var(--border)]">
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-neutral-950 dark:text-white">{stats.total_clicks || 0}</p>
-              <p className="text-[11px] text-neutral-400 mt-0.5">Clicks</p>
+              <p className="text-lg font-bold text-[var(--text)]">{stats.total_clicks || 0}</p>
+              <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Clicks</p>
             </div>
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-emerald-600">{deliveredOrders.length}</p>
-              <p className="text-[11px] text-neutral-400 mt-0.5">Delivered</p>
+              <p className="text-lg font-bold text-teal-700 dark:text-teal-300">{deliveredOrders.length}</p>
+              <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Delivered</p>
             </div>
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-amber-500">{pendingOrders.length}</p>
-              <p className="text-[11px] text-neutral-400 mt-0.5">Pending</p>
+              <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{pendingOrders.length}</p>
+              <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Pending</p>
             </div>
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-red-500">{cancelledOrders.length}</p>
-              <p className="text-[11px] text-neutral-400 mt-0.5">Cancelled</p>
+              <p className="text-lg font-bold text-red-600 dark:text-red-400">{cancelledOrders.length}</p>
+              <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Cancelled</p>
             </div>
           </div>
         </div>
@@ -721,22 +687,22 @@ export default function AffiliateDashboard() {
         {/* OVERVIEW TAB */}
         {tab === 'overview' && (
           <div className="space-y-6">
-            <div className="rounded-3xl border border-black/10 bg-white p-6">
-              <h3 className="font-semibold text-neutral-950 dark:text-white mb-4">Earnings — Last 30 Days</h3>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-4">Earnings — Last 30 Days</h3>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="affGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#171717" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#171717" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#0f766e" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#0f766e" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d.slice(5)} />
                     <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}K`} />
                     <Tooltip formatter={(v) => formatPrice(v)} labelFormatter={l => `Date: ${l}`} />
-                    <Area type="monotone" dataKey="earnings" stroke="#171717" fill="url(#affGradient)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="earnings" stroke="#0f766e" fill="url(#affGradient)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -744,18 +710,18 @@ export default function AffiliateDashboard() {
 
             {/* Recent Orders with Status */}
             {orders.length > 0 && (
-              <div className="rounded-3xl border border-black/10 bg-white p-6">
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-neutral-950 dark:text-white">Order History</h3>
+                  <h3 className="font-display font-semibold tracking-tight text-[var(--text)]">Order History</h3>
                   <div className="flex gap-1">
                     {['all', 'pending', 'delivered', 'cancelled'].map(filter => (
                       <button
                         key={filter}
                         onClick={() => setOrderFilter(filter)}
-                        className={`text-xs px-2 py-1 rounded-lg transition-all capitalize ${
+                        className={`text-xs px-2 py-1 transition-all capitalize ${
                           orderFilter === filter
-                            ? 'bg-neutral-950 text-white'
-                            : 'bg-neutral-100 dark:bg-white/10 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-white/20'
+                            ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                            : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
                         }`}
                       >
                         {filter === 'all' ? 'All' : filter}
@@ -775,44 +741,51 @@ export default function AffiliateDashboard() {
                     const isPending = order.status === 'pending';
 
                     return (
-                      <div key={order.id} className="flex items-center justify-between py-2 border-b border-black/5 last:border-0">
+                      <div key={order.id} className="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0">
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-neutral-950 dark:text-white">Order #{order.order_id?.slice(-8)}</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${statusBadge.color} flex items-center gap-0.5`}>
+                            <p className="text-sm font-medium text-[var(--text)]">
+                              {order.customer_name || order.product_name || `Order #${order.order_id?.slice(-8)}`}
+                            </p>
+                            <span className={`text-[10px] px-2 py-0.5 ${statusBadge.color} flex items-center gap-0.5`}>
                               {statusBadge.icon} {statusBadge.label}
                             </span>
                           </div>
-                          <p className="text-xs text-neutral-500">{new Date(order.created_at).toLocaleDateString()}</p>
-                          <span className="text-[10px] flex items-center gap-1 text-neutral-500">
-                            {tierInfo.icon} {tierInfo.label} • {order.commission_rate}% commission
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {order.customer_name ? `${order.product_name || 'Sale'} · ` : ''}
+                            {order.order_number || `Order #${order.order_id?.slice(-8)}`}
+                            {' · '}
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                          <span className="text-[10px] flex items-center gap-1 text-[var(--text-secondary)]">
+                            {tierInfo.label} • {order.commission_rate}% commission
                           </span>
                         </div>
                         <div className="text-right">
                           {isDelivered ? (
                             <div>
-                              <p className="text-sm font-bold text-green-500">+{formatPrice(order.commission)}</p>
-                              <p className="text-[10px] text-green-500">Earned ✓</p>
+                              <p className="text-sm font-bold text-green-600 dark:text-green-400">+{formatPrice(order.commission)}</p>
+                              <p className="text-[10px] text-green-600 dark:text-green-400">Earned</p>
                             </div>
                           ) : isCancelled ? (
                             <div>
-                              <p className="text-sm font-bold text-red-500">Cancelled</p>
-                              <p className="text-[10px] text-red-500">No commission</p>
+                              <p className="text-sm font-bold text-red-600 dark:text-red-400">Cancelled</p>
+                              <p className="text-[10px] text-red-600 dark:text-red-400">No commission</p>
                             </div>
                           ) : (
                             <div>
-                              <p className="text-sm font-bold text-yellow-500">Pending</p>
-                              <p className="text-[10px] text-yellow-500">Awaiting delivery</p>
+                              <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400">Pending</p>
+                              <p className="text-[10px] text-yellow-600 dark:text-yellow-400">Awaiting delivery</p>
                             </div>
                           )}
-                          <p className="text-xs text-neutral-500">{formatPrice(order.order_amount)}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">{formatPrice(order.order_amount)}</p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
                 {filteredOrders.length === 0 && (
-                  <div className="text-center py-4 text-neutral-500 text-sm">
+                  <div className="text-center py-4 text-[var(--text-secondary)] text-sm">
                     No {orderFilter !== 'all' ? orderFilter : ''} orders found
                   </div>
                 )}
@@ -822,42 +795,42 @@ export default function AffiliateDashboard() {
         )}
 
         {tab === 'leaderboard' && (
-          <div className="overflow-hidden rounded-3xl border border-black/10 bg-white">
-            <div className="border-b border-black/5 p-5">
-              <h3 className="font-semibold text-neutral-950 dark:text-white">Affiliate Leaderboard</h3>
-              <p className="mt-1 text-sm text-neutral-500">
+          <div className="overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
+            <div className="border-b border-[var(--border)] p-5">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)]">Affiliate Leaderboard</h3>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">
                 Top approved affiliates ranked by earnings. Your profile will appear here after approval and sales activity.
               </p>
             </div>
             {leaderboard.length > 0 ? (
-              <div className="divide-y divide-black/5">
+              <div className="divide-y divide-[var(--border)]">
                 {leaderboard.map((affiliate, index) => (
                   <div key={affiliate.id || affiliate.referral_code || index} className="flex items-center justify-between gap-4 p-4">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                        index === 0 ? 'bg-yellow-500/15 text-yellow-600' :
-                        index === 1 ? 'bg-slate-400/15 text-slate-600' :
-                        index === 2 ? 'bg-orange-500/15 text-orange-600' :
-                        'bg-neutral-100 dark:bg-white/10 text-neutral-500'
+                      <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center text-sm font-bold ${
+                        index === 0 ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' :
+                        index === 1 ? 'bg-slate-400/15 text-slate-600 dark:text-slate-300' :
+                        index === 2 ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400' :
+                        'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                       }`}>
                         {index + 1}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-neutral-950 dark:text-white">{affiliate.name || 'Affiliate'}</p>
-                        <p className="text-xs text-neutral-500">
-                          {affiliate.tier_icon} {affiliate.tier_badge || affiliate.affiliate_level || 'Bronze'} • {affiliate.sales || 0} sales
+                        <p className="truncate font-semibold text-[var(--text)]">{affiliate.name || 'Affiliate'}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">
+                          {affiliate.tier_badge || affiliate.affiliate_level || 'Bronze'} • {affiliate.sales || 0} sales
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-500">{formatPrice(affiliate.total_earnings || 0)}</p>
-                      <p className="text-xs text-neutral-500">earned</p>
+                      <p className="font-bold text-teal-700 dark:text-teal-300">{formatPrice(affiliate.total_earnings || 0)}</p>
+                      <p className="text-xs text-[var(--text-secondary)]">earned</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center text-sm text-neutral-500">
+              <div className="p-8 text-center text-sm text-[var(--text-secondary)]">
                 No leaderboard data yet.
               </div>
             )}
@@ -868,22 +841,22 @@ export default function AffiliateDashboard() {
         {tab === 'links' && (
           <div className="space-y-6">
             <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-              <div className="rounded-[28px] border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-white/[0.04]">
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Product Links</p>
-                <h3 className="mt-2 font-display text-3xl font-semibold text-neutral-950 dark:text-white">Create share-ready affiliate links.</h3>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
+                <p className="text-[11px] font-semibold tracking-[0.16em] uppercase text-[var(--text-secondary)]">Product Links</p>
+                <h3 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text)]">Create share-ready affiliate links.</h3>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
                   Pick a product, generate your unique URL, then share it directly with customers. Commission starts from your current tier rate.
                 </p>
               </div>
-              <div className="rounded-[28px] bg-neutral-950 p-6 text-white dark:bg-white dark:text-neutral-950">
-                <p className="text-xs uppercase tracking-wide opacity-60">Current Rate</p>
+              <div className="border border-[var(--border)] bg-neutral-950 p-6 text-white dark:bg-white dark:text-neutral-950">
+                <p className="text-[11px] font-semibold tracking-[0.16em] uppercase opacity-60">Current Rate</p>
                 <p className="mt-3 text-4xl font-bold">{currentTierInfo.commission}</p>
                 <p className="mt-2 text-sm opacity-65">{currentTierInfo.label} tier commission per successful sale.</p>
               </div>
             </div>
 
             {products.length === 0 ? (
-              <div className="rounded-[28px] border border-dashed border-black/10 bg-white p-10 text-center text-sm text-neutral-500 dark:border-white/10 dark:bg-white/[0.04]">
+              <div className="border border-dashed border-[var(--border)] bg-[var(--bg-card)] p-10 text-center text-sm text-[var(--text-secondary)]">
                 No products available for link generation yet.
               </div>
             ) : (
@@ -897,35 +870,35 @@ export default function AffiliateDashboard() {
                   const shareableLink = myLink || `${SITE_URL}/products/${product.id}?ref=${stats.referral_code || ''}`;
 
                   return (
-                    <article key={product.id} className="overflow-hidden rounded-[28px] border border-black/10 bg-white dark:border-white/10 dark:bg-white/[0.04]">
-                      <div className="relative aspect-[4/3] bg-neutral-100 dark:bg-white/10">
+                    <article key={product.id} className="overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
+                      <div className="relative aspect-[4/3] bg-[var(--bg-secondary)]">
                         <img src={img} alt={product.name} className="h-full w-full object-contain p-6" />
-                        <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-950 shadow-sm">
+                        <div className="absolute left-4 top-4 border border-[var(--border)] bg-[var(--bg-card)]/90 px-3 py-1 text-xs font-semibold text-[var(--text)]">
                           {formatPrice(price)}
                         </div>
-                        <div className="absolute right-4 top-4 rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white">
+                        <div className="absolute right-4 top-4 bg-teal-700 px-3 py-1 text-xs font-semibold text-white dark:bg-teal-300 dark:text-neutral-950">
                           {formatPrice(commission)}
                         </div>
                       </div>
 
                       <div className="space-y-4 p-4">
                         <div>
-                          <p className="truncate text-base font-semibold text-neutral-950 dark:text-white">{product.name}</p>
-                          <p className="mt-1 text-sm text-green-500">
+                          <p className="truncate text-base font-semibold text-[var(--text)]">{product.name}</p>
+                          <p className="mt-1 text-sm text-teal-700 dark:text-teal-300">
                             Earn {formatPrice(commission)} per sale
                           </p>
                         </div>
 
-                        <div className="rounded-2xl bg-neutral-100 p-3 dark:bg-white/10">
-                          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                        <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-3">
+                          <p className="mb-2 text-[11px] font-semibold tracking-[0.16em] uppercase text-[var(--text-secondary)]">
                             Your link
                           </p>
                           <div className="flex gap-2">
-                            <input readOnly value={shareableLink} className="min-w-0 flex-1 bg-transparent text-xs text-neutral-500 outline-none" />
+                            <input readOnly value={shareableLink} className="min-w-0 flex-1 bg-transparent text-xs text-[var(--text-secondary)] outline-none" />
                             <button
                               type="button"
                               onClick={() => copyToClipboard(shareableLink, `copy-${product.id}`)}
-                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950"
+                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                               aria-label="Copy affiliate link"
                             >
                               {copied === `copy-${product.id}` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -939,14 +912,14 @@ export default function AffiliateDashboard() {
                               href={`https://wa.me/?text=${encodeURIComponent(`Check this out: ${product.name} ${shareableLink}`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex h-11 items-center justify-center rounded-full bg-green-500 text-sm font-semibold text-white transition hover:bg-green-600"
+                              className="inline-flex h-11 items-center justify-center bg-green-600 text-sm font-semibold text-white transition hover:bg-green-700"
                             >
                               WhatsApp
                             </a>
                             <button
                               type="button"
                               onClick={() => copyToClipboard(shareableLink, `tiktok-${product.id}`)}
-                              className="inline-flex h-11 items-center justify-center rounded-full bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-700"
+                              className="inline-flex h-11 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                             >
                               TikTok
                             </button>
@@ -955,7 +928,7 @@ export default function AffiliateDashboard() {
                           <button
                             type="button"
                             onClick={() => handleGenerateLink(product.id)}
-                            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-950"
+                            className="inline-flex h-11 w-full items-center justify-center gap-2 bg-neutral-950 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                           >
                             <Zap className="h-4 w-4" />
                             Generate Link
@@ -974,52 +947,52 @@ export default function AffiliateDashboard() {
         {tab === 'earnings' && (
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="rounded-3xl bg-neutral-950 text-white p-5 text-center">
-                <p className="text-2xl font-bold text-white">{formatPrice(stats.total_earnings || earningsFromDelivered)}</p>
-                <p className="text-xs text-white/70 mt-1">All-Time Earned</p>
-                <p className="text-[10px] text-white/60">✓ From delivered orders</p>
+              <div className="bg-neutral-950 text-white p-5 text-center dark:bg-white dark:text-neutral-950">
+                <p className="text-2xl font-bold">{formatPrice(stats.total_earnings || earningsFromDelivered)}</p>
+                <p className="text-xs text-white/70 dark:text-black/60 mt-1">All-Time Earned</p>
+                <p className="text-[10px] text-white/60 dark:text-black/50">From delivered orders</p>
               </div>
-              <div className="rounded-3xl border border-black/10 bg-white p-5 text-center">
-                <p className="text-2xl font-bold text-yellow-500">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
-                <p className="text-xs text-neutral-500 mt-1">Pending</p>
-                <p className="text-[10px] text-yellow-500">⏳ Awaiting delivery</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
+                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">Pending</p>
+                <p className="text-[10px] text-yellow-600 dark:text-yellow-400">Awaiting delivery</p>
               </div>
-              <div className="rounded-3xl border border-black/10 bg-white p-5 text-center">
-                <p className="text-2xl font-bold text-blue-500">{formatPrice(stats.withdrawable_balance || 0)}</p>
-                <p className="text-xs text-neutral-500 mt-1">Available</p>
-                <p className="text-[10px] text-blue-500">💰 Ready to withdraw</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
+                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{formatPrice(stats.withdrawable_balance || 0)}</p>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">Available</p>
+                <p className="text-[10px] text-teal-700 dark:text-teal-300">Ready to withdraw</p>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-black/10 bg-white p-6">
-              <h3 className="font-semibold text-neutral-950 dark:text-white mb-4">📊 Earnings by Tier</h3>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-4">Earnings by Tier</h3>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {Object.entries(tierBreakdown).map(([tier, data]) => {
                   const tierInfo = getTierInfo(tier);
                   return (
-                    <div key={tier} className="text-center p-3 bg-neutral-100 dark:bg-white/10 rounded-xl">
-                      <div className="text-2xl">{tierInfo.icon}</div>
-                      <div className="text-xs font-semibold text-neutral-950 dark:text-white">{tierInfo.label}</div>
-                      <div className="text-sm font-bold text-green-500">{formatPrice(data.earnings)}</div>
-                      <div className="text-[10px] text-neutral-500">{data.count} delivered orders</div>
+                    <div key={tier} className="text-center p-3 bg-[var(--bg-secondary)]">
+                      <div className="text-xs font-bold text-teal-700 dark:text-teal-300">{tierInfo.icon}</div>
+                      <div className="text-xs font-semibold text-[var(--text)]">{tierInfo.label}</div>
+                      <div className="text-sm font-bold text-green-600 dark:text-green-400">{formatPrice(data.earnings)}</div>
+                      <div className="text-[10px] text-[var(--text-secondary)]">{data.count} delivered orders</div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-3xl border border-black/10 bg-white">
-              <div className="p-4 border-b border-black/5 flex items-center justify-between">
-                <h3 className="font-semibold text-neutral-950 dark:text-white">Commission History</h3>
+            <div className="overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
+              <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+                <h3 className="font-display font-semibold tracking-tight text-[var(--text)]">Commission History</h3>
                 <div className="flex gap-1">
                   {['all', 'delivered', 'pending', 'cancelled'].map(filter => (
                     <button
                       key={filter}
                       onClick={() => setOrderFilter(filter)}
-                      className={`text-[10px] px-2 py-1 rounded-lg transition-all capitalize ${
+                      className={`text-[10px] px-2 py-1 transition-all capitalize ${
                         orderFilter === filter
-                          ? 'bg-neutral-950 text-white'
-                          : 'bg-neutral-100 dark:bg-white/10 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-white/20'
+                          ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
+                          : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
                       }`}
                     >
                       {filter}
@@ -1028,7 +1001,7 @@ export default function AffiliateDashboard() {
                 </div>
               </div>
               {filteredOrders.length > 0 ? (
-                <div className="divide-y divide-black/5">
+                <div className="divide-y divide-[var(--border)]">
                   {filteredOrders.map(order => {
                     const statusBadge = getStatusBadge(order.status);
                     const tierInfo = getTierInfo(order.tier_at_time || 'bronze');
@@ -1039,24 +1012,34 @@ export default function AffiliateDashboard() {
                       <div key={order.id} className="flex items-center justify-between p-4">
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-neutral-950 dark:text-white">Order #{order.order_id?.slice(-8)}</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${statusBadge.color} flex items-center gap-0.5`}>
+                            <p className="text-sm font-medium text-[var(--text)]">
+                              {order.customer_name || order.product_name || `Order #${order.order_id?.slice(-8)}`}
+                            </p>
+                            <span className={`text-[10px] px-2 py-0.5 ${statusBadge.color} flex items-center gap-0.5`}>
                               {statusBadge.icon} {statusBadge.label}
                             </span>
                           </div>
-                          <p className="text-xs text-neutral-500">{new Date(order.created_at).toLocaleDateString('sw-TZ')}</p>
-                          <p className="text-xs text-neutral-500">Sale: {formatPrice(order.order_amount)}</p>
-                          <span className="text-[10px] flex items-center gap-1 text-neutral-500">
-                            {tierInfo.icon} {tierInfo.label} • {order.commission_rate}% commission
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {order.customer_name ? `Customer · ` : ''}
+                            {order.order_number || `Order #${order.order_id?.slice(-8)}`}
+                            {' · '}
+                            {new Date(order.created_at).toLocaleDateString('sw-TZ')}
+                          </p>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {order.product_name ? `${order.product_name} · ` : ''}
+                            Sale: {formatPrice(order.order_amount)}
+                          </p>
+                          <span className="text-[10px] flex items-center gap-1 text-[var(--text-secondary)]">
+                            {tierInfo.label} • {order.commission_rate}% commission
                           </span>
                         </div>
                         <div className="text-right">
                           {isDelivered ? (
-                            <p className="font-bold text-green-500">+{formatPrice(order.commission)} ✓</p>
+                            <p className="font-bold text-green-600 dark:text-green-400">+{formatPrice(order.commission)}</p>
                           ) : isCancelled ? (
-                            <p className="font-bold text-red-500">Cancelled</p>
+                            <p className="font-bold text-red-600 dark:text-red-400">Cancelled</p>
                           ) : (
-                            <p className="font-bold text-yellow-500">Pending</p>
+                            <p className="font-bold text-yellow-600 dark:text-yellow-400">Pending</p>
                           )}
                         </div>
                       </div>
@@ -1064,7 +1047,7 @@ export default function AffiliateDashboard() {
                   })}
                 </div>
               ) : (
-                <div className="p-8 text-center text-neutral-500">No earnings yet. Start sharing links!</div>
+                <div className="p-8 text-center text-[var(--text-secondary)]">No earnings yet. Start sharing links!</div>
               )}
             </div>
           </div>
@@ -1073,47 +1056,47 @@ export default function AffiliateDashboard() {
         {/* WITHDRAW TAB - Same as before */}
         {tab === 'withdraw' && (
           <div className="grid sm:grid-cols-2 gap-6">
-            <div className="rounded-3xl border border-black/10 bg-white p-6">
-              <h3 className="font-semibold text-neutral-950 dark:text-white mb-4">{t('withdraw')}</h3>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-4">{t('withdraw')}</h3>
 
-              <div className="rounded-2xl bg-neutral-50 border border-black/5 p-4 mb-4 text-sm">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border)] p-4 mb-4 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-neutral-500">Current Tier:</span>
-                  <span className={`font-semibold ${currentTierInfo.color}`}>{currentTierInfo.icon} {currentTierInfo.label}</span>
+                  <span className="text-[var(--text-secondary)]">Current Tier:</span>
+                  <span className={`font-semibold ${currentTierInfo.color}`}>{currentTierInfo.label}</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-neutral-500">Delivered Orders:</span>
-                  <span className="font-semibold">{totalOrders} / {currentTierInfo.withdrawRequirement} required</span>
+                  <span className="text-[var(--text-secondary)]">Delivered Orders:</span>
+                  <span className="font-semibold text-[var(--text)]">{totalOrders} / {currentTierInfo.withdrawRequirement} required</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-neutral-500">Payout Schedule:</span>
-                  <span className="font-semibold">{currentTierInfo.payout}</span>
+                  <span className="text-[var(--text-secondary)]">Payout Schedule:</span>
+                  <span className="font-semibold text-[var(--text)]">{currentTierInfo.payout}</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-neutral-500">Withdrawable:</span>
-                  <span className={`font-semibold ${isEligibleForWithdraw ? 'text-green-500' : 'text-yellow-500'}`}>
-                    {isEligibleForWithdraw ? '✅ Eligible' : `⏳ ${currentTierInfo.withdrawRequirement - totalOrders} more orders needed`}
+                  <span className="text-[var(--text-secondary)]">Withdrawable:</span>
+                  <span className={`font-semibold ${isEligibleForWithdraw ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                    {isEligibleForWithdraw ? 'Eligible' : `${currentTierInfo.withdrawRequirement - totalOrders} more orders needed`}
                   </span>
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-neutral-950 text-white p-4 mb-4 text-sm">
+              <div className="bg-neutral-950 text-white p-4 mb-4 text-sm dark:bg-white dark:text-neutral-950">
                 Available: <strong>{formatPrice(stats.withdrawable_balance || 0)}</strong>
               </div>
 
               {!isEligibleForWithdraw && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 mb-4 text-sm">
-                  ⚠️ You need {currentTierInfo.withdrawRequirement} delivered orders to withdraw. You currently have {totalOrders}.
+                <div className="border border-[var(--border)] bg-[var(--surface-warm)] p-4 text-[var(--text-secondary)] mb-4 text-sm">
+                  You need {currentTierInfo.withdrawRequirement} delivered orders to withdraw. You currently have {totalOrders}.
                 </div>
               )}
 
               <div className="space-y-3">
                 <input type="number" placeholder="Amount (min TZS 1,000)" value={withdrawAmount}
                   onChange={e => setWithdrawAmount(e.target.value)}
-                  className="h-11 w-full rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="input"
                   disabled={!isEligibleForWithdraw} />
                 <select value={withdrawMethod} onChange={e => setWithdrawMethod(e.target.value)}
-                  className="h-11 w-full rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="input"
                   disabled={!isEligibleForWithdraw}>
                   <option value="mpesa">M-Pesa</option>
                   <option value="tigopesa">Tigo Pesa</option>
@@ -1121,37 +1104,37 @@ export default function AffiliateDashboard() {
                 </select>
                 <input placeholder="Phone number (e.g. 0712345678)" value={withdrawAccount}
                   onChange={e => setWithdrawAccount(e.target.value)}
-                  className="h-11 w-full rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                  className="input"
                   disabled={!isEligibleForWithdraw} />
                 <button onClick={handleWithdraw}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-950"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                   disabled={!isEligibleForWithdraw}>
                   {isEligibleForWithdraw ? 'Request Withdrawal' : `Need ${currentTierInfo.withdrawRequirement - totalOrders} More Orders`}
                 </button>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-black/10 bg-white p-6">
-              <h3 className="font-semibold text-neutral-950 dark:text-white mb-4">Withdrawal History</h3>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-4">Withdrawal History</h3>
               {withdrawals.length > 0 ? (
                 <div className="space-y-3">
                   {withdrawals.map(w => (
-                    <div key={w.id} className="flex items-center justify-between py-2 border-b border-black/5 last:border-0">
+                    <div key={w.id} className="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0">
                       <div>
-                        <p className="text-sm font-medium text-neutral-950 dark:text-white">{formatPrice(w.amount)}</p>
-                        <p className="text-xs text-neutral-500">{w.method} • {new Date(w.created_at).toLocaleDateString()}</p>
+                        <p className="text-sm font-medium text-[var(--text)]">{formatPrice(w.amount)}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">{w.method} • {new Date(w.created_at).toLocaleDateString()}</p>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        w.status === 'paid' ? 'bg-green-500/10 text-green-500'
-                        : w.status === 'approved' ? 'bg-blue-500/10 text-blue-500'
-                        : w.status === 'rejected' ? 'bg-red-500/10 text-red-500'
-                        : 'bg-yellow-500/10 text-yellow-500'
+                      <span className={`text-xs px-2 py-1 font-medium ${
+                        w.status === 'paid' ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                        : w.status === 'approved' ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300'
+                        : w.status === 'rejected' ? 'bg-red-500/10 text-red-600 dark:text-red-400'
+                        : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
                       }`}>{w.status}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-neutral-500 text-sm">No withdrawals yet</p>
+                <p className="text-[var(--text-secondary)] text-sm">No withdrawals yet</p>
               )}
             </div>
           </div>
@@ -1161,64 +1144,64 @@ export default function AffiliateDashboard() {
         {tab === 'share' && (
           <div className="space-y-6">
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="rounded-3xl border border-black/10 bg-white p-6">
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-950">
+                  <div className="h-10 w-10 bg-[var(--bg-secondary)] flex items-center justify-center text-[var(--text)]">
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-neutral-950 dark:text-white">Share Store</h3>
-                    <p className="text-xs text-neutral-500">Share the entire store with your audience</p>
+                    <h3 className="font-display font-semibold tracking-tight text-[var(--text)]">Share Store</h3>
+                    <p className="text-xs text-[var(--text-secondary)]">Share the entire store with your audience</p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <input readOnly value={productReferralLink}
-                      className="h-11 w-full rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:text-white flex-1 py-2" />
+                      className="input flex-1" />
                     <button onClick={() => copyToClipboard(productReferralLink, 'store-share')}
-                      className="p-2 bg-neutral-950 text-white rounded-xl hover:bg-neutral-800 transition-colors">
+                      className="px-3 bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                       {copied === 'store-share' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => shareOnWhatsApp(productReferralLink, 'Check out BelieveinaBlessed Fashion Store!')}
-                      className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-colors">
+                      className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors">
                       WhatsApp
                     </button>
                     <button onClick={() => shareOnTikTok(productReferralLink)}
-                      className="flex-1 py-2 bg-black hover:bg-gray-900 text-white rounded-xl text-sm font-semibold transition-colors">
+                      className="flex-1 py-2 bg-neutral-950 hover:bg-teal-700 text-white text-sm font-semibold transition-colors dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                       TikTok
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-black/10 bg-white p-6">
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-950">
+                  <div className="h-10 w-10 bg-[var(--bg-secondary)] flex items-center justify-center text-[var(--text)]">
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-neutral-950 dark:text-white">Recruit Affiliates</h3>
-                    <p className="text-xs text-neutral-500">Invite others to join the affiliate program</p>
+                    <h3 className="font-display font-semibold tracking-tight text-[var(--text)]">Recruit Affiliates</h3>
+                    <p className="text-xs text-[var(--text-secondary)]">Invite others to join the affiliate program</p>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <input readOnly value={registrationLink}
-                      className="h-11 w-full rounded-full border border-black/10 bg-white px-5 text-sm outline-none transition focus:border-neutral-950 dark:border-white/10 dark:bg-white/5 dark:text-white flex-1 py-2" />
+                      className="input flex-1" />
                     <button onClick={() => copyToClipboard(registrationLink, 'recruit-share')}
-                      className="p-2 bg-neutral-950 text-white rounded-xl hover:bg-neutral-800 transition-colors">
+                      className="px-3 bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                       {copied === 'recruit-share' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => shareOnWhatsApp(registrationLink, 'Join the BelieveinaBlessed Affiliate Program and earn money!')}
-                      className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-colors">
+                      className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors">
                       WhatsApp
                     </button>
                     <button onClick={() => shareOnTikTok(registrationLink)}
-                      className="flex-1 py-2 bg-black hover:bg-gray-900 text-white rounded-xl text-sm font-semibold transition-colors">
+                      className="flex-1 py-2 bg-neutral-950 hover:bg-teal-700 text-white text-sm font-semibold transition-colors dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                       TikTok
                     </button>
                   </div>
@@ -1226,37 +1209,37 @@ export default function AffiliateDashboard() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-black/10 bg-white p-6 text-center">
-              <h3 className="font-semibold text-neutral-950 dark:text-white mb-2">Your Referral Code</h3>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6 text-center">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-2">Your Affiliate Code</h3>
               <div className="flex items-center justify-center gap-3">
-                <div className="text-2xl font-mono font-bold text-neutral-950 bg-neutral-100 px-6 py-3 rounded-xl">
+                <div className="text-2xl font-mono font-bold text-[var(--text)] bg-[var(--bg-secondary)] px-6 py-3">
                   {stats.referral_code || 'N/A'}
                 </div>
                 <button onClick={() => copyToClipboard(stats.referral_code || '', 'code')}
-                  className="p-3 bg-neutral-950 text-white rounded-xl hover:bg-neutral-800 transition-colors">
+                  className="p-3 bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                   {copied === 'code' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                 </button>
               </div>
-              <p className="text-xs text-neutral-500 mt-3">
-                Share this code with your audience. They can enter it at checkout or use it in the URL.
+              <p className="text-xs text-[var(--text-secondary)] mt-3">
+                Based on your name. Share this code or use it in your affiliate links.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-black/10 bg-white p-6">
-              <h3 className="font-semibold text-neutral-950 dark:text-white mb-3">Quick Share</h3>
+            <div className="border border-[var(--border)] bg-[var(--bg-card)] p-6">
+              <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-3">Quick Share</h3>
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => shareOnWhatsApp(homeLink, 'Shop with me on BelieveinaBlessed! Use my code:')}
-                  className="flex-1 min-w-[120px] py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                  className="flex-1 min-w-[120px] py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                   WhatsApp
                 </button>
                 <button onClick={() => shareOnTikTok(homeLink)}
-                  className="flex-1 min-w-[120px] py-3 bg-black hover:bg-gray-900 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                  className="flex-1 min-w-[120px] py-3 bg-neutral-950 hover:bg-teal-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 0 006.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
                   TikTok
                 </button>
                 <button onClick={() => copyToClipboard(homeLink, 'home')}
-                  className="flex-1 min-w-[120px] py-3 bg-neutral-950 hover:bg-neutral-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                  className="flex-1 min-w-[120px] py-3 border border-[var(--border)] bg-[var(--bg-secondary)] hover:bg-[var(--border)] text-[var(--text)] text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                   {copied === 'home' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                   Copy Link
                 </button>
@@ -1264,17 +1247,17 @@ export default function AffiliateDashboard() {
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-3xl border border-black/10 bg-white p-5 text-center">
-                <p className="text-2xl font-bold text-blue-500">{stats.total_clicks || 0}</p>
-                <p className="text-xs text-neutral-500">Total Clicks</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
+                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{stats.total_clicks || 0}</p>
+                <p className="text-xs text-[var(--text-secondary)]">Total Clicks</p>
               </div>
-              <div className="rounded-3xl border border-black/10 bg-white p-5 text-center">
-                <p className="text-2xl font-bold text-green-500">{deliveredOrders.length || 0}</p>
-                <p className="text-xs text-neutral-500">Delivered Orders</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
+                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{deliveredOrders.length || 0}</p>
+                <p className="text-xs text-[var(--text-secondary)]">Delivered Orders</p>
               </div>
-              <div className="rounded-3xl border border-black/10 bg-white p-5 text-center">
-                <p className="text-2xl font-bold text-orange-500">{stats.conversion_rate || 0}%</p>
-                <p className="text-xs text-neutral-500">Conversion Rate</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
+                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{stats.conversion_rate || 0}%</p>
+                <p className="text-xs text-[var(--text-secondary)]">Conversion Rate</p>
               </div>
             </div>
           </div>

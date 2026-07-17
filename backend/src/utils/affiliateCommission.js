@@ -59,19 +59,25 @@ export function getTierByOrderCount(orderCount) {
   return TIER_CONFIG.vip;
 }
 
-export async function getAffiliateCurrentTier(affiliateId) {
-  const { count: orderCount, error } = await supabase
+/** Count distinct paid/confirmed orders (not line items). */
+export async function countConfirmedAffiliateOrders(affiliateId) {
+  const { data, error } = await supabase
     .from('affiliate_orders')
-    .select('id', { count: 'exact', head: true })
+    .select('order_id')
     .eq('affiliate_id', affiliateId)
     .eq('status', 'confirmed');
 
   if (error) {
     console.error('Error counting confirmed orders:', error);
-    return TIER_CONFIG.bronze;
+    return 0;
   }
 
-  return getTierByOrderCount(orderCount || 0);
+  return new Set((data || []).map((row) => row.order_id).filter(Boolean)).size;
+}
+
+export async function getAffiliateCurrentTier(affiliateId) {
+  const orderCount = await countConfirmedAffiliateOrders(affiliateId);
+  return getTierByOrderCount(orderCount);
 }
 
 export async function updateAffiliateTier(affiliateId) {
@@ -93,14 +99,39 @@ export async function updateAffiliateTier(affiliateId) {
   }
 }
 
+async function recalculateWithdrawableBalance(affiliateId) {
+  const { data: confirmed } = await supabase
+    .from('affiliate_orders')
+    .select('commission')
+    .eq('affiliate_id', affiliateId)
+    .eq('status', 'confirmed');
+
+  const totalConfirmed = (confirmed || []).reduce((sum, row) => sum + Number(row.commission || 0), 0);
+
+  const { data: withdrawals } = await supabase
+    .from('withdrawals')
+    .select('amount')
+    .eq('affiliate_id', affiliateId)
+    .in('status', ['pending', 'approved', 'completed', 'processing']);
+
+  const withdrawn = (withdrawals || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  return Math.max(0, totalConfirmed - withdrawn);
+}
+
 /**
- * Confirm pending commission (called when payment is paid / order delivered)
+ * Confirm pending commission (called when payment is paid / order delivered).
+ * Also recovers rows that were wrongly cancelled after a failed payment attempt.
  */
 export async function confirmOrderCommission(orderId, affiliateId, reason = 'Payment confirmed') {
   try {
+    if (!orderId || !affiliateId) {
+      console.warn('⚠️ confirmOrderCommission missing orderId or affiliateId');
+      return false;
+    }
+
     console.log(`💰 Confirming commission for order ${orderId}, affiliate ${affiliateId} — ${reason}`);
 
-    const { data: affOrders, error: affFetchError } = await supabase
+    let { data: affOrders, error: affFetchError } = await supabase
       .from('affiliate_orders')
       .select('*')
       .eq('order_id', orderId)
@@ -111,17 +142,60 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
       return false;
     }
 
+    // Recover after a failed payment attempt cancelled pending rows on the same order
     if (!affOrders?.length) {
+      const { data: cancelledRows } = await supabase
+        .from('affiliate_orders')
+        .select('*')
+        .eq('order_id', orderId)
+        .eq('status', 'cancelled');
+
+      if (cancelledRows?.length) {
+        console.log(`🔄 Restoring ${cancelledRows.length} cancelled affiliate rows before confirm`);
+        await restoreOrderCommission(orderId, affiliateId);
+        const restored = await supabase
+          .from('affiliate_orders')
+          .select('*')
+          .eq('order_id', orderId)
+          .eq('status', 'pending');
+        affOrders = restored.data || [];
+      }
+    }
+
+    // Already confirmed — ensure order + tier are in sync
+    if (!affOrders?.length) {
+      const { data: alreadyConfirmed } = await supabase
+        .from('affiliate_orders')
+        .select('id, commission')
+        .eq('order_id', orderId)
+        .eq('status', 'confirmed');
+
+      if (alreadyConfirmed?.length) {
+        const total = alreadyConfirmed.reduce((sum, row) => sum + Number(row.commission || 0), 0);
+        await supabase
+          .from('orders')
+          .update({
+            commission_total: total,
+            commission_status: 'confirmed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', orderId);
+        await updateAffiliateTier(affiliateId);
+        console.log('ℹ️ Commission already confirmed for', orderId);
+        return true;
+      }
+
       console.log('⚠️ No pending affiliate orders found for', orderId);
       return false;
     }
 
+    const originalPendingTotal = affOrders.reduce((sum, ao) => sum + Number(ao.commission || 0), 0);
     const currentTier = await getAffiliateCurrentTier(affiliateId);
     const currentCommissionRate = currentTier.commission_rate;
     let totalCommission = 0;
 
     for (const affOrder of affOrders) {
-      const newCommission = (affOrder.order_amount * currentCommissionRate) / 100;
+      const newCommission = (Number(affOrder.order_amount || 0) * currentCommissionRate) / 100;
       totalCommission += newCommission;
 
       await supabase
@@ -133,6 +207,8 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
           status: 'confirmed',
           is_confirmed: true,
           confirmed_at: new Date().toISOString(),
+          cancelled_at: null,
+          cancellation_reason: null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', affOrder.id);
@@ -149,24 +225,21 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
       return false;
     }
 
-    const { count: orderCount } = await supabase
-      .from('affiliate_orders')
-      .select('id', { count: 'exact', head: true })
-      .eq('affiliate_id', affiliateId)
-      .eq('status', 'confirmed');
-
-    const tier = getTierByOrderCount(orderCount || 0);
-    const isEligibleForWithdraw = (orderCount || 0) >= tier.requires_orders_for_withdraw;
+    const orderCount = await countConfirmedAffiliateOrders(affiliateId);
+    const tier = getTierByOrderCount(orderCount);
+    const isEligibleForWithdraw = orderCount >= tier.requires_orders_for_withdraw;
 
     const updateData = {
       total_earnings: (userData.total_earnings || 0) + totalCommission,
-      pending_earnings: Math.max(0, (userData.pending_earnings || 0) - totalCommission),
+      // Subtract what was previously reserved as pending (original rates)
+      pending_earnings: Math.max(0, (userData.pending_earnings || 0) - originalPendingTotal),
       affiliate_level: tier.level,
       updated_at: new Date().toISOString(),
     };
 
     if (isEligibleForWithdraw) {
-      updateData.withdrawable_balance = (userData.withdrawable_balance || 0) + totalCommission;
+      // Rebuild withdrawable from all confirmed commissions minus withdrawals
+      updateData.withdrawable_balance = await recalculateWithdrawableBalance(affiliateId);
     }
 
     await supabase.from('users').update(updateData).eq('id', affiliateId);
@@ -181,7 +254,9 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
       })
       .eq('id', orderId);
 
-    console.log(`✅ Commission CONFIRMED for affiliate ${affiliateId}: ${totalCommission} TZS`);
+    console.log(
+      `✅ Commission CONFIRMED for affiliate ${affiliateId}: ${totalCommission} TZS | tier=${tier.level} | confirmed_orders=${orderCount}`
+    );
     return true;
   } catch (error) {
     console.error('Error confirming commission:', error);
@@ -202,8 +277,12 @@ export async function cancelOrderCommission(orderId, affiliateId, reason) {
       return false;
     }
 
-    const confirmedOrders = affOrders.filter((ao) => ao.status === 'confirmed');
-    const pendingOrders = affOrders.filter((ao) => ao.status === 'pending');
+    // Don't re-cancel already cancelled rows
+    const activeOrders = affOrders.filter((ao) => ao.status !== 'cancelled');
+    if (!activeOrders.length) return true;
+
+    const confirmedOrders = activeOrders.filter((ao) => ao.status === 'confirmed');
+    const pendingOrders = activeOrders.filter((ao) => ao.status === 'pending');
     const hasConfirmed = confirmedOrders.length > 0;
     const hasPending = pendingOrders.length > 0;
 
@@ -216,7 +295,8 @@ export async function cancelOrderCommission(orderId, affiliateId, reason) {
         cancellation_reason: reason || 'Order cancelled',
         updated_at: new Date().toISOString(),
       })
-      .eq('order_id', orderId);
+      .eq('order_id', orderId)
+      .neq('status', 'cancelled');
 
     const { data: userData } = await supabase
       .from('users')
@@ -230,7 +310,6 @@ export async function cancelOrderCommission(orderId, affiliateId, reason) {
       if (hasConfirmed) {
         const confirmedCommission = confirmedOrders.reduce((sum, ao) => sum + (ao.commission || 0), 0);
         updateData.total_earnings = Math.max(0, (userData.total_earnings || 0) - confirmedCommission);
-        updateData.withdrawable_balance = Math.max(0, (userData.withdrawable_balance || 0) - confirmedCommission);
       }
 
       if (hasPending) {
@@ -240,6 +319,20 @@ export async function cancelOrderCommission(orderId, affiliateId, reason) {
 
       if (hasConfirmed || hasPending) {
         await supabase.from('users').update(updateData).eq('id', affiliateId);
+        // Keep withdrawable accurate after clawbacks
+        const orderCount = await countConfirmedAffiliateOrders(affiliateId);
+        const tier = getTierByOrderCount(orderCount);
+        const withdrawable = orderCount >= tier.requires_orders_for_withdraw
+          ? await recalculateWithdrawableBalance(affiliateId)
+          : 0;
+        await supabase
+          .from('users')
+          .update({
+            withdrawable_balance: withdrawable,
+            affiliate_level: tier.level,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', affiliateId);
       }
     }
 

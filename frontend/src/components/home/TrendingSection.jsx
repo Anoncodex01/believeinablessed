@@ -23,35 +23,58 @@ export default function TrendingSection({ refCode = '' }) {
   }, []);
 
   return (
-    <section className="mx-auto max-w-[1500px] px-4 py-10 sm:px-8 sm:py-14 lg:px-12">
-      <div className="mx-auto max-w-[1500px]">
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <h2 className="font-display text-4xl font-semibold leading-none text-[var(--text)] sm:text-5xl">
-            New & <span className="italic">Trending</span>
-          </h2>
-        </div>
-        <Link href={`/products?trending=true${refCode ? `&ref=${refCode}` : ''}`} className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--text)] transition hover:opacity-60">
-          View All <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
+    <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(15,118,110,0.07),_transparent_55%)] dark:bg-[radial-gradient(ellipse_at_top_right,_rgba(45,212,191,0.08),_transparent_55%)]" />
 
-      <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="card overflow-hidden">
-                <div className="aspect-[3/4] shimmer-bg" />
-                <div className="p-3 space-y-2">
-                  <div className="h-3 shimmer-bg rounded w-3/4" />
-                  <div className="h-3 shimmer-bg rounded w-1/2" />
+      <div className="home-shell relative">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-10 flex items-end justify-between gap-6 sm:mb-12"
+        >
+          <div>
+            <p className="section-kicker">Just dropped</p>
+            <h2 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl lg:text-[3.5rem]">
+              New & Trending
+            </h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+              Fresh pieces people are wearing right now — clean cuts, everyday fits.
+            </p>
+          </div>
+          <Link
+            href={`/products?trending=true${refCode ? `&ref=${refCode}` : ''}`}
+            className="section-link hidden sm:inline-flex"
+          >
+            View all <ArrowRight className="h-4 w-4" />
+          </Link>
+        </motion.div>
+
+        <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="overflow-hidden">
+                  <div className="aspect-[3/4] shimmer-bg rounded-sm" />
+                  <div className="mt-4 space-y-2">
+                    <div className="h-3 w-3/4 shimmer-bg rounded" />
+                    <div className="h-3 w-1/2 shimmer-bg rounded" />
+                  </div>
                 </div>
-              </div>
-            ))
-          : products.map((p, i) => (
-              <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
-            ))
-        }
-      </div>
+              ))
+            : products.map((p, i) => (
+                <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
+              ))}
+        </div>
+
+        <div className="mt-10 text-center sm:hidden">
+          <Link
+            href={`/products?trending=true${refCode ? `&ref=${refCode}` : ''}`}
+            className="section-link"
+          >
+            View all <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );

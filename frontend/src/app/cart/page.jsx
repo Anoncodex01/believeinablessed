@@ -93,8 +93,20 @@ function CartContent() {
                               <p className="line-clamp-2 text-base font-medium text-[var(--text)] transition hover:text-neutral-500">{name}</p>
                             </Link>
                             <div className="mt-2 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)]">
-                              {item.size && <span className="rounded-full bg-neutral-100 px-3 py-1 dark:bg-white/10">{t('size')}: {item.size}</span>}
-                              {item.color && <span className="rounded-full bg-neutral-100 px-3 py-1 dark:bg-white/10">{t('color')}: {item.color}</span>}
+                              {item.size ? (
+                                <span className="border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-1">{t('size')}: {item.size}</span>
+                              ) : item.sizes?.length > 0 ? (
+                                <Link href={productLink} className="border border-amber-600/30 bg-amber-500/10 px-3 py-1 text-amber-700">
+                                  Select size
+                                </Link>
+                              ) : null}
+                              {item.color ? (
+                                <span className="border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-1">{t('color')}: {item.color}</span>
+                              ) : item.colors?.length > 0 ? (
+                                <Link href={productLink} className="border border-amber-600/30 bg-amber-500/10 px-3 py-1 text-amber-700">
+                                  Select color
+                                </Link>
+                              ) : null}
                             </div>
                           </div>
                           <p className="shrink-0 text-base font-semibold text-[var(--text)]">{formatPrice(price * item.quantity)}</p>

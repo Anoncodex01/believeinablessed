@@ -45,15 +45,18 @@ uploadDirs.forEach(dir => {
 // ==================== CORS CONFIGURATION ====================
 
 const allowedOrigins = [
-  'https://www.believeinablessed.com',
-  'https://believeinablessed.com',
+  process.env.FRONTEND_URL,
+  process.env.ALLOWED_ORIGIN,
+  ...(process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+  // Local development frontends
   'http://localhost:3000',
   'http://localhost:3001',
-  'http://localhost:5000',
-  'https://believeinablessed.fly.dev',
-  'https://backend-calm-meadowland-7817.fly.dev',
-  'https://*.fly.dev'
-];
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+].filter(Boolean);
 
 // Enable CORS with proper options
 app.use(cors({
@@ -63,13 +66,12 @@ app.use(cors({
     if (allowedOrigins.includes(origin) || allowedOrigins.some(o => o.includes('*') && origin.includes(o.replace('*', '')))) {
       console.log('✅ CORS allowed:', origin);
       callback(null, true);
+    } else if (process.env.NODE_ENV !== 'production') {
+      console.log('⚠️ CORS allowing in non-production:', origin);
+      callback(null, true);
     } else {
-      console.log('⚠️ CORS blocked, but allowing for development:', origin);
-      if (process.env.NODE_ENV === 'development') {
-        callback(null, true);
-      } else {
-        callback(null, true);
-      }
+      console.log('❌ CORS blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,

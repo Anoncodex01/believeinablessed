@@ -1,5 +1,5 @@
 // app/layout.jsx
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Syne, Figtree } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/Providers';
 import dynamic from 'next/dynamic';
@@ -10,18 +10,17 @@ const LiveTrackingWidget = dynamic(
   { ssr: false }
 );
 
-const inter = Inter({
+const figtree = Figtree({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
 });
 
-const playfair = Playfair_Display({
+const syne = Syne({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
 });
-
 
 export const metadata = {
   title: 'BelieveinaBlessed - Modern Fashion',
@@ -34,7 +33,7 @@ export default function RootLayout({ children }) {
     // Add suppressHydrationWarning to prevent theme flash
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} font-body antialiased`}
+        className={`${figtree.variable} ${syne.variable} font-body antialiased`}
       >
         <Providers>
           {children}

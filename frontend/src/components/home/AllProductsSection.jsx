@@ -24,64 +24,77 @@ export default function AllProductsSection({ refCode = '' }) {
   }, []);
 
   return (
-    <section className="mx-auto max-w-[1500px] px-4 py-10 sm:px-8 sm:py-14 lg:px-12">
-      <div className="mx-auto max-w-[1500px]">
-      <div className="mb-8 text-center">
-        <p className="mb-3 text-xs font-medium uppercase text-[var(--text-secondary)]">Curated for every day</p>
-        <h2 className="font-display text-4xl font-semibold text-[var(--text)] sm:text-5xl">
-          Our <span className="italic">Collections</span>
-        </h2>
-      </div>
+    <section className="relative py-16 sm:py-20 lg:py-24">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[linear-gradient(180deg,var(--bg-secondary),transparent)]" />
 
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {productCategories.map((label, index) => (
-            <Link
-              key={label}
-              href={productCategoryHref(label)}
-              className={`rounded-full px-4 py-2 text-xs font-medium transition ${
-                index === 0
-                  ? 'bg-neutral-950 text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-950'
-                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-950 hover:text-white dark:bg-white/10 dark:text-white dark:hover:bg-white dark:hover:text-neutral-950'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-        <Link href={`/products${refCode ? `?ref=${refCode}` : ''}`} className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-[var(--text)] transition hover:opacity-60">
-          View All <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
+      <div className="home-shell relative">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-10 max-w-2xl sm:mb-12"
+        >
+          <p className="section-kicker">The full edit</p>
+          <h2 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl lg:text-[3.5rem]">
+            Our Collections
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+            Curated looks for every day — browse by category or explore everything.
+          </p>
+        </motion.div>
 
-      <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {loading
-          ? Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="card overflow-hidden">
-                <div className="aspect-[3/4] shimmer-bg" />
-                <div className="p-3 space-y-2">
-                  <div className="h-3 shimmer-bg rounded" />
-                  <div className="h-3 shimmer-bg rounded w-2/3" />
-                </div>
-              </div>
-            ))
-          : products.map((p, i) => (
-              <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
-            ))
-        }
-      </div>
-
-      <div className="mt-12 text-center">
-        <Link href={`/products${refCode ? `?ref=${refCode}` : ''}`}>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            className="inline-flex items-center gap-2 rounded-full border border-neutral-950 px-6 py-3 text-sm font-medium text-neutral-950 transition hover:bg-neutral-950 hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-neutral-950"
+        <div className="mb-10 flex flex-col gap-5 border-b border-[var(--border)] pb-8 sm:mb-12 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-x-1 gap-y-2">
+            {productCategories.map((label, index) => (
+              <Link
+                key={label}
+                href={productCategoryHref(label)}
+                className={`px-3 py-1.5 text-sm tracking-tight transition ${
+                  index === 0
+                    ? 'font-semibold text-[var(--text)] underline decoration-teal-700 decoration-2 underline-offset-8'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+          <Link
+            href={`/products${refCode ? `?ref=${refCode}` : ''}`}
+            className="section-link"
           >
-            View Full Collection <ArrowRight className="h-4 w-4" />
-          </motion.button>
-        </Link>
-      </div>
+            View all <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading
+            ? Array.from({ length: 12 }).map((_, i) => (
+                <div key={i} className="overflow-hidden">
+                  <div className="aspect-[3/4] shimmer-bg rounded-sm" />
+                  <div className="mt-4 space-y-2">
+                    <div className="h-3 shimmer-bg rounded" />
+                    <div className="h-3 w-2/3 shimmer-bg rounded" />
+                  </div>
+                </div>
+              ))
+            : products.map((p, i) => (
+                <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
+              ))}
+        </div>
+
+        <div className="mt-14 text-center">
+          <Link href={`/products${refCode ? `?ref=${refCode}` : ''}`}>
+            <motion.span
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center gap-2 bg-neutral-950 px-8 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+            >
+              Explore full collection <ArrowRight className="h-4 w-4" />
+            </motion.span>
+          </Link>
+        </div>
       </div>
     </section>
   );

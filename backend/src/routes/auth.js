@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import supabase from '../config/supabase.js';
 import { authenticate } from '../middleware/auth.js';
+import { generateUniqueReferralCode, ensureNameBasedReferralCode } from '../utils/referralCode.js';
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.post('/register', async (req, res) => {
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
     const hashed = await bcrypt.hash(password, 12);
-    const myReferralCode = `BIB${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const myReferralCode = await generateUniqueReferralCode(name);
 
     const { data: user, error } = await supabase
       .from('users')
@@ -157,7 +158,7 @@ router.post('/request-affiliate', authenticate, async (req, res) => {
       });
     }
 
-    const referralCode = `BIB${userId.substring(0, 6).toUpperCase()}`;
+    const referralCode = await generateUniqueReferralCode(user.name || 'AFFILIATE', userId);
 
     const { data, error } = await supabase
       .from('users')
@@ -266,7 +267,7 @@ router.put('/admin/approve-affiliate/:id', authenticate, async (req, res) => {
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('role, affiliate_approved, email, name')
+      .select('id, role, affiliate_approved, email, name, referral_code')
       .eq('id', id)
       .single();
 
@@ -282,16 +283,7 @@ router.put('/admin/approve-affiliate/:id', authenticate, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Affiliate already approved' });
     }
 
-    const { data: userData } = await supabase
-      .from('users')
-      .select('referral_code')
-      .eq('id', id)
-      .single();
-
-    let referralCode = userData?.referral_code;
-    if (!referralCode) {
-      referralCode = `BIB${id.substring(0, 6).toUpperCase()}`;
-    }
+    const referralCode = await ensureNameBasedReferralCode(user);
 
     const { data, error } = await supabase
       .from('users')

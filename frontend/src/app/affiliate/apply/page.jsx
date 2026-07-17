@@ -12,8 +12,7 @@ import { motion } from 'framer-motion';
 import { Phone, User, Mail, Send, CheckCircle, Clock, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '@/lib/config';
 
 export default function AffiliateApply() {
   const { user, loading: authLoading, refreshUser } = useAuth();
@@ -70,7 +69,7 @@ export default function AffiliateApply() {
     try {
       const token = Cookies.get('bib_token');
       const { data } = await axios.post(
-        `${API}/affiliates/apply`,
+        `${API_URL}/affiliates/apply`,
         {
           phone: formData.phone,
           social_media: formData.social_media || '',

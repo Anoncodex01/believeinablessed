@@ -53,12 +53,12 @@ const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 
 const PAYMENT_FILTERS = ['', 'snippe', 'mpesa', 'airtel_money', 'tigo_pesa', 'card'];
 
 const STATUS_TONES = {
-  pending: 'border-amber-200 bg-amber-50 text-amber-700',
-  confirmed: 'border-blue-200 bg-blue-50 text-blue-700',
-  processing: 'border-violet-200 bg-violet-50 text-violet-700',
-  shipped: 'border-orange-200 bg-orange-50 text-orange-700',
-  delivered: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  cancelled: 'border-red-200 bg-red-50 text-red-700',
+  pending: 'border-amber-600/25 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  confirmed: 'border-teal-700/25 bg-teal-700/10 text-teal-800 dark:text-teal-300',
+  processing: 'border-sky-600/25 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  shipped: 'border-orange-600/25 bg-orange-500/10 text-orange-700 dark:text-orange-400',
+  delivered: 'border-emerald-600/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+  cancelled: 'border-red-600/25 bg-red-500/10 text-red-700 dark:text-red-400',
 };
 
 const PAYMENT_LABELS = {
@@ -75,11 +75,11 @@ const PAYMENT_LABELS = {
 };
 
 const TIER_TONES = {
-  bronze: 'border-orange-200 bg-orange-50 text-orange-700',
-  silver: 'border-neutral-200 bg-neutral-100 text-neutral-700',
-  gold: 'border-amber-200 bg-amber-50 text-amber-700',
-  platinum: 'border-cyan-200 bg-cyan-50 text-cyan-700',
-  vip: 'border-purple-200 bg-purple-50 text-purple-700',
+  bronze: 'border-orange-600/25 bg-orange-500/10 text-orange-700 dark:text-orange-400',
+  silver: 'border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]',
+  gold: 'border-amber-600/25 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  platinum: 'border-cyan-600/25 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
+  vip: 'border-teal-700/25 bg-teal-700/10 text-teal-800 dark:text-teal-300',
 };
 
 function selectableStatuses(current) {
@@ -87,14 +87,14 @@ function selectableStatuses(current) {
 }
 
 function StatusBadge({ status }) {
-  return <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${STATUS_TONES[status] || STATUS_TONES.pending}`}>{status || 'pending'}</span>;
+  return <span className={`inline-flex border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${STATUS_TONES[status] || STATUS_TONES.pending}`}>{status || 'pending'}</span>;
 }
 
 function PaymentBadge({ method, paid }) {
   const isMobile = ['mpesa', 'airtel_money', 'airtel', 'tigo_pesa', 'tigo', 'snippe'].includes(method);
   const Icon = isMobile ? Smartphone : CreditCard;
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-700">
+    <span className="inline-flex items-center gap-1.5 border border-[var(--border)] bg-[var(--bg-secondary)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text)]">
       <Icon className="h-3.5 w-3.5" />
       {PAYMENT_LABELS[method] || method || 'Payment'}
       {paid && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
@@ -104,17 +104,17 @@ function PaymentBadge({ method, paid }) {
 
 function TierBadge({ tier }) {
   if (!tier) return <span className="text-xs text-[var(--text-secondary)]">Direct</span>;
-  return <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold capitalize ${TIER_TONES[tier] || TIER_TONES.bronze}`}>{tier}</span>;
+  return <span className={`inline-flex border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${TIER_TONES[tier] || TIER_TONES.bronze}`}>{tier}</span>;
 }
 
 function StatCard({ label, value, icon: Icon, dark = false }) {
   return (
-    <div className={`rounded-3xl border p-5 ${dark ? 'border-neutral-900 bg-neutral-950 text-white' : 'border-black/10 bg-white text-neutral-950'}`}>
-      <div className={`mb-5 flex h-11 w-11 items-center justify-center rounded-full ${dark ? 'bg-white/10' : 'bg-neutral-100'}`}>
+    <div className={`border p-5 ${dark ? 'border-neutral-900 bg-neutral-950 text-white' : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)]'}`}>
+      <div className={`mb-4 flex h-10 w-10 items-center justify-center ${dark ? 'bg-white/10' : 'bg-teal-700/10 text-teal-700'}`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className={`mt-1 text-sm ${dark ? 'text-white/60' : 'text-[var(--text-secondary)]'}`}>{label}</p>
+      <p className="font-display text-2xl font-semibold tracking-tight">{value}</p>
+      <p className={`mt-1 text-[11px] font-semibold tracking-[0.14em] uppercase ${dark ? 'text-white/55' : 'text-[var(--text-secondary)]'}`}>{label}</p>
     </div>
   );
 }
@@ -249,6 +249,16 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
+      <div className="border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-6 sm:px-6">
+        <p className="section-kicker">Orders</p>
+        <h2 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+          Order management
+        </h2>
+        <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">
+          Track payments, fulfilment, and affiliate commission across every order.
+        </p>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard dark icon={ShoppingBag} label="Orders in view" value={stats.total} />
         <StatCard icon={CreditCard} label="Revenue in view" value={formatPrice(stats.revenue)} />
@@ -256,7 +266,7 @@ export default function AdminOrdersPage() {
         <StatCard icon={Clock} label="Commission in view" value={formatPrice(stats.commission)} />
       </div>
 
-      <div className="rounded-3xl border border-black/10 bg-white p-4">
+      <div className="border border-[var(--border)] bg-[var(--bg-card)] p-4">
         <div className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-center">
           <label className="relative block">
             <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
@@ -264,41 +274,41 @@ export default function AdminOrdersPage() {
               value={query}
               onChange={event => setQuery(event.target.value)}
               placeholder="Search order, customer, phone, email, affiliate..."
-              className="h-12 w-full rounded-full border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-neutral-950"
+              className="input h-12 pl-11"
             />
           </label>
-          <button onClick={() => setMobileFilters(prev => !prev)} className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/10 px-4 text-sm font-semibold xl:hidden">
+          <button onClick={() => setMobileFilters(prev => !prev)} className="inline-flex h-12 items-center justify-center gap-2 border border-[var(--border)] px-4 text-sm font-semibold transition hover:border-teal-700 xl:hidden">
             <Filter className="h-4 w-4" />
             Filters
           </button>
           <div className={`${mobileFilters ? 'grid' : 'hidden'} gap-2 xl:flex xl:flex-wrap xl:items-center`}>
-            <select value={filter} onChange={event => setFilter(event.target.value)} className="h-11 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold outline-none">
+            <select value={filter} onChange={event => setFilter(event.target.value)} className="input h-11 px-4 text-sm font-semibold">
               <option value="">All statuses</option>
               {STATUSES.map(status => <option key={status} value={status}>{status}</option>)}
             </select>
-            <select value={paymentFilter} onChange={event => setPaymentFilter(event.target.value)} className="h-11 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold outline-none">
+            <select value={paymentFilter} onChange={event => setPaymentFilter(event.target.value)} className="input h-11 px-4 text-sm font-semibold">
               {PAYMENT_FILTERS.map(method => <option key={method || 'all'} value={method}>{method ? PAYMENT_LABELS[method] || method : 'All payments'}</option>)}
             </select>
             {affiliates.length > 0 && (
-              <select value={affiliateFilter} onChange={event => setAffiliateFilter(event.target.value)} className="h-11 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold outline-none">
+              <select value={affiliateFilter} onChange={event => setAffiliateFilter(event.target.value)} className="input h-11 px-4 text-sm font-semibold">
                 <option value="">All affiliates</option>
                 {affiliates.map(affiliate => <option key={affiliate.id} value={affiliate.id}>{affiliate.name} {affiliate.code ? `(${affiliate.code})` : ''}</option>)}
               </select>
             )}
             {(filter || paymentFilter || affiliateFilter || query) && (
-              <button onClick={() => { setFilter(''); setPaymentFilter(''); setAffiliateFilter(''); setQuery(''); }} className="h-11 rounded-full bg-neutral-100 px-4 text-sm font-semibold">Clear</button>
+              <button onClick={() => { setFilter(''); setPaymentFilter(''); setAffiliateFilter(''); setQuery(''); }} className="h-11 border border-[var(--border)] px-4 text-sm font-semibold transition hover:border-teal-700">Clear</button>
             )}
-            <button onClick={refresh} title="Refresh" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white transition hover:border-neutral-950">
-              <RefreshCw className="h-4 w-4" />
+            <button onClick={refresh} title="Refresh" className="inline-flex h-11 w-11 items-center justify-center border border-[var(--border)] bg-[var(--bg-card)] transition hover:border-teal-700">
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-black/10 bg-white">
+      <div className="overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1160px]">
-            <thead className="border-b border-black/10 bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+            <thead className="border-b border-[var(--border)] bg-[var(--bg-secondary)] text-left text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               <tr>
                 <th className="px-5 py-4">Order</th>
                 <th className="px-5 py-4">Customer</th>
@@ -311,30 +321,30 @@ export default function AdminOrdersPage() {
                 <th className="px-5 py-4">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/5 text-sm">
+            <tbody className="divide-y divide-[var(--border)] text-sm">
               {loading ? Array.from({ length: 6 }).map((_, index) => (
-                <tr key={index}><td colSpan={9} className="px-5 py-4"><div className="h-10 rounded-xl shimmer-bg" /></td></tr>
+                <tr key={index}><td colSpan={9} className="px-5 py-4"><div className="h-10 shimmer-bg" /></td></tr>
               )) : paginated.map(order => {
                 const commission = commissionText(order);
                 return (
                   <tr key={order.id} className="align-middle">
                     <td className="px-5 py-4">
-                      <p className="font-mono font-bold text-neutral-950">{order.order_number}</p>
+                      <p className="font-mono font-bold text-[var(--text)]">{order.order_number}</p>
                       <p className="text-xs text-[var(--text-secondary)]">{Array.isArray(order.items) ? `${order.items.length} item${order.items.length === 1 ? '' : 's'}` : 'Items unavailable'}</p>
                     </td>
                     <td className="px-5 py-4">
-                      <p className="font-semibold">{order.customer_name || 'Customer'}</p>
+                      <p className="font-semibold text-[var(--text)]">{order.customer_name || 'Customer'}</p>
                       <div className="mt-1 space-y-0.5 text-xs text-[var(--text-secondary)]">
                         {order.customer_phone && <p className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{order.customer_phone}</p>}
                         {order.customer_email && <p className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{order.customer_email}</p>}
                       </div>
                     </td>
-                    <td className="px-5 py-4 font-bold">{formatPrice(order.total)}</td>
+                    <td className="px-5 py-4 font-bold text-[var(--text)]">{formatPrice(order.total)}</td>
                     <td className="px-5 py-4"><PaymentBadge method={order.payment_method} paid={order.payment_status === 'paid'} /></td>
                     <td className="px-5 py-4">
                       {order.affiliate_id ? (
                         <div>
-                          <p className="font-semibold">{order.affiliate_name || 'Affiliate'}</p>
+                          <p className="font-semibold text-[var(--text)]">{order.affiliate_name || 'Affiliate'}</p>
                           <p className="font-mono text-xs text-[var(--text-secondary)]">{order.affiliate_referral_code}</p>
                           <div className="mt-1"><TierBadge tier={order.affiliate_tier} /></div>
                         </div>
@@ -346,14 +356,14 @@ export default function AdminOrdersPage() {
                         value={order.status}
                         onChange={event => handleStatus(order, event.target.value)}
                         disabled={updating === order.id}
-                        className={`h-9 rounded-full border px-3 text-xs font-semibold capitalize outline-none ${STATUS_TONES[order.status] || STATUS_TONES.pending}`}
+                        className={`h-9 border px-3 text-xs font-semibold uppercase tracking-wide outline-none ${STATUS_TONES[order.status] || STATUS_TONES.pending}`}
                       >
                         {selectableStatuses(order.status).map(status => <option key={status} value={status}>{status}</option>)}
                       </select>
                     </td>
                     <td className="px-5 py-4 text-xs text-[var(--text-secondary)]">{formatDate(order.created_at)}</td>
                     <td className="px-5 py-4">
-                      <button onClick={() => setSelected(order)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 transition hover:border-neutral-950">
+                      <button onClick={() => setSelected(order)} className="inline-flex h-10 w-10 items-center justify-center border border-[var(--border)] transition hover:border-teal-700">
                         <Eye className="h-4 w-4" />
                       </button>
                     </td>
@@ -367,20 +377,20 @@ export default function AdminOrdersPage() {
       </div>
 
       {filtered.length > pageSize && (
-        <div className="flex flex-col gap-3 rounded-3xl border border-black/10 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
             <span>Show</span>
-            <select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} className="h-10 rounded-full border border-black/10 px-3 text-sm font-semibold">
+            <select value={pageSize} onChange={event => setPageSize(Number(event.target.value))} className="input h-10 px-3 text-sm font-semibold">
               {[5, 10, 20, 50].map(value => <option key={value} value={value}>{value}</option>)}
             </select>
             <span>per page</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setPage(prev => Math.max(1, prev - 1))} disabled={page === 1} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 disabled:opacity-40">
+            <button onClick={() => setPage(prev => Math.max(1, prev - 1))} disabled={page === 1} className="inline-flex h-10 w-10 items-center justify-center border border-[var(--border)] transition hover:border-teal-700 disabled:opacity-40">
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="text-sm font-semibold">Page {page} of {totalPages}</span>
-            <button onClick={() => setPage(prev => Math.min(totalPages, prev + 1))} disabled={page === totalPages} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 disabled:opacity-40">
+            <span className="text-sm font-semibold text-[var(--text)]">Page {page} of {totalPages}</span>
+            <button onClick={() => setPage(prev => Math.min(totalPages, prev + 1))} disabled={page === totalPages} className="inline-flex h-10 w-10 items-center justify-center border border-[var(--border)] transition hover:border-teal-700 disabled:opacity-40">
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -389,36 +399,36 @@ export default function AdminOrdersPage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto border border-[var(--border)] bg-[var(--bg-card)] p-5 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Order Details</p>
-                <h3 className="mt-1 font-display text-3xl font-semibold">{selected.order_number}</h3>
+                <p className="section-kicker">Order Details</p>
+                <h3 className="mt-1 font-display text-3xl font-semibold text-[var(--text)]">{selected.order_number}</h3>
               </div>
-              <button onClick={() => setSelected(null)} className="rounded-full p-2 hover:bg-neutral-100"><X className="h-5 w-5" /></button>
+              <button onClick={() => setSelected(null)} className="p-2 transition hover:bg-[var(--bg-secondary)]"><X className="h-5 w-5" /></button>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-neutral-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Customer</p>
-                <p className="mt-2 font-semibold">{selected.customer_name || 'Customer'}</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+                <p className="section-kicker">Customer</p>
+                <p className="mt-2 font-semibold text-[var(--text)]">{selected.customer_name || 'Customer'}</p>
                 <p className="text-sm text-[var(--text-secondary)]">{selected.customer_phone}</p>
                 <p className="text-sm text-[var(--text-secondary)]">{selected.customer_email}</p>
               </div>
-              <div className="rounded-2xl bg-neutral-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Delivery</p>
-                <p className="mt-2 text-sm leading-6">{formatAddress(selected.shipping_address)}</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+                <p className="section-kicker">Delivery</p>
+                <p className="mt-2 text-sm leading-6 text-[var(--text)]">{formatAddress(selected.shipping_address)}</p>
               </div>
-              <div className="rounded-2xl bg-neutral-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Payment</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+                <p className="section-kicker">Payment</p>
                 <div className="mt-2"><PaymentBadge method={selected.payment_method} paid={selected.payment_status === 'paid'} /></div>
                 <p className="mt-2 text-sm text-[var(--text-secondary)]">Status: {selected.payment_status || 'pending'}</p>
               </div>
-              <div className="rounded-2xl bg-neutral-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Affiliate</p>
+              <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+                <p className="section-kicker">Affiliate</p>
                 {selected.affiliate_id ? (
                   <>
-                    <p className="mt-2 font-semibold">{selected.affiliate_name || 'Affiliate'}</p>
+                    <p className="mt-2 font-semibold text-[var(--text)]">{selected.affiliate_name || 'Affiliate'}</p>
                     <p className="font-mono text-xs text-[var(--text-secondary)]">{selected.affiliate_referral_code}</p>
                     <p className={`mt-2 font-bold ${commissionText(selected).tone}`}>{commissionText(selected).text}</p>
                   </>
@@ -426,31 +436,50 @@ export default function AdminOrdersPage() {
               </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-black/10 p-4">
-              <p className="mb-3 font-semibold">Items</p>
-              <div className="space-y-2">
-                {Array.isArray(selected.items) && selected.items.length > 0 ? selected.items.map((item, index) => (
-                  <div key={index} className="flex justify-between gap-3 text-sm">
-                    <span className="text-[var(--text-secondary)]">{item.product_name || item.product_id} x {item.quantity}{item.size ? ` (${item.size})` : ''}</span>
-                    <span className="font-semibold">{formatPrice(Number(item.unit_price || 0) * Number(item.quantity || 1))}</span>
-                  </div>
-                )) : <p className="text-sm text-[var(--text-secondary)]">No item details.</p>}
+            <div className="mt-5 border border-[var(--border)] p-4">
+              <p className="mb-3 font-semibold text-[var(--text)]">Items</p>
+              <div className="space-y-3">
+                {Array.isArray(selected.items) && selected.items.length > 0 ? selected.items.map((item, index) => {
+                  const size = item.size || item.selected_size || item.variant_size || null;
+                  const color = item.color || item.selected_color || item.variant_color || null;
+                  return (
+                    <div key={index} className="flex justify-between gap-3 border border-[var(--border)] bg-[var(--bg)] p-3 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[var(--text)]">
+                          {item.product_name || item.product_id}
+                          <span className="font-normal text-[var(--text-secondary)]"> × {item.quantity}</span>
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
+                          <span>
+                            Size: <strong className="font-semibold text-[var(--text)]">{size || '—'}</strong>
+                          </span>
+                          <span>
+                            Color: <strong className="font-semibold text-[var(--text)]">{color || '—'}</strong>
+                          </span>
+                        </div>
+                      </div>
+                      <span className="flex-shrink-0 font-semibold text-[var(--text)]">
+                        {formatPrice(Number(item.unit_price || item.price || 0) * Number(item.quantity || 1))}
+                      </span>
+                    </div>
+                  );
+                }) : <p className="text-sm text-[var(--text-secondary)]">No item details.</p>}
               </div>
-              <div className="mt-4 border-t border-black/10 pt-3">
-                <div className="flex justify-between text-sm"><span className="text-[var(--text-secondary)]">Subtotal</span><span>{formatPrice(selected.subtotal)}</span></div>
+              <div className="mt-4 border-t border-[var(--border)] pt-3">
+                <div className="flex justify-between text-sm"><span className="text-[var(--text-secondary)]">Subtotal</span><span className="text-[var(--text)]">{formatPrice(selected.subtotal)}</span></div>
                 {selected.discount > 0 && <div className="flex justify-between text-sm text-emerald-600"><span>Discount</span><span>-{formatPrice(selected.discount)}</span></div>}
-                <div className="mt-2 flex justify-between text-lg font-bold"><span>Total</span><span>{formatPrice(selected.total)}</span></div>
+                <div className="mt-2 flex justify-between text-lg font-bold text-[var(--text)]"><span>Total</span><span>{formatPrice(selected.total)}</span></div>
               </div>
             </div>
 
             <div className="mt-5">
-              <p className="mb-3 font-semibold">Update status</p>
+              <p className="mb-3 font-semibold text-[var(--text)]">Update status</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {selectableStatuses(selected.status).map(status => (
                   <button
                     key={status}
                     onClick={() => handleStatus(selected, status)}
-                    className={`h-11 rounded-full border text-sm font-semibold capitalize ${selected.status === status ? 'border-neutral-950 bg-neutral-950 text-white' : 'border-black/10'}`}
+                    className={`h-11 border text-sm font-semibold uppercase tracking-wide transition ${selected.status === status ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white dark:bg-white dark:text-neutral-950' : 'border-[var(--border)] text-[var(--text)] hover:border-teal-700'}`}
                   >
                     {status}
                   </button>
@@ -463,4 +492,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-

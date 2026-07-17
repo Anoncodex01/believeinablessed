@@ -51,14 +51,20 @@ export default function AdminFlashSales() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Flash Sales</p>
+      <div className="border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-6 sm:px-6">
+        <p className="section-kicker">Promotions</p>
+        <h2 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+          Flash Sales
+        </h2>
+        <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">
+          Add time-limited discounts to selected products.
+        </p>
       </div>
 
       {flashProducts.length > 0 && (
-        <div className="rounded-3xl border border-black/10 bg-white p-5">
-          <p className="mb-4 flex items-center gap-2 font-semibold text-neutral-950">
-            <Zap className="h-4 w-4" /> Active Flash Sales ({flashProducts.length})
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5">
+          <p className="mb-4 flex items-center gap-2 font-semibold text-[var(--text)]">
+            <Zap className="h-4 w-4 text-teal-700" /> Active Flash Sales ({flashProducts.length})
           </p>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {flashProducts.map(p => {
@@ -66,11 +72,11 @@ export default function AdminFlashSales() {
               const ends = p.flash_sale_end_date ? new Date(p.flash_sale_end_date) : null;
               const expired = ends && ends < new Date();
               return (
-                <div key={p.id} className={`rounded-2xl border border-black/10 bg-white p-3 flex items-center gap-3 ${expired ? 'opacity-60' : ''}`}>
-                  <img src={img} alt={p.name} className="h-12 w-12 rounded-xl object-cover flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-neutral-950 truncate">{p.name}</p>
-                    <p className="text-xs font-bold text-neutral-950">{formatPrice(p.sale_price || p.price)}</p>
+                <div key={p.id} className={`flex items-center gap-3 border border-[var(--border)] bg-[var(--bg-card)] p-3 ${expired ? 'opacity-60' : ''}`}>
+                  <img src={img} alt={p.name} className="h-12 w-12 flex-shrink-0 object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[var(--text)]">{p.name}</p>
+                    <p className="text-xs font-bold text-[var(--text)]">{formatPrice(p.sale_price || p.price)}</p>
                     {ends && (
                       <p className={`text-xs ${expired ? 'text-red-600' : 'text-[var(--text-secondary)]'}`}>
                         {expired ? 'Expired' : `Ends ${ends.toLocaleDateString()}`}
@@ -79,7 +85,7 @@ export default function AdminFlashSales() {
                   </div>
                   <button
                     onClick={() => handleRemove(p.id)}
-                    className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-black/10 text-red-600 transition hover:border-red-500"
+                    className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center border border-[var(--border)] text-red-600 transition hover:border-red-500"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -90,23 +96,23 @@ export default function AdminFlashSales() {
         </div>
       )}
 
-      <div className="rounded-3xl border border-black/10 bg-white p-5">
-        <p className="mb-4 font-semibold text-neutral-950">Add Products to Flash Sale</p>
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+      <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5">
+        <p className="mb-4 font-semibold text-[var(--text)]">Add Products to Flash Sale</p>
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row">
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Flash Sale End Date &amp; Time *</label>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Flash Sale End Date &amp; Time *</label>
             <input
               type="datetime-local"
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm outline-none transition focus:border-neutral-950"
+              className="input h-12"
             />
           </div>
           <div className="sm:self-end">
             <button
               onClick={handleSetFlashSale}
               disabled={saving || !selected.length}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white disabled:opacity-50"
+              className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
             >
               <Zap className="h-4 w-4" />
               {saving ? 'Setting...' : `Set Flash Sale (${selected.length} selected)`}
@@ -117,11 +123,11 @@ export default function AdminFlashSales() {
         {loading ? (
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-20 shimmer-bg rounded-2xl" />
+              <div key={i} className="h-20 shimmer-bg" />
             ))}
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 max-h-96 overflow-y-auto">
+          <div className="grid max-h-96 gap-3 overflow-y-auto sm:grid-cols-2 md:grid-cols-3">
             {nonFlash.map(p => {
               const img = p.images?.[0] || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=100&h=100&fit=crop';
               const isSelected = selected.includes(p.id);
@@ -129,18 +135,18 @@ export default function AdminFlashSales() {
                 <div
                   key={p.id}
                   onClick={() => toggleSelect(p.id)}
-                  className={`rounded-2xl border border-black/10 bg-white p-3 flex items-center gap-3 cursor-pointer transition-all ${isSelected ? 'border-neutral-950 bg-neutral-50' : 'hover:border-neutral-400'}`}
+                  className={`flex cursor-pointer items-center gap-3 border p-3 transition-all ${isSelected ? 'border-teal-700 bg-teal-700/10' : 'border-[var(--border)] bg-[var(--bg-card)] hover:border-teal-700/50'}`}
                 >
                   <div className="relative flex-shrink-0">
-                    <img src={img} alt={p.name} className="h-12 w-12 rounded-xl object-cover" />
+                    <img src={img} alt={p.name} className="h-12 w-12 object-cover" />
                     {isSelected && (
-                      <div className="absolute inset-0 rounded-xl bg-neutral-950/30 flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">✓</span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-neutral-950/40">
+                        <span className="text-sm font-bold text-white">✓</span>
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-neutral-950 truncate">{p.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-[var(--text)]">{p.name}</p>
                     <p className="text-xs text-[var(--text-secondary)]">{formatPrice(p.price)}</p>
                   </div>
                 </div>

@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowRight, Eye, EyeOff, Gift, Lock, Mail, Phone, Sparkles, User, Zap } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const heroImage =
-  'https://res.cloudinary.com/drn2khjxq/image/upload/v1783808187/believeinablessed/products/sdk4pqo3drnygj0in5xc.jpg';
+  'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=1400&fit=crop&auto=format';
 
 const accountTypes = [
   {
@@ -19,22 +20,12 @@ const accountTypes = [
     label: 'Customer',
     title: 'Create your account',
     note: 'Save your details, track orders, and checkout faster.',
-    stats: [
-      { label: 'Fast', sub: 'Checkout' },
-      { label: 'Order', sub: 'Tracking' },
-      { label: 'Style', sub: 'Updates' },
-    ],
   },
   {
     id: 'affiliate',
     label: 'Affiliate',
     title: 'Join as affiliate',
     note: 'Create an account first, then submit your affiliate application.',
-    stats: [
-      { label: '10%', sub: 'Commission' },
-      { label: 'Free', sub: 'To join' },
-      { label: 'Fast', sub: 'Payouts' },
-    ],
   },
 ];
 
@@ -96,47 +87,46 @@ function RegisterContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f6f3] pt-16 dark:bg-neutral-950">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-20 pt-16 md:pb-0">
       <Navbar />
-      <section className="mx-auto grid min-h-[calc(100vh-64px)] max-w-[1500px] items-stretch gap-0 px-4 py-6 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-12">
+      <section className="home-shell grid min-h-[calc(100vh-4rem)] items-stretch gap-0 py-8 sm:py-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
         <motion.div
-          initial={{ opacity: 0, x: -18 }}
+          initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
-          className="relative hidden overflow-hidden rounded-[32px] bg-neutral-950 lg:block"
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="relative hidden overflow-hidden bg-stone-900 lg:block"
         >
-          <Image src={heroImage} alt="Believe in a Blessed clothing" fill priority className="object-cover opacity-90" sizes="50vw" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-          <div className="absolute left-8 top-8 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-neutral-950">
-            New members
-          </div>
-          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm backdrop-blur">
-              <Sparkles className="h-4 w-4" />
-              Shop, share, and grow
+          <Image src={heroImage} alt="BelieveinaBlessed" fill priority className="object-cover" sizes="50vw" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
+          <div className="relative flex h-full flex-col justify-end p-10 text-white">
+            <p className="mb-4 font-display text-sm font-semibold tracking-[0.28em] text-white/85 uppercase">
+              BelieveinaBlessed
             </p>
-            <h1 className="max-w-xl font-display text-6xl font-semibold leading-none">Start with one beautiful account.</h1>
-            <p className="mt-5 max-w-md text-sm leading-6 text-white/75">
+            <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight xl:text-5xl">
+              Create your account
+            </h1>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
               Create your customer profile, or continue into the affiliate application after signup.
             </p>
           </div>
         </motion.div>
 
-        <div className="flex items-center justify-center py-8 lg:pl-10">
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[540px]">
-            <div className="mb-8 lg:hidden">
-              <div className="relative mb-5 aspect-[1.7] overflow-hidden rounded-[28px]">
-                <Image src={heroImage} alt="Believe in a Blessed clothing" fill className="object-cover" sizes="100vw" />
-                <div className="absolute inset-0 bg-black/25" />
-              </div>
+        <div className="flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full max-w-md"
+          >
+            <div className="mb-8">
+              <p className="section-kicker">New account</p>
+              <h2 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">
+                {activeType.title}
+              </h2>
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">{activeType.note}</p>
             </div>
 
-            <div className="mb-7">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">New account</p>
-              <h2 className="mt-2 font-display text-5xl font-semibold leading-none text-[var(--text)]">{activeType.title}</h2>
-              <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{activeType.note}</p>
-            </div>
-
-            <div className="mb-5 grid grid-cols-2 gap-2 rounded-full bg-white p-1 shadow-sm dark:bg-white/10">
+            <div className="mb-6 flex border border-[var(--border)] p-1">
               {accountTypes.map(item => {
                 const selected = item.id === accountType;
                 return (
@@ -144,130 +134,152 @@ function RegisterContent() {
                     key={item.id}
                     type="button"
                     onClick={() => setAccountType(item.id)}
-                    className={`flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                    className={`flex-1 py-2.5 text-sm font-medium tracking-tight transition ${
                       selected
                         ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
                         : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
                     }`}
                   >
-                    {item.id === 'affiliate' ? <Zap className="h-4 w-4" /> : <User className="h-4 w-4" />}
                     {item.label}
                   </button>
                 );
               })}
             </div>
 
-            <div className="mb-5 grid grid-cols-3 gap-2">
-              {activeType.stats.map(item => (
-                <div key={item.label} className="rounded-2xl border border-black/10 bg-white p-3 text-center dark:border-white/10 dark:bg-white/5">
-                  <p className="text-lg font-semibold text-[var(--text)]">{item.label}</p>
-                  <p className="text-[11px] text-[var(--text-secondary)]">{item.sub}</p>
-                </div>
-              ))}
-            </div>
-
-            <form onSubmit={handleRegister} className="rounded-[28px] border border-black/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-6">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="relative block sm:col-span-2">
-                  <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
+            <form onSubmit={handleRegister} className="border border-[var(--border)] bg-[var(--bg-card)] p-6 sm:p-8">
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                    Full name *
+                  </span>
                   <input
-                    placeholder="Full name *"
+                    placeholder="Your name"
                     value={form.name}
                     onChange={event => set('name', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11"
+                    className="input"
                     autoComplete="name"
+                    required
                   />
                 </label>
-                <label className="relative block sm:col-span-2">
-                  <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                    Email *
+                  </span>
                   <input
                     type="email"
-                    placeholder="Email address *"
+                    placeholder="you@example.com"
                     value={form.email}
                     onChange={event => set('email', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11"
+                    className="input"
                     autoComplete="email"
+                    required
                   />
                 </label>
-                <label className="relative block sm:col-span-2">
-                  <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                    Phone
+                  </span>
                   <input
                     type="tel"
-                    placeholder="Phone number"
+                    placeholder="+255 747 110 777"
                     value={form.phone}
                     onChange={event => set('phone', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11"
+                    className="input"
                     autoComplete="tel"
                   />
                 </label>
-                <label className="relative block">
-                  <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                      Password *
+                    </span>
+                    <span className="relative block">
+                      <input
+                        type={showPw ? 'text' : 'password'}
+                        placeholder="6+ characters"
+                        value={form.password}
+                        onChange={event => set('password', event.target.value)}
+                        className="input pr-11"
+                        autoComplete="new-password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPw(prev => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] transition hover:text-[var(--text)]"
+                        aria-label={showPw ? 'Hide password' : 'Show password'}
+                      >
+                        {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </span>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                      Confirm *
+                    </span>
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      placeholder="Repeat password"
+                      value={form.confirm}
+                      onChange={event => set('confirm', event.target.value)}
+                      className="input"
+                      autoComplete="new-password"
+                      required
+                    />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                    Referral code
+                  </span>
                   <input
-                    type={showPw ? 'text' : 'password'}
-                    placeholder="Password *"
-                    value={form.password}
-                    onChange={event => set('password', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11 pr-11"
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw(prev => !prev)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] transition hover:text-[var(--text)]"
-                    aria-label={showPw ? 'Hide password' : 'Show password'}
-                  >
-                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </label>
-                <label className="relative block">
-                  <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    placeholder="Confirm *"
-                    value={form.confirm}
-                    onChange={event => set('confirm', event.target.value)}
-                    className="input h-14 rounded-2xl pl-11"
-                    autoComplete="new-password"
-                  />
-                </label>
-                <label className="relative block sm:col-span-2">
-                  <Gift className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
-                  <input
-                    placeholder="Referral code"
+                    placeholder="Optional"
                     value={form.referral_code}
                     onChange={event => set('referral_code', event.target.value.toUpperCase())}
-                    className="input h-14 rounded-2xl pl-11"
+                    className="input"
                   />
                 </label>
               </div>
 
-              <motion.button
+              <button
                 type="submit"
-                whileTap={{ scale: 0.98 }}
                 disabled={loading}
-                className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950"
+                className="mt-6 flex w-full items-center justify-center gap-2 bg-neutral-950 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
               >
-                {loading ? 'Creating account...' : accountType === 'affiliate' ? 'Create and apply' : 'Create account'}
+                {loading ? 'Creating account…' : accountType === 'affiliate' ? 'Create and apply' : 'Create account'}
                 {!loading && <ArrowRight className="h-4 w-4" />}
-              </motion.button>
+              </button>
             </form>
 
-            <p className="mt-5 text-center text-sm text-[var(--text-secondary)]">
+            <p className="mt-6 text-center text-sm text-[var(--text-secondary)]">
               Already have an account?{' '}
-              <Link href={`/auth/login?type=${accountType}`} className="font-semibold text-[var(--text)] underline-offset-4 hover:underline">
+              <Link
+                href={`/auth/login?type=${accountType}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`}
+                className="font-semibold text-teal-700 transition hover:opacity-70 dark:text-teal-300"
+              >
                 Sign in
               </Link>
             </p>
+
+            <div className="mt-8 border-t border-[var(--border)] pt-6 text-center">
+              <Link
+                href="/products"
+                className="text-sm font-medium tracking-tight text-[var(--text-secondary)] transition hover:text-teal-700"
+              >
+                Continue shopping without an account →
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<main className="min-h-screen bg-[#f7f6f3] dark:bg-neutral-950" />}>
+    <Suspense fallback={<main className="min-h-screen bg-[var(--bg)]" />}>
       <RegisterContent />
     </Suspense>
   );

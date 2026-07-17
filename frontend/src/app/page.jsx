@@ -1,4 +1,4 @@
-// app/page.jsx - Full updated
+// app/page.jsx
 'use client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
@@ -9,25 +9,20 @@ import HeroSlider from '@/components/home/HeroSlider';
 import TrendingSection from '@/components/home/TrendingSection';
 import AllProductsSection from '@/components/home/AllProductsSection';
 import GenderCardsSection from '@/components/home/GenderCardsSection';
+import BrandStorySection from '@/components/home/BrandStorySection';
 
 function HomeContent() {
   const searchParams = useSearchParams();
   const ref = searchParams.get('ref') || '';
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)]">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-20 md:pb-0">
       <Navbar />
-
-      <div className="pt-14 sm:pt-16">
-        <HeroSlider />
-      </div>
-
-      <div className="space-y-2 sm:space-y-4">
-        <TrendingSection refCode={ref} />
-        <GenderCardsSection />
-        <AllProductsSection refCode={ref} />
-      </div>
-
+      <HeroSlider />
+      <TrendingSection refCode={ref} />
+      <GenderCardsSection />
+      <AllProductsSection refCode={ref} />
+      <BrandStorySection />
       <Footer />
       <BottomNav />
     </main>
@@ -36,7 +31,15 @@ function HomeContent() {
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[var(--bg)] pt-16 flex items-center justify-center"><div className="text-[var(--text-secondary)]">Loading...</div></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[var(--bg)]">
+          <div className="font-display text-sm tracking-[0.2em] text-[var(--text-secondary)] uppercase">
+            Loading
+          </div>
+        </div>
+      }
+    >
       <HomeContent />
     </Suspense>
   );

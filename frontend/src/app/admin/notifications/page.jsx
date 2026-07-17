@@ -2,22 +2,21 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, CheckCheck, Trash2, ShoppingBag, Users, DollarSign, Star, Package, Filter, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, ShoppingBag, Users, DollarSign, Star, Package, X } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { API_URL } from '@/lib/config';
 
 const getNotificationIcon = (type) => {
   switch (type) {
-    case 'order': return <ShoppingBag className="w-5 h-5 text-blue-500" />;
-    case 'affiliate': return <Users className="w-5 h-5 text-purple-500" />;
-    case 'withdrawal': return <DollarSign className="w-5 h-5 text-yellow-500" />;
-    case 'review': return <Star className="w-5 h-5 text-green-500" />;
-    case 'product': return <Package className="w-5 h-5 text-orange-500" />;
-    default: return <Bell className="w-5 h-5 text-gray-500" />;
+    case 'order': return <ShoppingBag className="h-5 w-5 text-sky-600" />;
+    case 'affiliate': return <Users className="h-5 w-5 text-teal-700" />;
+    case 'withdrawal': return <DollarSign className="h-5 w-5 text-amber-600" />;
+    case 'review': return <Star className="h-5 w-5 text-emerald-600" />;
+    case 'product': return <Package className="h-5 w-5 text-orange-600" />;
+    default: return <Bell className="h-5 w-5 text-[var(--text-secondary)]" />;
   }
 };
 
@@ -53,7 +52,7 @@ export default function AdminNotifications() {
       router.push('/auth/login');
       return;
     }
-    
+
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -61,12 +60,12 @@ export default function AdminNotifications() {
         offset: (resetPage ? 0 : (page - 1) * 20),
         ...(filter !== 'all' && { unread_only: filter === 'unread' ? 'true' : 'false' })
       });
-      
+
       const response = await fetch(`${API_URL}/notifications?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setNotifications(data.notifications || []);
         setUnreadCount(data.unread_count || 0);
@@ -90,15 +89,15 @@ export default function AdminNotifications() {
     try {
       const response = await fetch(`${API_URL}/notifications/${id}/read`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         }
       });
       const data = await response.json();
-      
+
       if (data.success) {
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(n => n.id === id ? { ...n, read: true } : n)
         );
         setUnreadCount(prev => Math.max(0, prev - 1));
@@ -114,15 +113,15 @@ export default function AdminNotifications() {
     try {
       const response = await fetch(`${API_URL}/notifications/read-all`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         }
       });
       const data = await response.json();
-      
+
       if (data.success) {
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(n => ({ ...n, read: true }))
         );
         setUnreadCount(0);
@@ -141,7 +140,7 @@ export default function AdminNotifications() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setNotifications(prev => prev.filter(n => n.id !== id));
         const deleted = notifications.find(n => n.id === id);
@@ -163,7 +162,7 @@ export default function AdminNotifications() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setNotifications(prev => prev.filter(n => !n.read));
         toast.success('Cleared read notifications');
@@ -176,92 +175,90 @@ export default function AdminNotifications() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-[var(--text)]">Notifications</h1>
-          <p className="text-sm text-[var(--text-secondary)]">
-            {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
-          </p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Filters */}
-          <div className="flex gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg">
-            {['all', 'unread', 'read'].map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
-                  filter === f ? 'bg-[var(--bg-card)] text-[var(--text)] shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+      <div className="border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-6 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="section-kicker">Activity</p>
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">Notifications</h1>
+            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">
+              {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
+            </p>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex gap-1 border border-[var(--border)] bg-[var(--bg-card)] p-1">
+              {['all', 'unread', 'read'].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all ${
+                    filter === f ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950' : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
 
-          {/* Actions */}
-          {unreadCount > 0 && (
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                className="inline-flex items-center gap-1 border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--text)] transition hover:border-teal-700"
+              >
+                <CheckCheck className="h-4 w-4" />
+                Mark all read
+              </button>
+            )}
             <button
-              onClick={handleMarkAllAsRead}
-              className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-medium hover:bg-blue-500/20 transition-colors"
+              onClick={() => setShowClearConfirm(true)}
+              className="inline-flex items-center gap-1 border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:border-red-500"
             >
-              <CheckCheck className="w-4 h-4" />
-              Mark all read
+              <Trash2 className="h-4 w-4" />
+              Clear read
             </button>
-          )}
-          <button
-            onClick={() => setShowClearConfirm(true)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-red-500/10 text-red-500 rounded-lg text-xs font-medium hover:bg-red-500/20 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Clear read
-          </button>
-          <button
-            onClick={() => fetchNotifications(true)}
-            className="px-3 py-1.5 bg-[var(--bg-secondary)] rounded-lg text-xs font-medium hover:bg-[var(--bg-secondary)]/80 transition-colors"
-          >
-            Refresh
-          </button>
+            <button
+              onClick={() => fetchNotifications(true)}
+              className="border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--text)] transition hover:border-teal-700"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-blue-500">{notifications.length}</div>
-          <div className="text-xs text-[var(--text-secondary)]">Total</div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] p-4 text-center">
+          <div className="font-display text-2xl font-semibold tracking-tight text-[var(--text)]">{notifications.length}</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Total</div>
         </div>
-        <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-500">{unreadCount}</div>
-          <div className="text-xs text-[var(--text-secondary)]">Unread</div>
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] p-4 text-center">
+          <div className="font-display text-2xl font-semibold tracking-tight text-amber-600">{unreadCount}</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Unread</div>
         </div>
-        <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-green-500">{notifications.filter(n => n.read).length}</div>
-          <div className="text-xs text-[var(--text-secondary)]">Read</div>
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] p-4 text-center">
+          <div className="font-display text-2xl font-semibold tracking-tight text-emerald-600">{notifications.filter(n => n.read).length}</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Read</div>
         </div>
-        <div className="card p-4 text-center">
-          <div className="text-2xl font-bold text-purple-500">
+        <div className="border border-[var(--border)] bg-[var(--bg-card)] p-4 text-center">
+          <div className="font-display text-2xl font-semibold tracking-tight text-teal-700">
             {notifications.filter(n => {
               const days = Math.floor((new Date() - new Date(n.created_at)) / (1000 * 60 * 60 * 24));
               return days < 1;
             }).length}
           </div>
-          <div className="text-xs text-[var(--text-secondary)]">Today</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Today</div>
         </div>
       </div>
 
-      {/* Notifications List */}
-      <div className="card overflow-hidden">
+      <div className="overflow-hidden border border-[var(--border)] bg-[var(--bg-card)]">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+            <div className="h-8 w-8 animate-spin border-2 border-neutral-950 border-t-transparent dark:border-white dark:border-t-transparent" />
           </div>
         ) : notifications.length === 0 ? (
-          <div className="text-center py-20">
-            <Bell className="w-16 h-16 text-[var(--text-secondary)] mx-auto mb-4 opacity-30" />
-            <h3 className="text-lg font-semibold text-[var(--text)]">No notifications</h3>
-            <p className="text-sm text-[var(--text-secondary)]">You're all caught up!</p>
+          <div className="py-20 text-center">
+            <Bell className="mx-auto mb-4 h-16 w-16 text-[var(--text-secondary)] opacity-30" />
+            <h3 className="font-display text-lg font-semibold text-[var(--text)]">No notifications</h3>
+            <p className="text-sm text-[var(--text-secondary)]">You&apos;re all caught up!</p>
           </div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
@@ -270,38 +267,36 @@ export default function AdminNotifications() {
                 key={notification.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`p-4 hover:bg-[var(--bg-secondary)] transition-colors ${
-                  !notification.read ? 'bg-blue-500/5 border-l-4 border-blue-500' : ''
+                className={`p-4 transition-colors hover:bg-[var(--bg-secondary)] ${
+                  !notification.read ? 'border-l-4 border-teal-700 bg-teal-700/5' : ''
                 }`}
               >
                 <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className="flex-shrink-0 mt-1">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      !notification.read ? 'bg-blue-500/10' : 'bg-[var(--bg-secondary)]'
+                  <div className="mt-1 flex-shrink-0">
+                    <div className={`flex h-10 w-10 items-center justify-center ${
+                      !notification.read ? 'bg-teal-700/10' : 'bg-[var(--bg-secondary)]'
                     }`}>
                       {getNotificationIcon(notification.type)}
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className={`text-sm ${!notification.read ? 'font-semibold text-[var(--text)]' : 'text-[var(--text)]'}`}>
                           {notification.title}
                         </p>
-                        <p className="text-sm text-[var(--text-secondary)] mt-1">
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">
                           {notification.message}
                         </p>
-                        <div className="flex items-center gap-3 mt-2">
+                        <div className="mt-2 flex items-center gap-3">
                           <span className="text-xs text-[var(--text-secondary)]">
                             {getTimeAgo(notification.created_at)}
                           </span>
                           {notification.link && (
                             <Link
                               href={notification.link}
-                              className="text-xs text-blue-500 hover:underline font-medium"
+                              className="text-xs font-medium text-teal-700 hover:underline"
                               onClick={() => {
                                 if (!notification.read) handleMarkAsRead(notification.id);
                               }}
@@ -311,22 +306,22 @@ export default function AdminNotifications() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      <div className="flex flex-shrink-0 items-center gap-1">
                         {!notification.read && (
                           <button
                             onClick={() => handleMarkAsRead(notification.id)}
-                            className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-500 transition-colors"
+                            className="p-1.5 text-teal-700 transition-colors hover:bg-teal-700/10"
                             title="Mark as read"
                           >
-                            <Check className="w-4 h-4" />
+                            <Check className="h-4 w-4" />
                           </button>
                         )}
                         <button
                           onClick={() => handleDelete(notification.id)}
-                          className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors"
+                          className="p-1.5 text-red-600 transition-colors hover:bg-red-500/10"
                           title="Delete"
                         >
-                          <X className="w-4 h-4" />
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
@@ -337,9 +332,8 @@ export default function AdminNotifications() {
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t border-[var(--border)]">
+          <div className="flex items-center justify-between border-t border-[var(--border)] p-4">
             <div className="text-xs text-[var(--text-secondary)]">
               Page {page} of {totalPages}
             </div>
@@ -350,7 +344,7 @@ export default function AdminNotifications() {
                   fetchNotifications(false);
                 }}
                 disabled={page <= 1}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-secondary)] hover:bg-[var(--bg-secondary)]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--text)] transition hover:border-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Previous
               </button>
@@ -360,7 +354,7 @@ export default function AdminNotifications() {
                   fetchNotifications(false);
                 }}
                 disabled={page >= totalPages}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--bg-secondary)] hover:bg-[var(--bg-secondary)]/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--text)] transition hover:border-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next
               </button>
@@ -369,32 +363,33 @@ export default function AdminNotifications() {
         )}
       </div>
 
-      {/* Clear Read Confirmation Modal */}
       <AnimatePresence>
         {showClearConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.96, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] w-full max-w-md p-6"
+              exit={{ scale: 0.96, opacity: 0 }}
+              className="w-full max-w-md border border-[var(--border)] bg-[var(--bg-card)] p-6"
             >
               <div className="text-center">
-                <div className="text-4xl mb-4">🗑️</div>
-                <h3 className="font-semibold text-[var(--text)] text-lg mb-2">Clear Read Notifications</h3>
-                <p className="text-sm text-[var(--text-secondary)] mb-6">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center bg-red-500/10 text-red-600">
+                  <Trash2 className="h-6 w-6" />
+                </div>
+                <h3 className="mb-2 font-display text-lg font-semibold text-[var(--text)]">Clear Read Notifications</h3>
+                <p className="mb-6 text-sm text-[var(--text-secondary)]">
                   This will permanently delete all read notifications. Are you sure?
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowClearConfirm(false)}
-                    className="flex-1 btn-secondary"
+                    className="h-11 flex-1 border border-[var(--border)] text-sm font-semibold text-[var(--text)] transition hover:border-teal-700"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleClearRead}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded-xl transition-colors"
+                    className="h-11 flex-1 bg-red-600 text-sm font-semibold text-white transition hover:bg-red-700"
                   >
                     Clear All
                   </button>

@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BottomNav from '@/components/layout/BottomNav';
@@ -14,7 +15,6 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
-  ExternalLink,
   Heart,
   Home,
   LogOut,
@@ -65,12 +65,12 @@ const STATUS_ICONS = {
 };
 
 const STATUS_STYLES = {
-  pending: 'border-amber-200 bg-amber-50 text-amber-700',
-  confirmed: 'border-blue-200 bg-blue-50 text-blue-700',
-  processing: 'border-violet-200 bg-violet-50 text-violet-700',
-  shipped: 'border-orange-200 bg-orange-50 text-orange-700',
-  delivered: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  cancelled: 'border-red-200 bg-red-50 text-red-700',
+  pending: 'border-amber-600/25 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  confirmed: 'border-teal-700/25 bg-teal-700/10 text-teal-800 dark:text-teal-300',
+  processing: 'border-sky-600/25 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  shipped: 'border-orange-600/25 bg-orange-500/10 text-orange-700 dark:text-orange-400',
+  delivered: 'border-emerald-600/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+  cancelled: 'border-red-600/25 bg-red-500/10 text-red-700 dark:text-red-400',
 };
 
 const PAYMENT_LABELS = {
@@ -96,7 +96,7 @@ function getOrderItemsCount(order) {
 function OrderStatusBadge({ status }) {
   const Icon = STATUS_ICONS[status] || Package;
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${STATUS_STYLES[status] || STATUS_STYLES.pending}`}>
+    <span className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase ${STATUS_STYLES[status] || STATUS_STYLES.pending}`}>
       <Icon className="h-3.5 w-3.5" />
       {status || 'pending'}
     </span>
@@ -110,34 +110,34 @@ function OrderCard({ order, onTrack }) {
   const shippingAddress = formatAddress(order.shipping_address);
 
   return (
-    <article className="rounded-3xl border border-black/10 bg-white p-4 transition hover:border-neutral-950 dark:border-white/10 dark:bg-white/[0.04] dark:hover:border-white sm:p-5">
+    <article className="border border-[var(--border)] bg-[var(--bg-card)] p-4 transition hover:border-teal-700/40 sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-mono text-sm font-semibold text-neutral-950 dark:text-white">{order.order_number}</p>
+            <p className="font-mono text-sm font-semibold text-[var(--text)]">{order.order_number}</p>
             <OrderStatusBadge status={order.status} />
           </div>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
-            {itemCount} item{itemCount === 1 ? '' : 's'} - {formatDate(order.created_at)}
+            {itemCount} item{itemCount === 1 ? '' : 's'} · {formatDate(order.created_at)}
           </p>
         </div>
 
         <div className="text-left sm:text-right">
-          <p className="text-lg font-bold text-neutral-950 dark:text-white">{formatPrice(order.total)}</p>
+          <p className="text-lg font-bold text-[var(--text)]">{formatPrice(order.total)}</p>
           <p className="mt-1 text-xs font-medium text-[var(--text-secondary)]">{paymentLabel}</p>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 border-t border-black/5 pt-4 dark:border-white/10 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="mt-4 grid gap-3 border-t border-[var(--border)] pt-4 sm:grid-cols-[1fr_auto] sm:items-center">
         <div className="min-w-0 text-sm text-[var(--text-secondary)]">
           {shippingAddress ? (
             <span className="inline-flex max-w-full items-center gap-2">
-              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <MapPin className="h-4 w-4 flex-shrink-0 text-teal-700" />
               <span className="truncate">{shippingAddress}</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
+              <CreditCard className="h-4 w-4 text-teal-700" />
               {paymentLabel}
             </span>
           )}
@@ -146,10 +146,10 @@ function OrderCard({ order, onTrack }) {
         <button
           type="button"
           onClick={() => onTrack(order)}
-          className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition ${
+          className={`inline-flex h-11 items-center justify-center gap-2 px-5 text-sm font-semibold transition ${
             canTrack
-              ? 'bg-neutral-950 text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-950'
-              : 'border border-black/10 text-neutral-700 hover:border-neutral-950 dark:border-white/10 dark:text-neutral-200'
+              ? 'bg-neutral-950 text-white hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300'
+              : 'border border-[var(--border)] text-[var(--text)] hover:border-teal-700'
           }`}
         >
           {canTrack ? 'Track order' : 'View status'}
@@ -249,11 +249,11 @@ export default function CustomerDashboardPage() {
 
   if (!authLoading && roleDashboardHref) {
     return (
-      <main className="min-h-screen bg-[#f7f6f3] pt-16 dark:bg-neutral-950">
+      <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-20 pt-16 md:pb-0">
         <Navbar />
-        <section className="mx-auto flex min-h-[55vh] max-w-[1500px] items-center justify-center px-4 py-12 sm:px-8 lg:px-12">
+        <section className="home-shell flex min-h-[55vh] items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-neutral-950 border-t-transparent dark:border-white dark:border-t-transparent" />
+            <div className="mx-auto mb-4 h-9 w-9 animate-spin border-2 border-neutral-950 border-t-transparent dark:border-white dark:border-t-transparent" />
             <p className="text-sm font-semibold text-[var(--text-secondary)]">Opening your dashboard...</p>
           </div>
         </section>
@@ -261,104 +261,137 @@ export default function CustomerDashboardPage() {
     );
   }
 
+  const firstName = user?.name ? user.name.split(' ')[0] : '';
+
   return (
-    <main className="min-h-screen bg-[#f7f6f3] pt-16 pb-24 dark:bg-neutral-950 md:pb-0">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-20 pt-16 md:pb-0">
       <Navbar />
 
-      <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-8 lg:px-12 lg:py-12">
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
-            <div className="overflow-hidden rounded-[32px] bg-neutral-950 text-white">
-              <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-white/55">Customer Dashboard</p>
-                  <h1 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-6xl">
-                    Welcome back{user?.name ? `, ${user.name.split(' ')[0]}` : ''}.
-                  </h1>
-                  <p className="mt-4 max-w-2xl text-sm leading-6 text-white/65">
-                    Track current orders, review pending payments, and jump back into shopping from one clean account page.
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-                  <Link href="/products" className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-neutral-950">
-                    Shop
-                    <ShoppingBag className="h-4 w-4" />
-                  </Link>
-                  <Link href="/track" className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/20 px-5 text-sm font-semibold text-white">
-                    Track
-                    <ExternalLink className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
+      <div className="home-shell py-10 sm:py-14 lg:py-16">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative mb-8 overflow-hidden border border-[var(--border)] bg-[var(--surface-warm)] px-5 py-8 sm:px-8 sm:py-10 lg:px-10"
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(15,118,110,0.08),_transparent_55%)]" />
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="section-kicker">Your orders</p>
+              <h1 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl">
+                Welcome back{firstName ? `, ${firstName}` : ''}.
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
+                Track shipments, review payments, and pick up where you left off — all in one place.
+              </p>
             </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/products"
+                className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+              >
+                Shop
+                <ShoppingBag className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/track"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-[var(--border)] px-5 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700"
+              >
+                Track order
+                <Truck className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </motion.section>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:gap-8">
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.05 }}
+              className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+            >
               {[
-                { label: 'Pending orders', value: stats.pending, icon: Clock },
-                { label: 'Active tracking', value: stats.active, icon: Truck },
+                { label: 'Pending', value: stats.pending, icon: Clock },
+                { label: 'In transit', value: stats.active, icon: Truck },
                 { label: 'Delivered', value: stats.delivered, icon: CheckCircle },
                 { label: 'Total spent', value: formatPrice(stats.totalSpent), icon: CreditCard },
               ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="rounded-3xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/[0.04]">
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-950 dark:bg-white/10 dark:text-white">
+                <div key={label} className="border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:p-5">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center bg-teal-700/10 text-teal-700">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <p className="text-2xl font-bold text-neutral-950 dark:text-white">{value}</p>
-                  <p className="mt-1 text-sm text-[var(--text-secondary)]">{label}</p>
+                  <p className="font-display text-2xl font-semibold tracking-tight text-[var(--text)]">{value}</p>
+                  <p className="mt-1 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-secondary)] uppercase">{label}</p>
                 </div>
               ))}
-            </div>
+            </motion.div>
 
             {activeOrder && (
-              <div className="rounded-[32px] border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.08 }}
+                className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6"
+              >
                 <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Current order</p>
-                    <h2 className="mt-1 font-display text-3xl font-semibold text-neutral-950 dark:text-white">Live order status</h2>
+                    <p className="section-kicker">Current order</p>
+                    <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">
+                      Live status
+                    </h2>
                   </div>
                   <OrderStatusBadge status={activeOrder.status} />
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                   <div>
-                    <p className="font-mono text-sm font-semibold text-blue-500">{activeOrder.order_number}</p>
+                    <p className="font-mono text-sm font-semibold text-teal-700">{activeOrder.order_number}</p>
                     <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                      {PAYMENT_LABELS[activeOrder.payment_status] || activeOrder.payment_status || 'Payment pending'} - {formatPrice(activeOrder.total)}
+                      {PAYMENT_LABELS[activeOrder.payment_status] || activeOrder.payment_status || 'Payment pending'} · {formatPrice(activeOrder.total)}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => goToTracking(activeOrder)}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-950"
+                    className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
                   >
                     Open tracking
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             )}
 
-            <div className="rounded-[32px] border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
-              <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.1 }}
+              className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6"
+            >
+              <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Orders</p>
-                  <h2 className="mt-1 font-display text-3xl font-semibold text-neutral-950 dark:text-white">Order history</h2>
+                  <p className="section-kicker">History</p>
+                  <h2 className="mt-1 font-display text-2xl font-semibold tracking-tight text-[var(--text)] sm:text-3xl">
+                    Your orders
+                  </h2>
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <label className="relative block">
-                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-secondary)]" />
                     <input
                       value={query}
                       onChange={event => setQuery(event.target.value)}
-                      className="h-11 w-full rounded-full border border-black/10 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-neutral-950 dark:border-white/10 dark:bg-white/5 sm:w-64"
+                      className="input h-11 w-full pl-10 sm:w-56"
                       placeholder="Search order"
                     />
                   </label>
                   <button
                     type="button"
                     onClick={loadOrders}
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 px-4 text-sm font-semibold transition hover:border-neutral-950 dark:border-white/10 dark:hover:border-white"
+                    className="inline-flex h-11 items-center justify-center gap-2 border border-[var(--border)] px-4 text-sm font-semibold transition hover:border-teal-700"
                   >
                     <RefreshCw className="h-4 w-4" />
                     Refresh
@@ -372,10 +405,10 @@ export default function CustomerDashboardPage() {
                     key={item.key}
                     type="button"
                     onClick={() => setFilter(item.key)}
-                    className={`h-10 flex-shrink-0 rounded-full px-5 text-sm font-semibold transition ${
+                    className={`h-10 flex-shrink-0 px-4 text-sm font-semibold transition ${
                       filter === item.key
                         ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
-                        : 'bg-neutral-100 text-neutral-600 hover:text-neutral-950 dark:bg-white/10 dark:text-neutral-300 dark:hover:text-white'
+                        : 'border border-[var(--border)] text-[var(--text-secondary)] hover:border-teal-700 hover:text-[var(--text)]'
                     }`}
                   >
                     {item.label}
@@ -385,25 +418,28 @@ export default function CustomerDashboardPage() {
 
               {(loading || authLoading) && (
                 <div className="py-14 text-center">
-                  <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-neutral-950 border-t-transparent dark:border-white dark:border-t-transparent" />
+                  <div className="mx-auto h-9 w-9 animate-spin border-2 border-neutral-950 border-t-transparent dark:border-white dark:border-t-transparent" />
                 </div>
               )}
 
               {!loading && !authLoading && orders.length === 0 && (
-                <div className="rounded-3xl border border-dashed border-black/10 p-10 text-center dark:border-white/10">
+                <div className="border border-dashed border-[var(--border)] p-10 text-center">
                   <Package className="mx-auto mb-4 h-10 w-10 text-[var(--text-secondary)]" />
-                  <p className="font-semibold text-neutral-950 dark:text-white">No orders yet</p>
+                  <p className="font-display text-lg font-semibold text-[var(--text)]">No orders yet</p>
                   <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-[var(--text-secondary)]">
                     Once you place an order, it will appear here with tracking and payment status.
                   </p>
-                  <Link href="/products" className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white dark:bg-white dark:text-neutral-950">
+                  <Link
+                    href="/products"
+                    className="mt-5 inline-flex h-11 items-center justify-center bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                  >
                     Start shopping
                   </Link>
                 </div>
               )}
 
               {!loading && !authLoading && orders.length > 0 && filteredOrders.length === 0 && (
-                <div className="rounded-3xl border border-dashed border-black/10 p-8 text-center text-sm text-[var(--text-secondary)] dark:border-white/10">
+                <div className="border border-dashed border-[var(--border)] p-8 text-center text-sm text-[var(--text-secondary)]">
                   No orders match this filter.
                 </div>
               )}
@@ -413,62 +449,72 @@ export default function CustomerDashboardPage() {
                   <OrderCard key={order.id} order={order} onTrack={goToTracking} />
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-[32px] border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.12 }}
+              className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6"
+            >
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-950 text-white dark:bg-white dark:text-neutral-950">
-                  <User className="h-6 w-6" />
+                <div className="flex h-12 w-12 items-center justify-center bg-neutral-950 text-white dark:bg-white dark:text-neutral-950">
+                  <User className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-lg font-bold text-neutral-950 dark:text-white">{user?.name || 'Customer'}</p>
+                  <p className="truncate font-display text-lg font-semibold tracking-tight text-[var(--text)]">{user?.name || 'Customer'}</p>
                   <p className="truncate text-sm text-[var(--text-secondary)]">{user?.email}</p>
                 </div>
               </div>
 
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-3 rounded-2xl bg-neutral-100 p-4 dark:bg-white/10">
-                  <Phone className="h-4 w-4 text-[var(--text-secondary)]" />
-                  <span className="text-neutral-950 dark:text-white">{user?.phone || 'Phone not added'}</span>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-3 border border-[var(--border)] bg-[var(--bg)] p-3.5">
+                  <Phone className="h-4 w-4 text-teal-700" />
+                  <span className="text-[var(--text)]">{user?.phone || 'Phone not added'}</span>
                 </div>
-                <div className="flex items-center gap-3 rounded-2xl bg-neutral-100 p-4 dark:bg-white/10">
-                  <Home className="h-4 w-4 text-[var(--text-secondary)]" />
-                  <span className="text-neutral-950 dark:text-white">Saved checkout details</span>
+                <div className="flex items-center gap-3 border border-[var(--border)] bg-[var(--bg)] p-3.5">
+                  <Home className="h-4 w-4 text-teal-700" />
+                  <span className="text-[var(--text)]">Saved checkout details</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/10 text-sm font-semibold text-neutral-950 transition hover:border-red-500 hover:text-red-500 dark:border-white/10 dark:text-white"
+                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 border border-[var(--border)] text-sm font-semibold text-[var(--text)] transition hover:border-red-500 hover:text-red-600"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
               </button>
-            </div>
+            </motion.div>
 
-            <div className="rounded-[32px] border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">Quick actions</p>
-              <div className="mt-4 grid gap-3">
-                <Link href="/products" className="flex items-center justify-between rounded-2xl border border-black/10 p-4 text-sm font-semibold transition hover:border-neutral-950 dark:border-white/10 dark:hover:border-white">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, delay: 0.14 }}
+              className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6"
+            >
+              <p className="section-kicker">Quick actions</p>
+              <div className="mt-4 grid gap-2">
+                <Link href="/products" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">
                   Continue shopping
-                  <ShoppingBag className="h-4 w-4" />
+                  <ShoppingBag className="h-4 w-4 text-teal-700" />
                 </Link>
-                <Link href="/track" className="flex items-center justify-between rounded-2xl border border-black/10 p-4 text-sm font-semibold transition hover:border-neutral-950 dark:border-white/10 dark:hover:border-white">
+                <Link href="/track" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">
                   Track by order number
-                  <Truck className="h-4 w-4" />
+                  <Truck className="h-4 w-4 text-teal-700" />
                 </Link>
-                <Link href="/products?sort=popular" className="flex items-center justify-between rounded-2xl border border-black/10 p-4 text-sm font-semibold transition hover:border-neutral-950 dark:border-white/10 dark:hover:border-white">
+                <Link href="/products?sort=popular" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">
                   Browse popular items
-                  <Heart className="h-4 w-4" />
+                  <Heart className="h-4 w-4 text-teal-700" />
                 </Link>
               </div>
-            </div>
+            </motion.div>
           </aside>
         </div>
-      </section>
+      </div>
 
       <Footer />
       <BottomNav />

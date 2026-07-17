@@ -4,6 +4,15 @@ import express from 'express';
 import supabase from '../config/supabase.js';
 import { authenticate, requireAdmin, requireAffiliate, requireApprovedAffiliate } from '../middleware/auth.js';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  countConfirmedAffiliateOrders,
+  getTierByOrderCount as sharedGetTierByOrderCount,
+  confirmOrderCommission,
+} from '../utils/affiliateCommission.js';
+import {
+  generateUniqueReferralCode,
+  ensureNameBasedReferralCode,
+} from '../utils/referralCode.js';
 
 const router = express.Router();
 
@@ -73,11 +82,7 @@ const TIER_CONFIG = {
 
 
 function getTierByOrderCount(orderCount) {
-  if (orderCount <= 19) return TIER_CONFIG.bronze;
-  if (orderCount <= 99) return TIER_CONFIG.silver;
-  if (orderCount <= 199) return TIER_CONFIG.gold;
-  if (orderCount <= 300) return TIER_CONFIG.platinum;
-  return TIER_CONFIG.vip;
+  return sharedGetTierByOrderCount(orderCount);
 }
 
 function getNextTier(currentLevel) {
@@ -90,14 +95,8 @@ function getNextTier(currentLevel) {
 }
 
 async function getAffiliateOrderCount(affiliateId) {
-  const { count, error } = await supabase
-    .from('affiliate_orders')
-    .select('id', { count: 'exact', head: true })
-    .eq('affiliate_id', affiliateId)
-    .eq('status', 'confirmed');
-  
-  if (error) throw error;
-  return count || 0;
+  // Distinct confirmed checkout orders (not line-item rows)
+  return countConfirmedAffiliateOrders(affiliateId);
 }
 
 function getTierIcon(level) {
@@ -136,8 +135,13 @@ router.post('/apply', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'You have already applied. Please wait for admin approval.' });
     }
 
-    // Generate unique referral code
-    const referralCode = `BIB${userId.substring(0, 4).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    // Name-based referral code, e.g. Alvin → ALVIN
+    const { data: applicant } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', userId)
+      .single();
+    const referralCode = await generateUniqueReferralCode(applicant?.name || req.user.name || 'AFFILIATE', userId);
 
     // Update user with affiliate application - Set role to 'affiliate_pending'
     const { data, error } = await supabase
@@ -265,6 +269,8 @@ router.put('/applications/:id', authenticate, requireAdmin, async (req, res) => 
     const adminId = req.user.id;
 
     if (status === 'approved') {
+      const referralCode = await ensureNameBasedReferralCode(user);
+
       // Approve the affiliate
       const { data, error } = await supabase
         .from('users')
@@ -275,7 +281,8 @@ router.put('/applications/:id', authenticate, requireAdmin, async (req, res) => 
           affiliate_admin_notes: admin_notes || null,
           role: 'affiliate',  // Change to affiliate
           status: 'active',
-          affiliate_level: 'bronze'
+          affiliate_level: 'bronze',
+          referral_code: referralCode,
         })
         .eq('id', id)
         .select()
@@ -290,7 +297,7 @@ router.put('/applications/:id', authenticate, requireAdmin, async (req, res) => 
           user_id: id,
           type: 'affiliate_approved',
           title: '🎉 Affiliate Application Approved!',
-          message: `Congratulations! Your affiliate application has been approved. Start sharing your referral code: ${user.referral_code}`,
+          message: `Congratulations! Your affiliate application has been approved. Start sharing your referral code: ${referralCode}`,
           link: '/affiliate/dashboard',
           created_at: new Date().toISOString()
         });
@@ -423,17 +430,13 @@ router.get('/stats', async (req, res) => {
     const totalSales = affiliateOrders?.reduce((sum, o) => sum + (o.order_amount || 0), 0) || 0;
 
     const formattedTopAffiliates = await Promise.all((topAffiliates || []).map(async (affiliate) => {
-      const { count: salesCount } = await supabase
-        .from('affiliate_orders')
-        .select('id', { count: 'exact', head: true })
-        .eq('affiliate_id', affiliate.id)
-        .eq('status', 'confirmed');
+      const salesCount = await countConfirmedAffiliateOrders(affiliate.id);
 
       return {
         id: affiliate.id,
         name: affiliate.name || 'Anonymous',
         email: affiliate.email,
-        sales: salesCount || 0,
+        sales: salesCount,
         earnings: affiliate.total_earnings || 0,
         level: affiliate.affiliate_level,
         avatar: affiliate.avatar_url,
@@ -521,13 +524,61 @@ router.get('/dashboard', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Affiliate access required' });
     }
 
-    const { data: orders, error: ordersError } = await supabase
+    // Convert legacy BIB… codes to owner name (e.g. ALVIN)
+    try {
+      const nameCode = await ensureNameBasedReferralCode(user);
+      if (nameCode) user.referral_code = nameCode;
+    } catch (codeErr) {
+      console.warn('⚠️ Referral code migrate skipped:', codeErr.message);
+    }
+
+    // Self-heal: paid affiliate orders that never got commission confirmed
+    try {
+      const { data: stuckPaid } = await supabase
+        .from('orders')
+        .select('id, order_number, commission_status')
+        .eq('affiliate_id', userId)
+        .eq('payment_status', 'paid')
+        .neq('status', 'cancelled')
+        .or('commission_status.is.null,commission_status.eq.pending,commission_status.eq.cancelled');
+
+      for (const stuck of stuckPaid || []) {
+        console.log(`🔧 Repairing stuck commission for ${stuck.order_number}`);
+        await confirmOrderCommission(stuck.id, userId, 'Dashboard auto-repair after paid order');
+      }
+
+      if (stuckPaid?.length) {
+        const { data: refreshedUser } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .single();
+        if (refreshedUser) Object.assign(user, refreshedUser);
+      }
+    } catch (repairErr) {
+      console.warn('⚠️ Commission repair skipped:', repairErr.message);
+    }
+
+    const { data: ordersRaw, error: ordersError } = await supabase
       .from('affiliate_orders')
-      .select('*')
+      .select(`
+        *,
+        orders:order_id (
+          order_number,
+          customer_name
+        )
+      `)
       .eq('affiliate_id', userId)
       .order('created_at', { ascending: false });
     
     if (ordersError) throw ordersError;
+
+    const orders = (ordersRaw || []).map((row) => ({
+      ...row,
+      customer_name: row.orders?.customer_name || row.customer_name || null,
+      order_number: row.orders?.order_number || null,
+      orders: undefined,
+    }));
 
     const { data: clicks, error: clicksError } = await supabase
       .from('affiliate_clicks')
@@ -538,7 +589,7 @@ router.get('/dashboard', authenticate, async (req, res) => {
     if (clicksError) throw clicksError;
 
     const confirmedOrders = orders.filter(o => o.status === 'confirmed' || o.status === 'delivered');
-    const totalOrderCount = confirmedOrders.length;
+    const totalOrderCount = await countConfirmedAffiliateOrders(userId);
     
     const currentTier = getTierByOrderCount(totalOrderCount);
     const nextTier = getNextTier(currentTier.level);
@@ -642,8 +693,16 @@ router.post('/generate-link', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Affiliate access required' });
     }
 
-    const code = req.user.referral_code || `BIB${req.user.id.substring(0, 6).toUpperCase()}`;
-    const link = `${process.env.FRONTEND_URL || 'https://believeinablessed.com'}/products/${product_id}?ref=${code}`;
+    if (!process.env.FRONTEND_URL) {
+      return res.status(500).json({ error: 'FRONTEND_URL is not configured' });
+    }
+
+    const code = await ensureNameBasedReferralCode({
+      id: req.user.id,
+      name: req.user.name,
+      referral_code: req.user.referral_code,
+    });
+    const link = `${process.env.FRONTEND_URL.replace(/\/$/, '')}/products/${product_id}?ref=${code}`;
 
     await supabase.from('affiliate_links').upsert({
       affiliate_id: req.user.id,
@@ -668,9 +727,11 @@ router.post('/track-click', async (req, res) => {
     const { data: affiliate } = await supabase
       .from('users')
       .select('id')
-      .eq('referral_code', referral_code)
+      .ilike('referral_code', String(referral_code).trim())
       .eq('affiliate_approved', true)
-      .single();
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle();
 
     if (!affiliate) return res.status(404).json({ error: 'Invalid referral code' });
 
@@ -872,18 +933,19 @@ router.get('/admin/overview', authenticate, requireAdmin, async (req, res) => {
       const pendingOrders = affiliateOrders.filter(order => order.status === 'pending');
       const paidOrders = affiliateOrders.filter(order => order.status === 'paid');
       const cancelledOrders = affiliateOrders.filter(order => order.status === 'cancelled');
-      const tier = getTierByOrderCount(confirmedOrders.length);
+      const distinctConfirmedOrders = new Set(confirmedOrders.map((o) => o.order_id).filter(Boolean)).size;
+      const tier = getTierByOrderCount(distinctConfirmedOrders);
 
       return {
         ...user,
         approval_status: user.affiliate_approved ? 'approved' : 'pending',
-        order_count: confirmedOrders.length,
+        order_count: distinctConfirmedOrders,
         total_orders: affiliateOrders.length,
         pending_orders: pendingOrders.length,
         paid_orders: paidOrders.length,
         cancelled_orders: cancelledOrders.length,
         clicks: affiliateClicks.length,
-        conversion_rate: affiliateClicks.length ? Number(((confirmedOrders.length / affiliateClicks.length) * 100).toFixed(1)) : 0,
+        conversion_rate: affiliateClicks.length ? Number(((distinctConfirmedOrders / affiliateClicks.length) * 100).toFixed(1)) : 0,
         sales_volume: affiliateOrders
           .filter(order => order.status !== 'cancelled')
           .reduce((sum, order) => sum + Number(order.order_amount || 0), 0),
@@ -976,17 +1038,12 @@ router.get('/all', authenticate, requireAdmin, async (req, res) => {
     if (error) throw error;
 
     const affiliatesWithCounts = await Promise.all((data || []).map(async (affiliate) => {
-      const { count, error: countError } = await supabase
-        .from('affiliate_orders')
-        .select('id', { count: 'exact', head: true })
-        .eq('affiliate_id', affiliate.id)
-        .eq('status', 'confirmed');
-      
-      const tier = getTierByOrderCount(count || 0);
+      const orderCount = await countConfirmedAffiliateOrders(affiliate.id);
+      const tier = getTierByOrderCount(orderCount);
       
       return {
         ...affiliate,
-        order_count: count || 0,
+        order_count: orderCount,
         current_tier: tier.level,
         tier_commission: tier.level === 'vip' ? '9-10%' : `${tier.commission_rate}%`,
         tier_payout: tier.payout_label

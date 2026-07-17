@@ -15,7 +15,7 @@ const PESAPAL_CONFIG = {
   callbackUrl: process.env.PESAPAL_CALLBACK_URL,
   ipnUrl: process.env.PESAPAL_IPN_URL,
   // Where to send the shopper's browser after we've processed the callback.
-  frontendUrl: (process.env.FRONTEND_URL || 'https://www.believeinablessed.com').replace(/\/$/, ''),
+  frontendUrl: (process.env.FRONTEND_URL || '').replace(/\/$/, ''),
 };
 
 // Cache the IPN id in-memory for the life of the process so we don't
@@ -115,7 +115,7 @@ async function getOrRegisterIPN(token, fallbackIpnUrl) {
 
   const ipnUrl = PESAPAL_CONFIG.ipnUrl || fallbackIpnUrl;
   if (!ipnUrl) {
-    const err = new Error('PESAPAL_IPN_URL is not set. It must be a public URL pointing at this backend, e.g. https://backend-calm-meadowland-7817.fly.dev/api/pesapal/ipn');
+    const err = new Error('PESAPAL_IPN_URL is not set. It must be a public HTTPS URL pointing at this backend, e.g. https://your-api-domain.com/api/pesapal/ipn');
     err.code = 'PESAPAL_IPN_URL_MISSING';
     throw err;
   }

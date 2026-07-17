@@ -33,10 +33,16 @@ export default function ProductCard({ product, index = 0, affiliateCode = null }
     : `/products/${product.id}`;
 
   const soldCount = 40 + ((Number(product.id) || index + 1) * 7) % 80;
+  const needsVariant = (product.sizes?.length > 0) || (product.colors?.length > 0);
 
   const handleAddToCart = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    if (needsVariant) {
+      toast.error(lang === 'sw' ? 'Chagua saizi na rangi kwenye ukurasa wa bidhaa' : 'Select size and color on the product page');
+      router.push(href);
+      return;
+    }
     addItem(product, 1);
     toast.success(`${name} added to cart`);
   };
@@ -44,19 +50,24 @@ export default function ProductCard({ product, index = 0, affiliateCode = null }
   const handleBuyNow = (event) => {
     event.preventDefault();
     event.stopPropagation();
+    if (needsVariant) {
+      toast.error(lang === 'sw' ? 'Chagua saizi na rangi kwenye ukurasa wa bidhaa' : 'Select size and color on the product page');
+      router.push(href);
+      return;
+    }
     addItem(product, 1);
-    router.push('/checkout');
+    router.push(effectiveRef ? `/checkout?ref=${effectiveRef}` : '/checkout');
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.4 }}
+      transition={{ delay: index * 0.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className="group overflow-hidden"
     >
       <div className="block">
-        <div className="relative aspect-[0.92] overflow-hidden rounded-lg border border-black/10 bg-transparent transition duration-300 group-hover:-translate-y-1 dark:border-white/10">
+        <div className="relative aspect-[3/4] overflow-hidden border border-[var(--border)] bg-[var(--bg-secondary)] transition duration-500 group-hover:-translate-y-1 group-hover:border-neutral-400 dark:group-hover:border-neutral-500">
           <Link href={href} className="absolute inset-0">
             {!imageLoaded && (
               <div className="absolute inset-0 shimmer-bg" />
@@ -66,52 +77,52 @@ export default function ProductCard({ product, index = 0, affiliateCode = null }
               src={image}
               alt={name}
               fill
-              className={`object-contain p-3 transition duration-500 sm:p-4 ${
+              className={`object-cover transition duration-700 ease-out ${
                 imageLoaded ? 'opacity-100' : 'opacity-0'
-              } group-hover:scale-[1.015]`}
+              } group-hover:scale-[1.04]`}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              quality={75}
+              quality={80}
               priority={index < 4}
               onLoadingComplete={() => setImageLoaded(true)}
             />
           </Link>
 
-          <div className="absolute inset-x-4 bottom-4 flex translate-y-3 gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <div className="absolute inset-x-3 bottom-3 flex translate-y-3 gap-2 opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <button
               onClick={handleAddToCart}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-neutral-950 shadow-lg transition hover:bg-neutral-100"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 bg-white px-3 py-2.5 text-xs font-semibold tracking-tight text-neutral-950 transition hover:bg-neutral-100 sm:text-sm"
             >
-              <ShoppingBag className="h-4 w-4" />
-              Add to Cart
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Cart
             </button>
             <button
               onClick={handleBuyNow}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-neutral-950 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-neutral-700"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 bg-neutral-950 px-3 py-2.5 text-xs font-semibold tracking-tight text-white transition hover:bg-teal-700 sm:text-sm"
             >
-              <CreditCard className="h-4 w-4" />
-              Buy Now
+              <CreditCard className="h-3.5 w-3.5" />
+              Buy
             </button>
           </div>
         </div>
 
         <Link href={href} className="block pt-4">
-          <div className="flex items-start justify-between gap-4">
-            <h3 className="line-clamp-1 text-base font-medium leading-5 text-[var(--text)] transition group-hover:text-neutral-500">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="line-clamp-2 font-display text-[15px] font-medium leading-snug tracking-tight text-[var(--text)] transition group-hover:text-teal-700 dark:group-hover:text-teal-300">
               {name}
             </h3>
             <div className="shrink-0 text-right">
               {hasDiscount ? (
                 <>
-                  <p className="text-base font-semibold leading-5 text-[var(--text)]">{formatPrice(product.sale_price)}</p>
-                  <p className="mt-1 text-xs text-[var(--text-secondary)] line-through">{formatPrice(product.price)}</p>
+                  <p className="text-sm font-semibold leading-5 tracking-tight text-[var(--text)]">{formatPrice(product.sale_price)}</p>
+                  <p className="mt-0.5 text-xs text-[var(--text-secondary)] line-through">{formatPrice(product.price)}</p>
                 </>
               ) : (
-                <p className="text-base font-semibold leading-5 text-[var(--text)]">{formatPrice(product.price)}</p>
+                <p className="text-sm font-semibold leading-5 tracking-tight text-[var(--text)]">{formatPrice(product.price)}</p>
               )}
             </div>
           </div>
 
-          <div className="mt-2 text-xs font-medium text-[var(--text-secondary)]">
+          <div className="mt-2 text-[11px] font-medium tracking-[0.08em] text-[var(--text-secondary)] uppercase">
             {soldCount} sold
           </div>
         </Link>
