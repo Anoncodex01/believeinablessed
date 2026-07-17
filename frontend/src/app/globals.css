@@ -232,3 +232,35 @@
     transform: scale(1.06) translate3d(-1%, -0.5%, 0);
   }
 }
+
+/* Product listing grid — always 2 cols on mobile */
+.products-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 0.75rem;
+  row-gap: 1.75rem;
+}
+
+.products-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .products-grid {
+    column-gap: 1.5rem;
+    row-gap: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .products-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}

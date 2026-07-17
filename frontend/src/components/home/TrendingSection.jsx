@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { getProducts } from '@/lib/api';
 import { homeProductFallbacks } from '@/lib/homeProductFallbacks';
 import ProductCard from '@/components/product/ProductCard';
+import ProductsGrid from '@/components/product/ProductsGrid';
 import { ArrowRight } from 'lucide-react';
 
 export default function TrendingSection({ refCode = '' }) {
@@ -51,21 +52,21 @@ export default function TrendingSection({ refCode = '' }) {
           </Link>
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <ProductsGrid>
           {loading
             ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="overflow-hidden">
-                  <div className="aspect-[3/4] shimmer-bg rounded-sm" />
-                  <div className="mt-4 space-y-2">
-                    <div className="h-3 w-3/4 shimmer-bg rounded" />
-                    <div className="h-3 w-1/2 shimmer-bg rounded" />
+                <div key={i} className="min-w-0 overflow-hidden">
+                  <div className="aspect-[3/4] shimmer-bg" />
+                  <div className="mt-3 space-y-2">
+                    <div className="h-3 w-3/4 shimmer-bg" />
+                    <div className="h-3 w-1/2 shimmer-bg" />
                   </div>
                 </div>
               ))
             : products.map((p, i) => (
                 <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
               ))}
-        </div>
+        </ProductsGrid>
 
         <div className="mt-10 text-center sm:hidden">
           <Link

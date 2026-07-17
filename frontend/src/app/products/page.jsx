@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import BottomNav from '@/components/layout/BottomNav';
 import ProductCard from '@/components/product/ProductCard';
+import ProductsGrid from '@/components/product/ProductsGrid';
 import { useLang } from '@/contexts/LangContext';
 import { useAffiliate } from '@/contexts/AffiliateContext';
 import { getProducts, getCategories } from '@/lib/api';
@@ -172,7 +173,7 @@ function ProductsContent() {
 
         {products.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ProductsGrid>
               {products.map((p, i) => (
                 <ProductCard
                   key={p.id}
@@ -181,7 +182,7 @@ function ProductsContent() {
                   affiliateCode={ref}
                 />
               ))}
-            </div>
+            </ProductsGrid>
 
             {hasMore && (
               <div className="mt-14 text-center">
@@ -196,9 +197,9 @@ function ProductsContent() {
             )}
           </>
         ) : loading ? (
-          <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ProductsGrid>
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i}>
+              <div key={i} className="min-w-0 overflow-hidden">
                 <div className="aspect-[3/4] border border-[var(--border)] shimmer-bg" />
                 <div className="space-y-2 pt-4">
                   <div className="h-3 shimmer-bg rounded" />
@@ -206,7 +207,7 @@ function ProductsContent() {
                 </div>
               </div>
             ))}
-          </div>
+          </ProductsGrid>
         ) : (
           <div className="border border-[var(--border)] bg-[var(--surface-warm)] px-6 py-20 text-center">
             <p className="font-display text-3xl font-semibold tracking-tight text-[var(--text)] sm:text-4xl">

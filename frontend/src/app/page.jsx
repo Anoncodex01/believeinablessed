@@ -8,8 +8,6 @@ import BottomNav from '@/components/layout/BottomNav';
 import HeroSlider from '@/components/home/HeroSlider';
 import TrendingSection from '@/components/home/TrendingSection';
 import AllProductsSection from '@/components/home/AllProductsSection';
-import GenderCardsSection from '@/components/home/GenderCardsSection';
-import BrandStorySection from '@/components/home/BrandStorySection';
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -20,9 +18,7 @@ function HomeContent() {
       <Navbar />
       <HeroSlider />
       <TrendingSection refCode={ref} />
-      <GenderCardsSection />
       <AllProductsSection refCode={ref} />
-      <BrandStorySection />
       <Footer />
       <BottomNav />
     </main>
