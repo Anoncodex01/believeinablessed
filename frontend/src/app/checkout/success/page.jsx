@@ -34,8 +34,8 @@ function SuccessContent() {
 
       <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="max-w-md w-full card p-8 text-center">
-          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-500" />
+          <div className="w-20 h-20 bg-neutral-950/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-10 h-10 text-neutral-950" />
           </div>
 
           <h1 className="text-3xl font-bold text-[var(--text)] mb-3">
@@ -60,7 +60,7 @@ function SuccessContent() {
             {order && (
               <button
                 onClick={() => router.push(`/track?order=${encodeURIComponent(order)}`)}
-                className="w-full py-3 rounded-xl border-2 border-[var(--border)] text-[var(--text)] font-semibold hover:border-[#4B0082]/50 transition-colors"
+                className="w-full py-3 rounded-xl border-2 border-[var(--border)] text-[var(--text)] font-semibold hover:border-neutral-950 transition-colors"
               >
                 Track My Order
               </button>

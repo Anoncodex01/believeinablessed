@@ -118,6 +118,50 @@ async function recalculateWithdrawableBalance(affiliateId) {
   return Math.max(0, totalConfirmed - withdrawn);
 }
 
+export async function reconcileAffiliateBalances(affiliateId) {
+  try {
+    const { data: rows, error } = await supabase
+      .from('affiliate_orders')
+      .select('commission, status')
+      .eq('affiliate_id', affiliateId);
+
+    if (error) {
+      console.error('reconcileAffiliateBalances error:', error);
+      return false;
+    }
+
+    const pendingEarnings = (rows || [])
+      .filter((row) => row.status === 'pending')
+      .reduce((sum, row) => sum + Number(row.commission || 0), 0);
+
+    const totalEarnings = (rows || [])
+      .filter((row) => row.status === 'confirmed')
+      .reduce((sum, row) => sum + Number(row.commission || 0), 0);
+
+    const orderCount = await countConfirmedAffiliateOrders(affiliateId);
+    const tier = getTierByOrderCount(orderCount);
+    const withdrawable = orderCount >= tier.requires_orders_for_withdraw
+      ? await recalculateWithdrawableBalance(affiliateId)
+      : 0;
+
+    await supabase
+      .from('users')
+      .update({
+        pending_earnings: pendingEarnings,
+        total_earnings: totalEarnings,
+        withdrawable_balance: withdrawable,
+        affiliate_level: tier.level,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', affiliateId);
+
+    return true;
+  } catch (error) {
+    console.error('reconcileAffiliateBalances failed:', error);
+    return false;
+  }
+}
+
 /**
  * Confirm pending commission (called when payment is paid / order delivered).
  * Also recovers rows that were wrongly cancelled after a failed payment attempt.
@@ -190,20 +234,21 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
     }
 
     const originalPendingTotal = affOrders.reduce((sum, ao) => sum + Number(ao.commission || 0), 0);
-    const currentTier = await getAffiliateCurrentTier(affiliateId);
-    const currentCommissionRate = currentTier.commission_rate;
     let totalCommission = 0;
 
     for (const affOrder of affOrders) {
-      const newCommission = (Number(affOrder.order_amount || 0) * currentCommissionRate) / 100;
-      totalCommission += newCommission;
+      // Keep the rate locked when the order was created — do not recalculate at payment time
+      const lockedCommission = Number(affOrder.commission || 0);
+      const lockedRate = Number(affOrder.commission_rate || TIER_CONFIG.bronze.commission_rate);
+      const lockedTier = affOrder.tier_at_time || TIER_CONFIG.bronze.level;
+      totalCommission += lockedCommission;
 
       await supabase
         .from('affiliate_orders')
         .update({
-          commission: newCommission,
-          commission_rate: currentCommissionRate,
-          tier_at_time: currentTier.level,
+          commission: lockedCommission,
+          commission_rate: lockedRate,
+          tier_at_time: lockedTier,
           status: 'confirmed',
           is_confirmed: true,
           confirmed_at: new Date().toISOString(),
@@ -238,7 +283,6 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
     };
 
     if (isEligibleForWithdraw) {
-      // Rebuild withdrawable from all confirmed commissions minus withdrawals
       updateData.withdrawable_balance = await recalculateWithdrawableBalance(affiliateId);
     }
 
@@ -253,6 +297,8 @@ export async function confirmOrderCommission(orderId, affiliateId, reason = 'Pay
         updated_at: new Date().toISOString(),
       })
       .eq('id', orderId);
+
+    await reconcileAffiliateBalances(affiliateId);
 
     console.log(
       `✅ Commission CONFIRMED for affiliate ${affiliateId}: ${totalCommission} TZS | tier=${tier.level} | confirmed_orders=${orderCount}`
@@ -346,6 +392,7 @@ export async function cancelOrderCommission(orderId, affiliateId, reason) {
       .eq('id', orderId);
 
     await updateAffiliateTier(affiliateId);
+    await reconcileAffiliateBalances(affiliateId);
     return true;
   } catch (error) {
     console.error('Error cancelling commission:', error);

@@ -35,7 +35,7 @@ const cards = [
 
 export default function GenderCardsSection() {
   return (
-    <section className="border-y border-[var(--border)] bg-[var(--surface-warm)] py-16 sm:py-20 lg:py-24">
+    <section className="border-y border-[var(--border)] bg-white py-16 sm:py-20 lg:py-24">
       <div className="home-shell">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -87,7 +87,7 @@ export default function GenderCardsSection() {
                   <span className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                     {card.label}
                   </span>
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-white text-neutral-950 transition duration-300 group-hover:bg-teal-700 group-hover:text-white">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-white text-neutral-950 transition duration-300 group-hover:bg-neutral-800 group-hover:text-white">
                     <ArrowUpRight className="h-4 w-4" />
                   </span>
                 </div>

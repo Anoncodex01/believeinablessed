@@ -148,13 +148,13 @@ export default function ContactPage() {
             </h2>
 
             {sent ? (
-              <div className="mt-8 flex flex-col items-start gap-3 border border-teal-700/20 bg-teal-700/5 p-5">
-                <CheckCircle2 className="h-6 w-6 text-teal-700" />
+              <div className="mt-8 flex flex-col items-start gap-3 border border-neutral-950/20 bg-neutral-950/5 p-5">
+                <CheckCircle2 className="h-6 w-6 text-neutral-950" />
                 <p className="font-medium text-[var(--text)]">{copy.success}</p>
                 <button
                   type="button"
                   onClick={() => setSent(false)}
-                  className="text-sm font-semibold text-teal-700 transition hover:opacity-70"
+                  className="text-sm font-semibold text-neutral-950 transition hover:opacity-70"
                 >
                   {lang === 'sw' ? 'Tuma ujumbe mwingine' : 'Send another message'}
                 </button>
@@ -209,7 +209,7 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={sending}
-                  className="inline-flex w-full items-center justify-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 sm:w-auto dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                  className="inline-flex w-full items-center justify-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 disabled:opacity-50 sm:w-auto dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                 >
                   {sending ? copy.sending : copy.send}
                   <ArrowRight className="h-4 w-4" />
@@ -235,7 +235,7 @@ export default function ContactPage() {
                     rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
                     className="flex items-center gap-4 border-b border-[var(--border)] py-4 last:border-0 transition hover:bg-[var(--bg-secondary)]"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[var(--surface-warm)] text-teal-700 dark:text-teal-300">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[var(--surface-warm)] text-neutral-950 dark:text-white">
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">
@@ -253,7 +253,7 @@ export default function ContactPage() {
 
             <div className="border border-[var(--border)] bg-[var(--surface-warm)] p-5 sm:p-8">
               <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-neutral-950" />
                 <div>
                   <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--text-secondary)] uppercase">
                     {copy.location}
@@ -271,7 +271,7 @@ export default function ContactPage() {
               </div>
               <Link
                 href="/about"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-[var(--text)] transition hover:text-teal-700"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-[var(--text)] transition hover:text-neutral-950"
               >
                 {lang === 'sw' ? 'Soma hadithi yetu' : 'Read our story'} <ArrowRight className="h-4 w-4" />
               </Link>

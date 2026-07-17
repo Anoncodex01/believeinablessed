@@ -74,14 +74,14 @@ function BottomNavInner() {
             href={href}
             className={`relative flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 transition ${
               isActive
-                ? 'text-teal-700 dark:text-teal-300'
+                ? 'text-neutral-950 dark:text-white'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
             }`}
           >
             <span className="relative">
               <Icon className={`h-[22px] w-[22px] ${isActive ? 'stroke-[1.75]' : 'stroke-[1.5]'}`} />
               {badge > 0 && (
-                <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center bg-teal-700 px-1 text-[9px] font-bold text-white dark:bg-teal-400 dark:text-neutral-950">
+                <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center bg-neutral-950 px-1 text-[9px] font-bold text-white dark:bg-white dark:text-neutral-950">
                   {badge > 9 ? '9+' : badge}
                 </span>
               )}
@@ -94,7 +94,7 @@ function BottomNavInner() {
               {label}
             </span>
             {isActive && (
-              <span className="absolute bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 bg-teal-700 dark:bg-teal-300" />
+              <span className="absolute bottom-1 left-1/2 h-0.5 w-4 -translate-x-1/2 bg-neutral-950 dark:bg-white" />
             )}
           </Link>
         ))}

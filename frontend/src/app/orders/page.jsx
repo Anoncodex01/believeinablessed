@@ -65,12 +65,12 @@ const STATUS_ICONS = {
 };
 
 const STATUS_STYLES = {
-  pending: 'border-amber-600/25 bg-amber-500/10 text-amber-700 dark:text-amber-400',
-  confirmed: 'border-teal-700/25 bg-teal-700/10 text-teal-800 dark:text-teal-300',
-  processing: 'border-sky-600/25 bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  shipped: 'border-orange-600/25 bg-orange-500/10 text-orange-700 dark:text-orange-400',
-  delivered: 'border-emerald-600/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-  cancelled: 'border-red-600/25 bg-red-500/10 text-red-700 dark:text-red-400',
+  pending: 'bg-neutral-100 text-neutral-950 dark:text-neutral-950',
+  confirmed: 'border-neutral-950/25 bg-neutral-950/10 text-neutral-950 dark:text-white',
+  processing: 'border-neutral-300 bg-neutral-100 text-neutral-950 dark:text-white',
+  shipped: 'bg-neutral-100 text-neutral-950 dark:text-white',
+  delivered: 'border-neutral-950/25 bg-neutral-950/10 text-neutral-950 dark:text-white',
+  cancelled: 'border-neutral-300 bg-neutral-100 text-red-700 dark:text-white',
 };
 
 const PAYMENT_LABELS = {
@@ -110,7 +110,7 @@ function OrderCard({ order, onTrack }) {
   const shippingAddress = formatAddress(order.shipping_address);
 
   return (
-    <article className="border border-[var(--border)] bg-[var(--bg-card)] p-4 transition hover:border-teal-700/40 sm:p-5">
+    <article className="border border-[var(--border)] bg-[var(--bg-card)] p-4 transition hover:border-neutral-950/40 sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -132,12 +132,12 @@ function OrderCard({ order, onTrack }) {
         <div className="min-w-0 text-sm text-[var(--text-secondary)]">
           {shippingAddress ? (
             <span className="inline-flex max-w-full items-center gap-2">
-              <MapPin className="h-4 w-4 flex-shrink-0 text-teal-700" />
+              <MapPin className="h-4 w-4 flex-shrink-0 text-neutral-950" />
               <span className="truncate">{shippingAddress}</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-teal-700" />
+              <CreditCard className="h-4 w-4 text-neutral-950" />
               {paymentLabel}
             </span>
           )}
@@ -148,8 +148,8 @@ function OrderCard({ order, onTrack }) {
           onClick={() => onTrack(order)}
           className={`inline-flex h-11 items-center justify-center gap-2 px-5 text-sm font-semibold transition ${
             canTrack
-              ? 'bg-neutral-950 text-white hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300'
-              : 'border border-[var(--border)] text-[var(--text)] hover:border-teal-700'
+              ? 'bg-neutral-950 text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200'
+              : 'border border-[var(--border)] text-[var(--text)] hover:border-neutral-950'
           }`}
         >
           {canTrack ? 'Track order' : 'View status'}
@@ -288,14 +288,14 @@ export default function CustomerDashboardPage() {
             <div className="flex flex-wrap gap-2">
               <Link
                 href="/products"
-                className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 Shop
                 <ShoppingBag className="h-4 w-4" />
               </Link>
               <Link
                 href="/track"
-                className="inline-flex h-11 items-center justify-center gap-2 border border-[var(--border)] px-5 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700"
+                className="inline-flex h-11 items-center justify-center gap-2 border border-[var(--border)] px-5 text-sm font-semibold text-[var(--text)] transition hover:border-neutral-950"
               >
                 Track order
                 <Truck className="h-4 w-4" />
@@ -319,7 +319,7 @@ export default function CustomerDashboardPage() {
                 { label: 'Total spent', value: formatPrice(stats.totalSpent), icon: CreditCard },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="border border-[var(--border)] bg-[var(--bg-card)] p-4 sm:p-5">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center bg-teal-700/10 text-teal-700">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center bg-neutral-950/10 text-neutral-950">
                     <Icon className="h-5 w-5" />
                   </div>
                   <p className="font-display text-2xl font-semibold tracking-tight text-[var(--text)]">{value}</p>
@@ -347,7 +347,7 @@ export default function CustomerDashboardPage() {
 
                 <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                   <div>
-                    <p className="font-mono text-sm font-semibold text-teal-700">{activeOrder.order_number}</p>
+                    <p className="font-mono text-sm font-semibold text-neutral-950">{activeOrder.order_number}</p>
                     <p className="mt-2 text-sm text-[var(--text-secondary)]">
                       {PAYMENT_LABELS[activeOrder.payment_status] || activeOrder.payment_status || 'Payment pending'} · {formatPrice(activeOrder.total)}
                     </p>
@@ -355,7 +355,7 @@ export default function CustomerDashboardPage() {
                   <button
                     type="button"
                     onClick={() => goToTracking(activeOrder)}
-                    className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                    className="inline-flex h-11 items-center justify-center gap-2 bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                   >
                     Open tracking
                     <ArrowRight className="h-4 w-4" />
@@ -391,7 +391,7 @@ export default function CustomerDashboardPage() {
                   <button
                     type="button"
                     onClick={loadOrders}
-                    className="inline-flex h-11 items-center justify-center gap-2 border border-[var(--border)] px-4 text-sm font-semibold transition hover:border-teal-700"
+                    className="inline-flex h-11 items-center justify-center gap-2 border border-[var(--border)] px-4 text-sm font-semibold transition hover:border-neutral-950"
                   >
                     <RefreshCw className="h-4 w-4" />
                     Refresh
@@ -408,7 +408,7 @@ export default function CustomerDashboardPage() {
                     className={`h-10 flex-shrink-0 px-4 text-sm font-semibold transition ${
                       filter === item.key
                         ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
-                        : 'border border-[var(--border)] text-[var(--text-secondary)] hover:border-teal-700 hover:text-[var(--text)]'
+                        : 'border border-[var(--border)] text-[var(--text-secondary)] hover:border-neutral-950 hover:text-[var(--text)]'
                     }`}
                   >
                     {item.label}
@@ -431,7 +431,7 @@ export default function CustomerDashboardPage() {
                   </p>
                   <Link
                     href="/products"
-                    className="mt-5 inline-flex h-11 items-center justify-center bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                    className="mt-5 inline-flex h-11 items-center justify-center bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                   >
                     Start shopping
                   </Link>
@@ -471,11 +471,11 @@ export default function CustomerDashboardPage() {
 
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-3 border border-[var(--border)] bg-[var(--bg)] p-3.5">
-                  <Phone className="h-4 w-4 text-teal-700" />
+                  <Phone className="h-4 w-4 text-neutral-950" />
                   <span className="text-[var(--text)]">{user?.phone || 'Phone not added'}</span>
                 </div>
                 <div className="flex items-center gap-3 border border-[var(--border)] bg-[var(--bg)] p-3.5">
-                  <Home className="h-4 w-4 text-teal-700" />
+                  <Home className="h-4 w-4 text-neutral-950" />
                   <span className="text-[var(--text)]">Saved checkout details</span>
                 </div>
               </div>
@@ -483,7 +483,7 @@ export default function CustomerDashboardPage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 border border-[var(--border)] text-sm font-semibold text-[var(--text)] transition hover:border-red-500 hover:text-red-600"
+                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 border border-[var(--border)] text-sm font-semibold text-[var(--text)] transition hover:border-neutral-950 hover:text-neutral-950"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
@@ -498,17 +498,17 @@ export default function CustomerDashboardPage() {
             >
               <p className="section-kicker">Quick actions</p>
               <div className="mt-4 grid gap-2">
-                <Link href="/products" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">
+                <Link href="/products" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-neutral-950">
                   Continue shopping
-                  <ShoppingBag className="h-4 w-4 text-teal-700" />
+                  <ShoppingBag className="h-4 w-4 text-neutral-950" />
                 </Link>
-                <Link href="/track" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">
+                <Link href="/track" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-neutral-950">
                   Track by order number
-                  <Truck className="h-4 w-4 text-teal-700" />
+                  <Truck className="h-4 w-4 text-neutral-950" />
                 </Link>
-                <Link href="/products?sort=popular" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">
+                <Link href="/products?sort=popular" className="flex items-center justify-between border border-[var(--border)] p-4 text-sm font-semibold text-[var(--text)] transition hover:border-neutral-950">
                   Browse popular items
-                  <Heart className="h-4 w-4 text-teal-700" />
+                  <Heart className="h-4 w-4 text-neutral-950" />
                 </Link>
               </div>
             </motion.div>

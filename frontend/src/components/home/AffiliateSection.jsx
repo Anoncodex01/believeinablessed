@@ -55,7 +55,7 @@ export default function AffiliateSection() {
       title_sw: 'Pata Kamisheni', 
       desc: `Get ${stats.commissionRate}% commission for every sale through your link`, 
       desc_sw: `Pata asilimia ${stats.commissionRate} kwa kila mauzo kupitia kiungo chako`, 
-      color: 'text-green-500 bg-green-500/10' 
+      color: 'text-neutral-950 bg-neutral-950/10' 
     },
     { 
       icon: TrendingUp, 
@@ -63,7 +63,7 @@ export default function AffiliateSection() {
       title_sw: 'Fuatilia Takwimu', 
       desc: 'See clicks, conversions and earnings live', 
       desc_sw: 'Ona mibonyezo, mabadiliko na mapato kwa wakati halisi', 
-      color: 'text-orange-500 bg-orange-500/10' 
+      color: 'text-neutral-950 bg-neutral-100' 
     },
     { 
       icon: Award, 
@@ -99,7 +99,7 @@ export default function AffiliateSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-              className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-[var(--brand-light)] px-3 py-1.5 text-sm font-semibold text-[var(--brand)]"
+              className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-[var(--brand-light)] px-3 py-1.5 text-sm font-semibold text-neutral-950"
           >
               <Zap className="h-4 w-4" />
             Affiliate Program
@@ -157,7 +157,7 @@ export default function AffiliateSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                  className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-4 transition hover:border-[var(--brand)]"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-4 transition hover:border-neutral-950"
               >
                   <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg ${f.color}`}>
                     <f.icon className="h-5 w-5" />
@@ -179,10 +179,10 @@ export default function AffiliateSection() {
             className="border-b border-[var(--border)] p-5 text-center sm:border-b-0 sm:border-r"
           >
             <div>
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-teal-100 text-teal-800 dark:bg-teal-400/15 dark:text-teal-300">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-neutral-100 text-neutral-950 dark:bg-white/15 dark:text-white">
                 <Users className="h-5 w-5" />
               </div>
-              <p className="text-3xl font-bold text-[var(--brand)] sm:text-4xl">
+              <p className="text-3xl font-bold text-neutral-950 sm:text-4xl">
                 {loading ? '...' : formatNumber(stats.totalAffiliates)}
               </p>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
@@ -204,17 +204,17 @@ export default function AffiliateSection() {
             className="border-b border-[var(--border)] p-5 text-center sm:border-b-0 sm:border-r"
           >
             <div>
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-neutral-100 text-neutral-950 dark:bg-white/10 dark:text-white">
                 <Wallet className="h-5 w-5" />
               </div>
-              <p className="text-2xl font-bold text-emerald-600 sm:text-3xl">
+              <p className="text-2xl font-bold text-neutral-950 sm:text-3xl">
                 {loading ? '...' : formatCurrency(stats.totalPaidOut)}
               </p>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
                 {lang === 'sw' ? 'Jumla Iliyolipwa' : 'Total Paid Out'}
               </p>
               {!loading && stats.monthlyCommissions > 0 && (
-                <p className="text-[10px] text-green-500 mt-2">
+                <p className="text-[10px] text-neutral-950 mt-2">
                   +{formatCurrency(stats.monthlyCommissions)} this month
                 </p>
               )}
@@ -229,10 +229,10 @@ export default function AffiliateSection() {
             className="p-5 text-center"
           >
             <div>
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-400/15 dark:text-orange-300">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-neutral-100 text-neutral-950 dark:bg-white/10 dark:text-white">
                 <Crown className="h-5 w-5" />
               </div>
-              <p className="text-2xl font-bold text-orange-600 sm:text-3xl">
+              <p className="text-2xl font-bold text-neutral-950 sm:text-3xl">
                 {stats.commissionRate}%
               </p>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">

@@ -7,7 +7,7 @@ export default function WhatsAppButton() {
       href="https://wa.me/255747110777"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-24 right-4 md:bottom-8 md:right-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full shadow-2xl shadow-green-500/40 flex items-center justify-center transition-colors"
+      className="fixed bottom-24 right-4 md:bottom-8 md:right-6 z-50 w-14 h-14 bg-neutral-950 hover:bg-neutral-950 rounded-full shadow-2xl shadow-black/30 flex items-center justify-center transition-colors"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 1, type: 'spring', stiffness: 300 }}

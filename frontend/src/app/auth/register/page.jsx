@@ -244,7 +244,7 @@ function RegisterContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-6 flex w-full items-center justify-center gap-2 bg-neutral-950 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="mt-6 flex w-full items-center justify-center gap-2 bg-neutral-950 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 {loading ? 'Creating account…' : accountType === 'affiliate' ? 'Create and apply' : 'Create account'}
                 {!loading && <ArrowRight className="h-4 w-4" />}
@@ -255,7 +255,7 @@ function RegisterContent() {
               Already have an account?{' '}
               <Link
                 href={`/auth/login?type=${accountType}${redirect ? `&redirect=${encodeURIComponent(redirect)}` : ''}`}
-                className="font-semibold text-teal-700 transition hover:opacity-70 dark:text-teal-300"
+                className="font-semibold text-neutral-950 transition hover:opacity-70 dark:text-white"
               >
                 Sign in
               </Link>
@@ -264,7 +264,7 @@ function RegisterContent() {
             <div className="mt-8 border-t border-[var(--border)] pt-6 text-center">
               <Link
                 href="/products"
-                className="text-sm font-medium tracking-tight text-[var(--text-secondary)] transition hover:text-teal-700"
+                className="text-sm font-medium tracking-tight text-[var(--text-secondary)] transition hover:text-neutral-950"
               >
                 Continue shopping without an account →
               </Link>

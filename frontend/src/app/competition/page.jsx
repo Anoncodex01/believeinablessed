@@ -70,9 +70,9 @@ export default function CompetitionPage() {
   const rules = lang === 'sw' && competition?.rules_sw ? competition.rules_sw : competition?.rules;
 
   const RANK_ICONS = [
-    <Crown key={1} className="w-6 h-6 text-yellow-400" />,
+    <Crown key={1} className="w-6 h-6 text-neutral-950" />,
     <Medal key={2} className="w-6 h-6 text-gray-400" />,
-    <Award key={3} className="w-6 h-6 text-orange-500" />,
+    <Award key={3} className="w-6 h-6 text-neutral-950" />,
   ];
 
   return (
@@ -81,12 +81,12 @@ export default function CompetitionPage() {
 
       {/* Hero */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-yellow-500/10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-neutral-950/5 via-transparent to-neutral-400/10" />
         <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl" />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-16 text-center relative">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-500 text-sm font-semibold mb-6">
+            className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-100 border border-neutral-300 rounded-full text-neutral-950 text-sm font-semibold mb-6">
             <Trophy className="w-4 h-4" />
             {t('monthly_competition')}
           </motion.div>
@@ -104,12 +104,12 @@ export default function CompetitionPage() {
           {/* Prize */}
           {prize && (
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}
-              className="inline-block card px-8 py-4 mb-8 border-yellow-500/30 bg-yellow-500/5">
+              className="inline-block card px-8 py-4 mb-8 border-neutral-300 bg-neutral-50">
               <div className="flex items-center gap-3">
-                <Gift className="w-6 h-6 text-yellow-500" />
+                <Gift className="w-6 h-6 text-neutral-950" />
                 <div className="text-left">
                   <p className="text-xs text-[var(--text-secondary)] font-medium">{t('current_prize')}</p>
-                  <p className="text-xl font-display font-bold text-yellow-500">{prize}</p>
+                  <p className="text-xl font-display font-bold text-neutral-950">{prize}</p>
                 </div>
               </div>
             </motion.div>
@@ -154,11 +154,11 @@ export default function CompetitionPage() {
             {leaderboard.map((entry, i) => (
               <motion.div key={entry.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.08 }}
-                className={`card p-4 flex items-center gap-4 ${i === 0 ? 'border-yellow-500/40 bg-yellow-500/5' : i === 1 ? 'border-gray-400/30' : ''}`}>
+                className={`card p-4 flex items-center gap-4 ${i === 0 ? 'border-neutral-950 bg-neutral-50' : i === 1 ? 'border-gray-400/30' : ''}`}>
                 <div className="w-10 flex items-center justify-center">
                   {i < 3 ? RANK_ICONS[i] : <span className="text-lg font-bold text-[var(--text-secondary)]">#{i + 1}</span>}
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-orange-500 flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-800 to-neutral-950 flex items-center justify-center text-white font-bold">
                   {entry.users?.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div className="flex-1">

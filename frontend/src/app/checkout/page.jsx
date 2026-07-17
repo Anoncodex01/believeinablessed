@@ -381,7 +381,7 @@ function CheckoutContent() {
           </p>
           <Link
             href="/products"
-            className="mt-8 inline-flex items-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+            className="mt-8 inline-flex items-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
           >
             Shop Products <ArrowRight className="h-4 w-4" />
           </Link>
@@ -455,7 +455,7 @@ function CheckoutContent() {
               </p>
             </div>
             <div className="inline-flex w-fit items-center gap-2 border border-[var(--border)] bg-[var(--bg-card)] px-4 py-3 text-xs font-medium tracking-tight text-[var(--text-secondary)]">
-              <Lock className="h-3.5 w-3.5 text-teal-700" />
+              <Lock className="h-3.5 w-3.5 text-neutral-950" />
               Powered by Snippe
             </div>
           </div>
@@ -465,7 +465,7 @@ function CheckoutContent() {
           <div className="space-y-4">
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
               <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
-                Contact Information <span className="text-red-500">*</span>
+                Contact Information <span className="text-neutral-950">*</span>
               </h2>
               <div className="space-y-3">
                 <div>
@@ -473,9 +473,9 @@ function CheckoutContent() {
                     placeholder="Full Name *"
                     value={form.customer_name}
                     onChange={(e) => setField('customer_name', e.target.value)}
-                    className={`input ${errors.customer_name ? 'border-red-500' : ''}`}
+                    className={`input ${errors.customer_name ? 'border-neutral-950' : ''}`}
                   />
-                  {errors.customer_name && <p className="text-xs text-red-500 mt-1">{errors.customer_name}</p>}
+                  {errors.customer_name && <p className="text-xs text-neutral-950 mt-1">{errors.customer_name}</p>}
                 </div>
                 <div>
                   <div className="flex gap-2">
@@ -491,12 +491,12 @@ function CheckoutContent() {
                       placeholder="Phone number (e.g. 747110777)"
                       value={form.customer_phone}
                       onChange={(e) => setField('customer_phone', e.target.value.replace(/[^0-9]/g, ''))}
-                      className={`input flex-1 ${errors.customer_phone ? 'border-red-500' : ''}`}
+                      className={`input flex-1 ${errors.customer_phone ? 'border-neutral-950' : ''}`}
                       type="tel"
                     />
                   </div>
                   {errors.customer_phone ? (
-                    <p className="text-xs text-red-500 mt-1">{errors.customer_phone}</p>
+                    <p className="text-xs text-neutral-950 mt-1">{errors.customer_phone}</p>
                   ) : (
                     <p className="text-xs text-[var(--text-secondary)] mt-1">
                       {countryCodes[form.country_code]?.name || 'Selected country'} number — used for mobile money
@@ -508,17 +508,17 @@ function CheckoutContent() {
                     placeholder={form.payment_type === 'card' ? 'Email *' : 'Email (optional)'}
                     value={form.customer_email}
                     onChange={(e) => setField('customer_email', e.target.value)}
-                    className={`input ${errors.customer_email ? 'border-red-500' : ''}`}
+                    className={`input ${errors.customer_email ? 'border-neutral-950' : ''}`}
                     type="email"
                   />
-                  {errors.customer_email && <p className="text-xs text-red-500 mt-1">{errors.customer_email}</p>}
+                  {errors.customer_email && <p className="text-xs text-neutral-950 mt-1">{errors.customer_email}</p>}
                 </div>
               </div>
             </div>
 
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
               <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
-                Delivery Address <span className="text-red-500">*</span>
+                Delivery Address <span className="text-neutral-950">*</span>
               </h2>
               <div className="space-y-3">
                 <div>
@@ -526,26 +526,26 @@ function CheckoutContent() {
                     placeholder="City * (e.g., Dar es Salaam, Arusha)"
                     value={form.city}
                     onChange={(e) => setField('city', e.target.value)}
-                    className={`input ${errors.city ? 'border-red-500' : ''}`}
+                    className={`input ${errors.city ? 'border-neutral-950' : ''}`}
                   />
-                  {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
+                  {errors.city && <p className="text-xs text-neutral-950 mt-1">{errors.city}</p>}
                 </div>
                 <div>
                   <textarea
                     placeholder="Address * (Street name, house number, area)"
                     value={form.address}
                     onChange={(e) => setField('address', e.target.value)}
-                    className={`input resize-none ${errors.address ? 'border-red-500' : ''}`}
+                    className={`input resize-none ${errors.address ? 'border-neutral-950' : ''}`}
                     rows={3}
                   />
-                  {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
+                  {errors.address && <p className="text-xs text-neutral-950 mt-1">{errors.address}</p>}
                 </div>
               </div>
             </div>
 
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
               <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
-                Pay with Snippe <span className="text-red-500">*</span>
+                Pay with Snippe <span className="text-neutral-950">*</span>
               </h2>
               <div className="space-y-3">
                 <button
@@ -570,7 +570,7 @@ function CheckoutContent() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <p className="text-base font-semibold tracking-tight text-[var(--text)]">Mobile Money</p>
-                        {form.payment_type === 'mobile' && <CheckCircle className="h-5 w-5 text-teal-700" />}
+                        {form.payment_type === 'mobile' && <CheckCircle className="h-5 w-5 text-neutral-950" />}
                       </div>
                       <p className="mt-1 text-sm text-[var(--text-secondary)]">
                         M-Pesa, Airtel Money, Tigo Pesa & more — USSD prompt on your phone
@@ -601,7 +601,7 @@ function CheckoutContent() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <p className="text-base font-semibold tracking-tight text-[var(--text)]">Card</p>
-                        {form.payment_type === 'card' && <CheckCircle className="h-5 w-5 text-teal-700" />}
+                        {form.payment_type === 'card' && <CheckCircle className="h-5 w-5 text-neutral-950" />}
                       </div>
                       <p className="mt-1 text-sm text-[var(--text-secondary)]">
                         Visa / Mastercard — secure redirect via Snippe
@@ -610,7 +610,7 @@ function CheckoutContent() {
                   </div>
                 </button>
               </div>
-              {errors.payment_type && <p className="mt-2 text-xs text-red-500">{errors.payment_type}</p>}
+              {errors.payment_type && <p className="mt-2 text-xs text-neutral-950">{errors.payment_type}</p>}
             </div>
 
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
@@ -643,7 +643,7 @@ function CheckoutContent() {
                 <button
                   type="button"
                   onClick={clearCart}
-                  className="inline-flex items-center gap-2 px-2 py-2 text-xs font-medium text-red-500 transition hover:bg-red-500/10"
+                  className="inline-flex items-center gap-2 px-2 py-2 text-xs font-medium text-neutral-950 transition hover:bg-neutral-100"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Clear
@@ -704,7 +704,7 @@ function CheckoutContent() {
                             <button
                               type="button"
                               onClick={() => removeItem(item.cartKey)}
-                              className="inline-flex items-center gap-1.5 px-2 py-2 text-xs font-medium text-red-500 transition hover:bg-red-500/10"
+                              className="inline-flex items-center gap-1.5 px-2 py-2 text-xs font-medium text-neutral-950 transition hover:bg-neutral-100"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                               Remove
@@ -727,7 +727,7 @@ function CheckoutContent() {
                   <span>{total > 200000 ? 'FREE' : 'To be confirmed'}</span>
                 </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-sm text-green-500">
+                  <div className="flex justify-between text-sm text-neutral-950">
                     <span>Discount</span>
                     <span>-{formatPrice(discount)}</span>
                   </div>
@@ -744,7 +744,7 @@ function CheckoutContent() {
                   className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-[var(--bg-secondary)]"
                 >
                   <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-teal-700" />
+                    <Truck className="h-4 w-4 text-neutral-950" />
                     <span className="text-sm font-medium tracking-tight text-[var(--text)]">Shipping Information</span>
                   </div>
                   {shippingExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -771,7 +771,7 @@ function CheckoutContent() {
                   className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-[var(--bg-secondary)]"
                 >
                   <div className="flex items-center gap-2">
-                    <RotateCcw className="h-4 w-4 text-teal-700" />
+                    <RotateCcw className="h-4 w-4 text-neutral-950" />
                     <span className="text-sm font-medium tracking-tight text-[var(--text)]">Returns & Refund Policy</span>
                   </div>
                   {returnsExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -796,7 +796,7 @@ function CheckoutContent() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleSubmit}
                 disabled={isCreatingOrder || items.length === 0}
-                className="flex w-full items-center justify-center gap-2 bg-neutral-950 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="flex w-full items-center justify-center gap-2 bg-neutral-950 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 {isCreatingOrder ? (
                   <>

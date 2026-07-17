@@ -96,7 +96,7 @@ export default function Navbar() {
           : 'text-white/75 hover:text-white'
         : linkActive(href)
         ? 'text-[var(--text)]'
-        : 'text-[var(--text-secondary)] hover:text-teal-700'
+        : 'text-[var(--text-secondary)] hover:text-neutral-950'
     }`;
 
   return (
@@ -150,8 +150,8 @@ export default function Navbar() {
                       ? 'text-white'
                       : 'text-white/75 hover:text-white'
                     : desktopProductsOpen || pathname.startsWith('/products')
-                    ? 'text-teal-700'
-                    : 'text-[var(--text-secondary)] hover:text-teal-700'
+                    ? 'text-neutral-950'
+                    : 'text-[var(--text-secondary)] hover:text-neutral-950'
                 }`}
                 aria-expanded={desktopProductsOpen}
               >
@@ -180,7 +180,7 @@ export default function Navbar() {
                       <Link
                         href="/products"
                         onClick={(event) => handleNavClick(event, '/products')}
-                        className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-tight text-teal-700 transition hover:opacity-70"
+                        className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-tight text-neutral-950 transition hover:opacity-70"
                       >
                         View all <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
@@ -227,14 +227,14 @@ export default function Navbar() {
                       <Link
                         href="/products?trending=true"
                         onClick={(event) => handleNavClick(event, '/products?trending=true')}
-                        className="border border-[var(--border)] px-3 py-2.5 text-center text-xs font-semibold tracking-tight text-[var(--text)] transition hover:border-teal-700 hover:text-teal-700"
+                        className="border border-[var(--border)] px-3 py-2.5 text-center text-xs font-semibold tracking-tight text-[var(--text)] transition hover:border-neutral-950 hover:text-neutral-950"
                       >
                         Trending
                       </Link>
                       <Link
                         href="/affiliate"
                         onClick={(event) => handleNavClick(event, '/affiliate')}
-                        className="bg-neutral-950 px-3 py-2.5 text-center text-xs font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                        className="bg-neutral-950 px-3 py-2.5 text-center text-xs font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                       >
                         Become Affiliate
                       </Link>
@@ -325,7 +325,7 @@ export default function Navbar() {
                 className={`flex h-5 min-w-5 items-center justify-center px-1.5 text-[11px] font-semibold ${
                   overHero
                     ? 'bg-white text-neutral-950'
-                    : 'bg-teal-700 text-white dark:bg-teal-400 dark:text-neutral-950'
+                    : 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
                 }`}
               >
                 {count > 9 ? '9+' : count}
@@ -372,13 +372,13 @@ export default function Navbar() {
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  className="h-12 flex-1 border border-[var(--border)] bg-[var(--bg-card)] px-5 text-sm outline-none focus:border-teal-700"
+                  className="h-12 flex-1 border border-[var(--border)] bg-[var(--bg-card)] px-5 text-sm outline-none focus:border-neutral-950"
                   placeholder="Search trousers, hoodies, tees..."
                   autoFocus
                 />
                 <button
                   type="submit"
-                  className="bg-neutral-950 px-6 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950"
+                  className="bg-neutral-950 px-6 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950"
                 >
                   Search
                 </button>
@@ -450,7 +450,7 @@ export default function Navbar() {
                           <Link
                             href="/products"
                             onClick={(event) => handleNavClick(event, '/products')}
-                            className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-teal-700 transition hover:bg-[var(--bg-secondary)]"
+                            className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-[var(--bg-secondary)]"
                           >
                             View all products <ArrowRight className="h-3.5 w-3.5" />
                           </Link>
@@ -506,7 +506,7 @@ export default function Navbar() {
                         setMenuOpen(false);
                         router.push('/');
                       }}
-                      className="border border-[var(--border)] px-4 py-3.5 text-left text-base font-medium text-red-500 transition hover:border-red-500 hover:bg-red-500 hover:text-white"
+                      className="border border-[var(--border)] px-4 py-3.5 text-left text-base font-medium text-neutral-950 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white"
                     >
                       Logout
                     </button>

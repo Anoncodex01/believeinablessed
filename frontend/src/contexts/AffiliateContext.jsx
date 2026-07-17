@@ -1,69 +1,93 @@
 // contexts/AffiliateContext.jsx
 'use client';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import Cookies from 'js-cookie';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { Suspense } from 'react';
+import { trackClick } from '@/lib/api';
 
 const AffiliateContext = createContext();
 
-// Separate component that uses useSearchParams
-function AffiliateProviderInner({ children, setRefCode }) {
+function trackAffiliateVisit(referralCode, productId = null, source = 'landing') {
+  if (!referralCode || typeof window === 'undefined') return;
+
+  const code = String(referralCode).trim().toUpperCase();
+  const key = `bib_click_${code}_${productId || 'landing'}`;
+
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch {
+    // ignore
+  }
+
+  trackClick({
+    referral_code: code,
+    product_id: productId || undefined,
+    source,
+  }).catch(() => {});
+}
+
+function AffiliateProviderInner({ setRefCode }) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const trackedLanding = useRef(false);
 
   useEffect(() => {
-    // Check URL params first (highest priority)
     const refFromUrl = searchParams.get('ref');
-    
+
     if (refFromUrl) {
-      Cookies.set('bib_ref', refFromUrl, { expires: 30, path: '/' });
-      setRefCode(refFromUrl);
-      console.log('✅ Affiliate ref set from URL:', refFromUrl);
+      const code = String(refFromUrl).trim().toUpperCase();
+      Cookies.set('bib_ref', code, { expires: 30, path: '/' });
+      setRefCode(code);
+
+      if (!trackedLanding.current) {
+        trackedLanding.current = true;
+        const productMatch = pathname?.match(/^\/products\/([^/?#]+)/);
+        trackAffiliateVisit(code, productMatch?.[1] || null, productMatch ? 'product' : 'landing');
+      }
     } else {
       const refFromCookie = Cookies.get('bib_ref');
       if (refFromCookie) {
-        setRefCode(refFromCookie);
-        console.log('✅ Affiliate ref loaded from cookie:', refFromCookie);
+        setRefCode(String(refFromCookie).trim().toUpperCase());
       }
     }
-  }, [searchParams, setRefCode]);
+  }, [searchParams, pathname, setRefCode]);
 
-  return null; // This component just handles the logic
+  return null;
 }
 
 export function AffiliateProvider({ children }) {
   const [refCode, setRefCode] = useState('');
 
-  const clearRef = () => {
+  const clearRef = useCallback(() => {
     Cookies.remove('bib_ref', { path: '/' });
     setRefCode('');
-    console.log('❌ Affiliate ref cleared');
-  };
+  }, []);
 
-  const addRefToUrl = (url) => {
+  const addRefToUrl = useCallback((url) => {
     if (!refCode) return url;
-    
     if (url.startsWith('/auth/')) return url;
-    
-    if (url.includes('?ref=') || url.includes('&ref=')) {
-      return url;
-    }
-    
+    if (url.includes('?ref=') || url.includes('&ref=')) return url;
     const separator = url.includes('?') ? '&' : '?';
-    const newUrl = `${url}${separator}ref=${refCode}`;
-    console.log('🔗 Adding ref to URL:', url, '->', newUrl);
-    return newUrl;
-  };
+    return `${url}${separator}ref=${refCode}`;
+  }, [refCode]);
+
+  const trackProductClick = useCallback((productId) => {
+    const code = refCode || Cookies.get('bib_ref');
+    if (!code) return;
+    trackAffiliateVisit(code, productId, 'product');
+  }, [refCode]);
 
   return (
-    <AffiliateContext.Provider value={{ 
-      refCode, 
-      setRefCode, 
-      clearRef, 
+    <AffiliateContext.Provider value={{
+      refCode,
+      setRefCode,
+      clearRef,
       addRefToUrl,
-      hasRef: !!refCode 
+      hasRef: !!refCode,
+      trackProductClick,
     }}>
-      {/* Wrap the search params logic in Suspense */}
       <Suspense fallback={null}>
         <AffiliateProviderInner setRefCode={setRefCode} />
       </Suspense>

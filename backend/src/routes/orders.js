@@ -9,34 +9,83 @@ import {
   cancelOrderCommission,
   restoreOrderCommission,
   updateAffiliateTier,
+  reconcileAffiliateBalances,
 } from '../utils/affiliateCommission.js';
 
 const router = express.Router();
 
-// When a customer abandons a payment and clicks "pay" again,
-// the old attempt is still sitting there as an unpaid order - and if it was
-// referred, as a "pending" commission the affiliate dashboard shows. Left
-// alone, 5 retries look like 5 separate pending sales for the same one
-// referral. Before creating a new order for an online payment method, quietly
-// cancel any of this same customer's own still-unpaid attempts from the last
-// couple of hours (this reuses the exact same reversal logic as an admin
-// clicking "Cancelled", so pending_earnings/affiliate_orders stay accurate).
-async function cancelStalePendingOrders(customerPhone, paymentMethod) {
-  if (!customerPhone || !['snippe', 'pesapal', 'mpesa'].includes(paymentMethod)) return;
+function normalizePhoneDigits(phone) {
+  if (!phone) return '';
+  const digits = String(phone).replace(/\D/g, '');
+  if (digits.startsWith('255')) return digits;
+  if (digits.startsWith('0')) return `255${digits.slice(1)}`;
+  return digits;
+}
+
+// When a customer retries payment, reuse the same pending order instead of
+// creating duplicates that inflate affiliate stats.
+async function findReusablePendingOrder(userId, paymentMethod) {
+  if (!userId) return null;
+  const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const { data } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('payment_method', paymentMethod || 'snippe')
+    .eq('payment_status', 'pending')
+    .neq('status', 'cancelled')
+    .gte('created_at', twoHoursAgo)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data || null;
+}
+
+// Cancel abandoned unpaid attempts for this customer before creating a new order.
+async function cancelStalePendingOrders(customerPhone, paymentMethod, userId) {
+  if (!['snippe', 'pesapal', 'mpesa'].includes(paymentMethod)) return;
   try {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    const { data: staleOrders, error } = await supabase
-      .from('orders')
-      .select('id, affiliate_id, order_number')
-      .eq('customer_phone', customerPhone)
-      .eq('payment_method', paymentMethod)
-      .eq('payment_status', 'pending')
-      .neq('status', 'cancelled')
-      .gte('created_at', twoHoursAgo);
+    const staleIds = new Set();
 
-    if (error || !staleOrders?.length) return;
+    if (userId) {
+      const { data: byUser } = await supabase
+        .from('orders')
+        .select('id, affiliate_id, order_number')
+        .eq('user_id', userId)
+        .eq('payment_method', paymentMethod)
+        .eq('payment_status', 'pending')
+        .neq('status', 'cancelled')
+        .gte('created_at', twoHoursAgo);
+      (byUser || []).forEach((row) => staleIds.add(row.id));
+    }
 
-    for (const stale of staleOrders) {
+    const normalized = normalizePhoneDigits(customerPhone);
+    if (normalized) {
+      const { data: recent } = await supabase
+        .from('orders')
+        .select('id, affiliate_id, order_number, customer_phone')
+        .eq('payment_method', paymentMethod)
+        .eq('payment_status', 'pending')
+        .neq('status', 'cancelled')
+        .gte('created_at', twoHoursAgo);
+
+      (recent || []).forEach((row) => {
+        const rowDigits = normalizePhoneDigits(row.customer_phone);
+        if (rowDigits && rowDigits === normalized) staleIds.add(row.id);
+      });
+    }
+
+    if (!staleIds.size) return;
+
+    for (const staleId of staleIds) {
+      const { data: stale } = await supabase
+        .from('orders')
+        .select('id, affiliate_id, order_number')
+        .eq('id', staleId)
+        .single();
+      if (!stale) continue;
+
       console.log(`🧹 Auto-cancelling abandoned unpaid order ${stale.order_number} (retry detected)`);
       if (stale.affiliate_id) {
         await cancelOrderCommission(stale.id, stale.affiliate_id, 'Abandoned - customer retried payment');
@@ -79,7 +128,36 @@ router.post('/', authenticate, async (req, res) => {
     if (!items?.length) return res.status(400).json({ error: 'No items in order' });
     if (!customer_name || !customer_phone) return res.status(400).json({ error: 'Customer info required' });
 
-    await cancelStalePendingOrders(customer_phone, payment_method);
+    const paymentMethod = payment_method || 'snippe';
+
+    // Reuse existing unpaid order on payment retry (prevents duplicate rows)
+    const reusableOrder = await findReusablePendingOrder(req.user.id, paymentMethod);
+    if (reusableOrder) {
+      const { data: updatedOrder, error: reuseError } = await supabase
+        .from('orders')
+        .update({
+          customer_name,
+          customer_email: customer_email || null,
+          customer_phone,
+          shipping_address: shipping_address || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', reusableOrder.id)
+        .select()
+        .single();
+
+      if (!reuseError && updatedOrder) {
+        console.log(`♻️ Reusing pending order ${updatedOrder.order_number} for payment retry`);
+        return res.status(200).json({
+          order: updatedOrder,
+          order_number: updatedOrder.order_number,
+          reused: true,
+          message: 'Resuming your pending order. Complete payment to finish checkout.',
+        });
+      }
+    }
+
+    await cancelStalePendingOrders(customer_phone, paymentMethod, req.user.id);
 
 
     let subtotal = 0;
@@ -264,6 +342,18 @@ router.post('/', authenticate, async (req, res) => {
             updated_at: new Date().toISOString()
           })
           .eq('id', affiliateId);
+
+        await supabase
+          .from('orders')
+          .update({
+            commission_total: totalCommission,
+            commission_status: 'pending',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', order.id);
+
+        order.commission_total = totalCommission;
+        order.commission_status = 'pending';
       }
     }
 
@@ -290,14 +380,9 @@ router.post('/', authenticate, async (req, res) => {
 router.put('/admin/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, cancellation_reason } = req.body;
+    const { status, cancellation_reason, payment_status } = req.body;
 
-    console.log(`📝 Updating order ${id} to status: ${status}`);
-
-    const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
-    }
+    console.log(`📝 Updating order ${id}`, { status, payment_status });
 
     const { data: existingOrder, error: fetchError } = await supabase
       .from('orders')
@@ -305,52 +390,94 @@ router.put('/admin/:id', authenticate, requireAdmin, async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (fetchError) {
+    if (fetchError || !existingOrder) {
       console.error('Error fetching order:', fetchError);
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    console.log(`📦 Order: ${existingOrder.order_number}, current: ${existingOrder.status}, affiliate: ${existingOrder.affiliate_id}`);
+    const updateData = {
+      updated_at: new Date().toISOString(),
+    };
 
-    // Once an order is delivered, it can no longer be cancelled - the product
-    // is already with the customer, so "cancelling" it doesn't make sense and
-    // was incorrectly clawing back affiliate commission after the fact. Use
-    // a return/refund process outside of order status for delivered orders.
-    if (status === 'cancelled' && existingOrder.status === 'delivered') {
-      return res.status(400).json({
-        error: 'This order has already been delivered and cannot be cancelled. If the customer rejected the delivery or wants a refund, handle it as a return/refund rather than cancelling the order.',
-      });
-    }
+    if (status !== undefined && status !== null && status !== '') {
+      const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
 
-    const hasAffiliate = existingOrder.affiliate_id !== null;
+      // Once delivered, do not allow cancel
+      if (status === 'cancelled' && existingOrder.status === 'delivered') {
+        return res.status(400).json({
+          error: 'This order has already been delivered and cannot be cancelled. Handle it as a return/refund instead.',
+        });
+      }
 
-    if (hasAffiliate) {
-      if (status === 'delivered' && existingOrder.status !== 'delivered') {
-        console.log(`💰 DELIVERED: Confirming commission for order ${id}`);
-        await confirmOrderCommission(id, existingOrder.affiliate_id);
-      } else if (status === 'cancelled' && existingOrder.status !== 'cancelled') {
-        console.log(`❌ CANCELLED: Cancelling commission for order ${id}`);
-        await cancelOrderCommission(id, existingOrder.affiliate_id, cancellation_reason);
-      } else if (status !== 'cancelled' && existingOrder.status === 'cancelled') {
-        console.log(`🔄 RESTORING: Restoring commission for order ${id}`);
-        await restoreOrderCommission(id, existingOrder.affiliate_id);
+      updateData.status = status;
+      if (status === 'cancelled') {
+        updateData.cancellation_reason = cancellation_reason || 'Order cancelled by admin';
       }
     }
 
-    const updateData = {
-      status: status,
-      updated_at: new Date().toISOString()
-    };
+    if (payment_status !== undefined && payment_status !== null && payment_status !== '') {
+      const validPayments = ['pending', 'paid', 'failed', 'verifying', 'refunded'];
+      if (!validPayments.includes(payment_status)) {
+        return res.status(400).json({ error: 'Invalid payment status' });
+      }
+      updateData.payment_status = payment_status;
+    }
 
-    if (status === 'cancelled') {
-      updateData.cancellation_reason = cancellation_reason || 'Order cancelled by admin';
+    if (Object.keys(updateData).length <= 1) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    console.log(`📦 Order: ${existingOrder.order_number}, current: ${existingOrder.status}/${existingOrder.payment_status}, affiliate: ${existingOrder.affiliate_id}`);
+
+    const nextStatus = updateData.status ?? existingOrder.status;
+    const nextPayment = updateData.payment_status ?? existingOrder.payment_status;
+    const hasAffiliate = !!existingOrder.affiliate_id;
+
+    // Affiliate commission side-effects (before writing order, so balances stay consistent)
+    if (hasAffiliate) {
+      const becomingDelivered = nextStatus === 'delivered' && existingOrder.status !== 'delivered';
+      const becomingConfirmedPaid =
+        (nextStatus === 'confirmed' || nextPayment === 'paid') &&
+        existingOrder.status !== 'cancelled' &&
+        nextStatus !== 'cancelled';
+      const becomingCancelled = nextStatus === 'cancelled' && existingOrder.status !== 'cancelled';
+      const restoringFromCancel = nextStatus !== 'cancelled' && existingOrder.status === 'cancelled';
+
+      if (becomingCancelled) {
+        console.log(`❌ CANCELLED: Cancelling commission for order ${id}`);
+        await cancelOrderCommission(id, existingOrder.affiliate_id, cancellation_reason);
+        await reconcileAffiliateBalances(existingOrder.affiliate_id);
+      } else if (restoringFromCancel) {
+        console.log(`🔄 RESTORING: Restoring commission for order ${id}`);
+        await restoreOrderCommission(id, existingOrder.affiliate_id);
+        if (becomingDelivered || nextPayment === 'paid' || nextStatus === 'confirmed') {
+          await confirmOrderCommission(id, existingOrder.affiliate_id, 'Admin restored + confirmed order');
+        }
+        await reconcileAffiliateBalances(existingOrder.affiliate_id);
+      } else if (becomingDelivered || (becomingConfirmedPaid && (nextPayment === 'paid' || becomingDelivered))) {
+        console.log(`💰 CONFIRMING commission for order ${id}`);
+        await confirmOrderCommission(id, existingOrder.affiliate_id, 'Admin order update');
+        await reconcileAffiliateBalances(existingOrder.affiliate_id);
+      }
     }
 
     const { data: updatedOrder, error: updateError } = await supabase
       .from('orders')
       .update(updateData)
       .eq('id', id)
-      .select()
+      .select(`
+        *,
+        affiliate:affiliate_id (
+          id,
+          name,
+          email,
+          referral_code,
+          affiliate_level
+        )
+      `)
       .single();
 
     if (updateError) {
@@ -364,29 +491,44 @@ router.put('/admin/:id', authenticate, requireAdmin, async (req, res) => {
         .from('orders')
         .update({
           affiliate_tier: updatedTier.level,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id);
     }
 
     const { data: finalOrder } = await supabase
       .from('orders')
-      .select('*')
+      .select(`
+        *,
+        affiliate:affiliate_id (
+          id,
+          name,
+          email,
+          referral_code,
+          affiliate_level
+        )
+      `)
       .eq('id', id)
       .single();
 
-    console.log(`✅ Order ${id} updated to ${status}`);
+    const order = finalOrder || updatedOrder;
+    console.log(`✅ Order ${id} updated to status=${order.status} payment=${order.payment_status}`);
 
-    res.json({ 
-      success: true, 
-      message: `Order ${status === 'cancelled' ? 'cancelled' : 'updated'} successfully`,
-      order: finalOrder || updatedOrder 
+    res.json({
+      success: true,
+      message: `Order updated successfully`,
+      order: {
+        ...order,
+        affiliate_name: order.affiliate?.name || order.affiliate_name || null,
+        affiliate_email: order.affiliate?.email || order.affiliate_email || null,
+        affiliate_referral_code: order.affiliate?.referral_code || order.referral_code || null,
+        affiliate_tier: order.affiliate?.affiliate_level || order.affiliate_tier || null,
+      },
     });
-
   } catch (err) {
     console.error('Error updating order:', err);
-    res.status(500).json({ 
-      error: err.message || 'Failed to update order'
+    res.status(500).json({
+      error: err.message || 'Failed to update order',
     });
   }
 });
@@ -456,7 +598,7 @@ router.get('/admin/all', authenticate, requireAdmin, async (req, res) => {
   try {
     const { 
       status, 
-      limit = 100, 
+      limit = 500, 
       offset = 0, 
       search,
       payment_method,
@@ -517,9 +659,12 @@ router.get('/admin/all', authenticate, requireAdmin, async (req, res) => {
             .order('created_at', { ascending: false });
           
           if (affOrders && affOrders.length > 0) {
-            commissionTotal = affOrders.reduce((sum, ao) => sum + (ao.commission || 0), 0);
-            commissionStatus = affOrders[0]?.status || 'pending';
-            affiliateTier = affOrders[0]?.tier_at_time || null;
+            const activeAffOrders = affOrders.filter((ao) => ao.status !== 'cancelled');
+            commissionTotal = activeAffOrders.reduce((sum, ao) => sum + (ao.commission || 0), 0);
+            commissionStatus = order.status === 'cancelled'
+              ? 'cancelled'
+              : (activeAffOrders[0]?.status || order.commission_status || 'pending');
+            affiliateTier = order.affiliate?.affiliate_level || activeAffOrders[0]?.tier_at_time || order.affiliate_tier || null;
             commissionDetails = affOrders;
           }
         }
@@ -536,7 +681,7 @@ router.get('/admin/all', authenticate, requireAdmin, async (req, res) => {
           commission_total: commissionTotal,
           commission_status: commissionStatus,
           commission_details: commissionDetails,
-          affiliate_tier: affiliateTier,
+          affiliate_tier: order.affiliate?.affiliate_level || affiliateTier,
           is_paid: order.payment_status === 'paid',
           is_stripe: order.payment_method === 'stripe' || order.payment_method === 'bank'
         };

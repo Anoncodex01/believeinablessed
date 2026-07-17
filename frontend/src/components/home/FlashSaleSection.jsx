@@ -71,7 +71,7 @@ export default function FlashSaleSection({ refCode = '' }) {
       <div className="overflow-hidden rounded-lg bg-neutral-950">
         <div className="flex flex-col gap-5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-orange-400 text-neutral-950">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-neutral-950 text-white">
               <Zap className="h-5 w-5" />
             </div>
             <div>
@@ -80,7 +80,7 @@ export default function FlashSaleSection({ refCode = '' }) {
             </div>
           </div>
           <Countdown endDate={endDate} />
-          <Link href={`/products?flash_sale=true${refCode ? `&ref=${refCode}` : ''}`} className="inline-flex items-center gap-1 self-start rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-orange-100 sm:self-auto">
+          <Link href={`/products?flash_sale=true${refCode ? `&ref=${refCode}` : ''}`} className="inline-flex items-center gap-1 self-start rounded-lg bg-white px-4 py-2 text-sm font-bold text-neutral-950 transition hover:bg-neutral-100 sm:self-auto">
             {t('see_all')} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

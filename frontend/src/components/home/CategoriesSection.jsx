@@ -50,10 +50,10 @@ export default function CategoriesSection() {
     <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase text-[var(--brand)]">Shop by edit</p>
+          <p className="text-xs font-semibold uppercase text-neutral-950">Shop by edit</p>
           <h2 className="section-title mb-0">{t('categories')}</h2>
         </div>
-        <Link href="/products" className="hidden text-sm font-semibold text-[var(--brand)] hover:opacity-80 sm:inline">
+        <Link href="/products" className="hidden text-sm font-semibold text-neutral-950 hover:opacity-80 sm:inline">
           {t('see_all')}
         </Link>
       </div>
@@ -72,12 +72,12 @@ export default function CategoriesSection() {
             >
               <Link
                 href={`/products?category=${cat.id}`}
-                className="group flex min-h-28 flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--bg-card)] p-3 transition hover:-translate-y-0.5 hover:border-[var(--brand)] hover:shadow-md"
+                className="group flex min-h-28 flex-col justify-between rounded-lg border border-[var(--border)] bg-[var(--bg-card)] p-3 transition hover:-translate-y-0.5 hover:border-neutral-950 hover:shadow-md"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--brand-light)] text-lg font-bold text-[var(--brand)] transition group-hover:bg-[var(--brand)] group-hover:text-white">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--brand-light)] text-lg font-bold text-neutral-950 transition group-hover:bg-neutral-950 group-hover:text-white">
                   {displayText}
                 </span>
-                <span className="text-left text-xs font-semibold leading-tight text-[var(--text)] transition group-hover:text-[var(--brand)]">
+                <span className="text-left text-xs font-semibold leading-tight text-[var(--text)] transition group-hover:text-neutral-950">
                   {name}
                 </span>
               </Link>

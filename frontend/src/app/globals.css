@@ -4,20 +4,20 @@
 
 @layer base {
   :root {
-    --bg: #faf9f7;
-    --bg-secondary: #f1efeb;
+    --bg: #ffffff;
+    --bg-secondary: #f5f5f5;
     --bg-card: #ffffff;
-    --text: #121212;
-    --text-secondary: #6b6560;
-    --border: #e8e4df;
-    --brand: #0f766e;
-    --brand-light: #ecfdf5;
-    --accent: #e85d04;
-    --ink-soft: #1c1917;
+    --text: #171717;
+    --text-secondary: #737373;
+    --border: #e5e5e5;
+    --brand: #171717;
+    --brand-light: #f5f5f5;
+    --accent: #171717;
+    --ink-soft: #171717;
     --toast-bg: #ffffff;
-    --toast-color: #121212;
-    --toast-border: #e8e4df;
-    --surface-warm: #f3efe8;
+    --toast-color: #171717;
+    --toast-border: #e5e5e5;
+    --surface-warm: #ffffff;
   }
 
   .dark {
@@ -27,9 +27,9 @@
     --text: #f5f5f4;
     --text-secondary: #a8a29e;
     --border: #262626;
-    --brand: #2dd4bf;
-    --brand-light: #0f2f2b;
-    --accent: #fb923c;
+    --brand: #f5f5f4;
+    --brand-light: #262626;
+    --accent: #f5f5f4;
     --ink-soft: #fafaf9;
     --toast-bg: #181818;
     --toast-color: #f5f5f4;
@@ -77,11 +77,11 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-teal-700 hover:bg-teal-800 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 shadow-lg shadow-teal-900/15;
+    @apply bg-neutral-950 hover:bg-neutral-950 text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 shadow-lg shadow-black/10;
   }
 
   .btn-secondary {
-    @apply border border-teal-700 text-teal-700 hover:bg-teal-700 hover:text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 dark:border-teal-300 dark:text-teal-300;
+    @apply border border-neutral-950 text-neutral-950 hover:bg-neutral-800 hover:text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 active:scale-95 dark:border-white dark:text-white;
   }
 
   .btn-ghost {
@@ -97,7 +97,7 @@
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-teal-600 via-teal-500 to-orange-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-neutral-950 via-neutral-700 to-neutral-400 bg-clip-text text-transparent;
   }
 
   .section-title {
@@ -109,7 +109,7 @@
   }
 
   .section-link {
-    @apply inline-flex shrink-0 items-center gap-2 text-sm font-medium tracking-tight text-[var(--text)] transition hover:text-[var(--brand)];
+    @apply inline-flex shrink-0 items-center gap-2 text-sm font-medium tracking-tight text-[var(--text)] transition hover:text-neutral-950;
   }
 
   .home-shell {
@@ -121,7 +121,7 @@
   }
 
   .input {
-    @apply w-full bg-[var(--bg-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--text)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-600 transition-all duration-200;
+    @apply w-full bg-[var(--bg-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--text)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-neutral-950/20 focus:border-neutral-950 transition-all duration-200;
   }
 
   .shimmer-bg {
@@ -130,11 +130,11 @@
     animation: shimmer 2s linear infinite;
   }
 
-  .level-bronze { @apply text-orange-600 bg-orange-100 dark:bg-orange-900/30; }
-  .level-silver { @apply text-gray-500 bg-gray-100 dark:bg-gray-800; }
-  .level-gold { @apply text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30; }
-  .level-diamond { @apply text-blue-600 bg-blue-100 dark:bg-blue-900/30; }
-  .level-vip { @apply text-purple-600 bg-purple-100 dark:bg-purple-900/30; }
+  .level-bronze { @apply text-neutral-950 bg-neutral-100 dark:bg-neutral-800 dark:text-white; }
+  .level-silver { @apply text-neutral-700 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300; }
+  .level-gold { @apply text-neutral-950 bg-neutral-200 dark:bg-neutral-700 dark:text-white; }
+  .level-diamond { @apply text-neutral-950 bg-neutral-100 dark:bg-neutral-800 dark:text-white; }
+  .level-vip { @apply text-neutral-950 bg-neutral-950 text-white dark:bg-white dark:text-neutral-950; }
 
   .bottom-nav {
     @apply fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)] bg-[var(--bg-card)]/95 backdrop-blur-xl flex items-center justify-around px-1 pt-1.5 md:hidden;
@@ -144,11 +144,11 @@
 
 /* Swiper custom */
 .swiper-pagination-bullet {
-  background: #0f766e !important;
+  background: #171717 !important;
 }
 .swiper-button-next,
 .swiper-button-prev {
-  color: #0f766e !important;
+  color: #171717 !important;
 }
 
 /* Product card hover */
@@ -170,7 +170,7 @@
   @apply flex items-center gap-3 px-3 py-2.5 text-[var(--text-secondary)] transition-colors duration-150 cursor-pointer hover:bg-[var(--bg-secondary)] hover:text-[var(--text)];
 }
 .admin-nav-item.active {
-  @apply bg-teal-700/10 text-teal-700 dark:text-teal-300;
+  @apply bg-neutral-950/10 text-neutral-950 dark:text-white;
 }
 
 /* Price tag */
@@ -178,7 +178,7 @@
   @apply font-bold text-lg text-[var(--text)];
 }
 .sale-price {
-  @apply font-bold text-lg text-teal-600 dark:text-teal-300;
+  @apply font-bold text-lg text-neutral-950 dark:text-white;
 }
 .original-price {
   @apply text-sm text-[var(--text-secondary)] line-through;

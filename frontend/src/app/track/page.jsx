@@ -37,12 +37,12 @@ const STATUS_ICONS = {
 };
 
 const STATUS_COLORS = {
-  pending: 'text-yellow-500 bg-yellow-500/10',
+  pending: 'text-neutral-950 bg-neutral-100',
   confirmed: 'text-blue-500 bg-blue-500/10',
   processing: 'text-purple-500 bg-purple-500/10',
-  shipped: 'text-orange-500 bg-orange-500/10',
-  delivered: 'text-green-500 bg-green-500/10',
-  cancelled: 'text-red-500 bg-red-500/10',
+  shipped: 'text-neutral-950 bg-neutral-100',
+  delivered: 'text-neutral-950 bg-neutral-950/10',
+  cancelled: 'text-neutral-950 bg-neutral-100',
 };
 
 const STATUS_MESSAGES = {
@@ -315,13 +315,13 @@ function TrackContent() {
               <div className="flex items-center gap-2">
                 {autoTracking ? (
                   <>
-                    <Radio className="h-4 w-4 text-emerald-500 animate-pulse" />
-                    <span className="text-sm font-semibold text-emerald-600">Live tracking active</span>
+                    <Radio className="h-4 w-4 text-neutral-950 animate-pulse" />
+                    <span className="text-sm font-semibold text-neutral-950">Live tracking active</span>
                   </>
                 ) : (
                   <>
-                    <Wifi className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm font-semibold text-amber-600">Manual tracking</span>
+                    <Wifi className="h-4 w-4 text-neutral-950" />
+                    <span className="text-sm font-semibold text-neutral-950">Manual tracking</span>
                   </>
                 )}
               </div>
@@ -329,7 +329,7 @@ function TrackContent() {
                 {lastUpdated && (
                   <span className="text-xs text-neutral-400">
                     Updated: {lastUpdated.toLocaleTimeString()}
-                    {!connectionStatus && <WifiOff className="ml-1 inline h-3 w-3 text-red-500" />}
+                    {!connectionStatus && <WifiOff className="ml-1 inline h-3 w-3 text-neutral-950" />}
                   </span>
                 )}
                 {!isDelivered && (
@@ -513,11 +513,11 @@ function TrackContent() {
               <motion.div
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6 text-center"
+                className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 text-center"
               >
-                <CheckCircle className="mx-auto mb-3 h-12 w-12 text-emerald-500" />
-                <p className="font-bold text-emerald-800">Order Delivered!</p>
-                <p className="mt-1 text-sm text-emerald-700">Thank you for shopping with B I B</p>
+                <CheckCircle className="mx-auto mb-3 h-12 w-12 text-neutral-950" />
+                <p className="font-bold text-neutral-950">Order Delivered!</p>
+                <p className="mt-1 text-sm text-neutral-950">Thank you for shopping with B I B</p>
               </motion.div>
             )}
           </motion.div>
@@ -527,7 +527,7 @@ function TrackContent() {
         {pendingPayment && !loading && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-black/10 bg-white p-8 text-center">
             {pendingPayment.payment_status === 'failed' ? (
-              <XCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+              <XCircle className="mx-auto mb-4 h-12 w-12 text-neutral-950" />
             ) : (
               <div className="relative mx-auto mb-4 h-12 w-12">
                 <div className="absolute inset-0 rounded-full border-4 border-neutral-100" />

@@ -16,7 +16,7 @@ function HomeContent() {
   const ref = searchParams.get('ref') || '';
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--bg)] pb-20 md:pb-0">
+    <main className="min-h-screen overflow-x-hidden bg-white pb-20 md:pb-0">
       <Navbar />
       <HeroSlider />
       <TrendingSection refCode={ref} />
@@ -33,7 +33,7 @@ export default function HomePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[var(--bg)]">
+        <div className="flex min-h-screen items-center justify-center bg-white">
           <div className="font-display text-sm tracking-[0.2em] text-[var(--text-secondary)] uppercase">
             Loading
           </div>

@@ -97,7 +97,7 @@ export default function ProductCard({ product, index = 0, affiliateCode = null }
             </button>
             <button
               onClick={handleBuyNow}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 bg-neutral-950 px-3 py-2.5 text-xs font-semibold tracking-tight text-white transition hover:bg-teal-700 sm:text-sm"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 bg-neutral-950 px-3 py-2.5 text-xs font-semibold tracking-tight text-white transition hover:bg-neutral-800 sm:text-sm"
             >
               <CreditCard className="h-3.5 w-3.5" />
               Buy
@@ -107,7 +107,7 @@ export default function ProductCard({ product, index = 0, affiliateCode = null }
 
         <Link href={href} className="block pt-4">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="line-clamp-2 font-display text-[15px] font-medium leading-snug tracking-tight text-[var(--text)] transition group-hover:text-teal-700 dark:group-hover:text-teal-300">
+            <h3 className="line-clamp-2 font-display text-[15px] font-medium leading-snug tracking-tight text-[var(--text)] transition group-hover:text-neutral-950 dark:group-hover:text-white">
               {name}
             </h3>
             <div className="shrink-0 text-right">

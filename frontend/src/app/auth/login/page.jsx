@@ -180,7 +180,7 @@ function LoginContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-6 flex w-full items-center justify-center gap-2 bg-neutral-950 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="mt-6 flex w-full items-center justify-center gap-2 bg-neutral-950 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 {loading ? 'Signing in…' : 'Sign in'}
                 {!loading && <ArrowRight className="h-4 w-4" />}
@@ -197,7 +197,7 @@ function LoginContent() {
                     ? '/auth/register?type=affiliate'
                     : '/auth/register'
                 }
-                className="font-semibold text-teal-700 transition hover:opacity-70 dark:text-teal-300"
+                className="font-semibold text-neutral-950 transition hover:opacity-70 dark:text-white"
               >
                 Create one
               </Link>
@@ -206,7 +206,7 @@ function LoginContent() {
             <div className="mt-8 border-t border-[var(--border)] pt-6 text-center">
               <Link
                 href="/products"
-                className="text-sm font-medium tracking-tight text-[var(--text-secondary)] transition hover:text-teal-700"
+                className="text-sm font-medium tracking-tight text-[var(--text-secondary)] transition hover:text-neutral-950"
               >
                 Continue shopping without an account →
               </Link>

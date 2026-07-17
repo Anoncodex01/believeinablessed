@@ -21,21 +21,21 @@ const STATUS_ICONS = {
 };
 
 const STATUS_COLORS = {
-  pending: 'text-yellow-500',
+  pending: 'text-neutral-950',
   confirmed: 'text-blue-500',
   processing: 'text-purple-500',
-  shipped: 'text-orange-500',
-  delivered: 'text-green-500',
-  cancelled: 'text-red-500',
+  shipped: 'text-neutral-950',
+  delivered: 'text-neutral-950',
+  cancelled: 'text-neutral-950',
 };
 
 const STATUS_BG_COLORS = {
-  pending: 'bg-yellow-500/10',
+  pending: 'bg-neutral-100',
   confirmed: 'bg-blue-500/10',
   processing: 'bg-purple-500/10',
-  shipped: 'bg-orange-500/10',
-  delivered: 'bg-green-500/10',
-  cancelled: 'bg-red-500/10',
+  shipped: 'bg-neutral-100',
+  delivered: 'bg-neutral-950/10',
+  cancelled: 'bg-neutral-100',
 };
 
 export default function LiveTrackingWidget() {
@@ -177,12 +177,12 @@ export default function LiveTrackingWidget() {
             </div>
             {autoTracking && !isDelivered && !isCancelled && (
               <div className="flex items-center gap-1">
-                <Radio className="w-3 h-3 text-green-500 animate-pulse" />
-                <span className="text-[10px] text-green-500 hidden sm:inline">Live</span>
+                <Radio className="w-3 h-3 text-neutral-950 animate-pulse" />
+                <span className="text-[10px] text-neutral-950 hidden sm:inline">Live</span>
               </div>
             )}
             {showNotification && (
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-neutral-950 rounded-full animate-pulse" />
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -226,14 +226,14 @@ export default function LiveTrackingWidget() {
                     </div>
                     {!connectionStatus && (
                       <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] text-red-500">Offline</span>
+                        <div className="w-1.5 h-1.5 bg-neutral-950 rounded-full animate-pulse" />
+                        <span className="text-[10px] text-neutral-950">Offline</span>
                       </div>
                     )}
                   </div>
                   <button
                     onClick={handleClearOrder}
-                    className="text-xs text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-500/10 transition"
+                    className="text-xs text-neutral-950 hover:text-neutral-950 px-2 py-1 rounded-lg hover:bg-neutral-100 transition"
                   >
                     Clear
                   </button>
@@ -248,7 +248,7 @@ export default function LiveTrackingWidget() {
                     onClick={toggleAutoTracking}
                     className={`flex-1 text-xs py-2 rounded-lg border transition active:scale-95 ${
                       autoTracking && !isDelivered && !isCancelled
-                        ? 'border-green-500 text-green-500 bg-green-500/5'
+                        ? 'border-neutral-950 text-neutral-950 bg-neutral-100'
                         : 'border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'
                     }`}
                   >
@@ -370,8 +370,8 @@ export default function LiveTrackingWidget() {
                 {/* Auto-refresh indicator */}
                 {autoTracking && !isDelivered && !isCancelled && (
                   <div className="text-center">
-                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px]">
-                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-neutral-950/10 text-neutral-950 text-[9px]">
+                      <div className="w-1.5 h-1.5 bg-neutral-950 rounded-full animate-pulse" />
                       Auto-refreshing every 30 seconds
                     </div>
                   </div>

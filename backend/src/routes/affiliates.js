@@ -8,6 +8,7 @@ import {
   countConfirmedAffiliateOrders,
   getTierByOrderCount as sharedGetTierByOrderCount,
   confirmOrderCommission,
+  reconcileAffiliateBalances,
 } from '../utils/affiliateCommission.js';
 import {
   generateUniqueReferralCode,
@@ -580,6 +581,15 @@ router.get('/dashboard', authenticate, async (req, res) => {
       orders: undefined,
     }));
 
+    // Fix balances/tier after cancelled orders or duplicate pending rows
+    await reconcileAffiliateBalances(userId);
+    const { data: refreshedUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (refreshedUser) Object.assign(user, refreshedUser);
+
     const { data: clicks, error: clicksError } = await supabase
       .from('affiliate_clicks')
       .select('*')
@@ -676,8 +686,12 @@ function buildChartData(orders) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
-    const dayOrders = orders.filter(o => o.created_at?.startsWith(dateStr));
-    const earnings = dayOrders.reduce((s, o) => s + (o.commission || 0), 0);
+    const dayOrders = orders.filter(
+      (o) => o.created_at?.startsWith(dateStr) && o.status !== 'cancelled'
+    );
+    const earnings = dayOrders
+      .filter((o) => o.status === 'confirmed' || o.status === 'delivered')
+      .reduce((s, o) => s + (o.commission || 0), 0);
     last30.push({ date: dateStr, earnings, orders: dayOrders.length });
   }
   return last30;
@@ -721,27 +735,66 @@ router.post('/generate-link', authenticate, async (req, res) => {
 // POST /api/affiliates/track-click - track when someone clicks affiliate link
 router.post('/track-click', async (req, res) => {
   try {
-    const { referral_code, product_id } = req.body;
+    const { referral_code, product_id, source } = req.body;
     if (!referral_code) return res.status(400).json({ error: 'referral_code required' });
+
+    const code = String(referral_code).trim().toUpperCase();
 
     const { data: affiliate } = await supabase
       .from('users')
-      .select('id')
-      .ilike('referral_code', String(referral_code).trim())
-      .eq('affiliate_approved', true)
-      .eq('status', 'active')
+      .select('id, referral_code, affiliate_approved, status')
+      .ilike('referral_code', code)
+      .eq('role', 'affiliate')
       .limit(1)
       .maybeSingle();
 
-    if (!affiliate) return res.status(404).json({ error: 'Invalid referral code' });
+    if (!affiliate) {
+      // Silent success so storefront UX is never blocked by a bad/old code
+      return res.json({ message: 'Ignored', tracked: false });
+    }
 
-    await supabase.from('affiliate_clicks').insert({
+    if (affiliate.status !== 'active' || affiliate.affiliate_approved !== true) {
+      return res.json({ message: 'Affiliate inactive', tracked: false });
+    }
+
+    // Soft dedupe: same affiliate + product within 2 minutes counts as one click
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    let dedupeQuery = supabase
+      .from('affiliate_clicks')
+      .select('id')
+      .eq('affiliate_id', affiliate.id)
+      .gte('created_at', twoMinutesAgo)
+      .limit(1);
+
+    if (product_id) {
+      dedupeQuery = dedupeQuery.eq('product_id', product_id);
+    } else {
+      dedupeQuery = dedupeQuery.is('product_id', null);
+    }
+
+    const { data: recent } = await dedupeQuery.maybeSingle();
+    if (recent) {
+      return res.json({ message: 'Click already counted', tracked: false, deduped: true });
+    }
+
+    const ip =
+      req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() ||
+      req.socket?.remoteAddress ||
+      null;
+
+    const { error: insertError } = await supabase.from('affiliate_clicks').insert({
       affiliate_id: affiliate.id,
       product_id: product_id || null,
-      referral_code,
+      referral_code: affiliate.referral_code || code,
+      ip_address: ip,
     });
 
-    res.json({ message: 'Click tracked' });
+    if (insertError) {
+      console.error('Click insert error:', insertError);
+      return res.status(500).json({ error: 'Failed to track click' });
+    }
+
+    res.json({ message: 'Click tracked', tracked: true, source: source || null });
   } catch (err) {
     console.error('Track click error:', err);
     res.status(500).json({ error: err.message });

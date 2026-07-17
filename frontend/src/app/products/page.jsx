@@ -108,7 +108,7 @@ function ProductsContent() {
               />
               <button
                 type="submit"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -135,7 +135,7 @@ function ProductsContent() {
               onClick={() => setFilter('category', '')}
               className={`px-3 py-1.5 text-sm tracking-tight transition ${
                 !categoryId
-                  ? 'font-semibold text-[var(--text)] underline decoration-teal-700 decoration-2 underline-offset-8'
+                  ? 'font-semibold text-[var(--text)] underline decoration-neutral-950 decoration-2 underline-offset-8'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
               }`}
             >
@@ -150,7 +150,7 @@ function ProductsContent() {
                   onClick={() => setFilter('category', cat.id)}
                   className={`px-3 py-1.5 text-sm tracking-tight transition ${
                     categoryId === cat.id
-                      ? 'font-semibold text-[var(--text)] underline decoration-teal-700 decoration-2 underline-offset-8'
+                      ? 'font-semibold text-[var(--text)] underline decoration-neutral-950 decoration-2 underline-offset-8'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
                   }`}
                 >
@@ -162,7 +162,7 @@ function ProductsContent() {
             {(search || categoryId || trending || flashSale) && (
               <button
                 onClick={clearFilters}
-                className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-orange-600 transition hover:text-orange-700"
+                className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-neutral-950 transition hover:text-neutral-950"
               >
                 <X className="h-3.5 w-3.5" /> Clear
               </button>
@@ -215,7 +215,7 @@ function ProductsContent() {
             <p className="mt-3 text-sm text-[var(--text-secondary)]">{t('no_products')}</p>
             <button
               onClick={clearFilters}
-              className="mt-8 bg-neutral-950 px-6 py-3 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+              className="mt-8 bg-neutral-950 px-6 py-3 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
             >
               Reset filters
             </button>

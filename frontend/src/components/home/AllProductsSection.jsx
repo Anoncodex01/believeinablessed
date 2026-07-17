@@ -52,7 +52,7 @@ export default function AllProductsSection({ refCode = '' }) {
                 href={productCategoryHref(label)}
                 className={`px-3 py-1.5 text-sm tracking-tight transition ${
                   index === 0
-                    ? 'font-semibold text-[var(--text)] underline decoration-teal-700 decoration-2 underline-offset-8'
+                    ? 'font-semibold text-[var(--text)] underline decoration-neutral-950 decoration-2 underline-offset-8'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
                 }`}
               >
@@ -89,7 +89,7 @@ export default function AllProductsSection({ refCode = '' }) {
             <motion.span
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 bg-neutral-950 px-8 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+              className="inline-flex items-center gap-2 bg-neutral-950 px-8 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
             >
               Explore full collection <ArrowRight className="h-4 w-4" />
             </motion.span>

@@ -10,7 +10,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import { useLang } from '@/contexts/LangContext';
 import { useCart } from '@/contexts/CartContext';
 import { useAffiliate } from '@/contexts/AffiliateContext';
-import { getProduct, trackClick, getProducts } from '@/lib/api';
+import { getProduct, getProducts } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '@/components/product/ProductCard';
 import ReviewSection from '@/components/review/ReviewSection';
@@ -46,7 +46,7 @@ export default function ProductPage() {
   const searchParams = useSearchParams();
   const { t, lang } = useLang();
   const { addItem } = useCart();
-  const { refCode, addRefToUrl } = useAffiliate();
+  const { refCode, addRefToUrl, trackProductClick } = useAffiliate();
   const router = useRouter();
 
   const ref = searchParams.get('ref') || refCode || '';
@@ -80,10 +80,11 @@ export default function ProductPage() {
       })
       .finally(() => setLoading(false));
 
+    // Track product view for affiliate (URL ref or saved cookie)
     if (ref) {
-      trackClick({ referral_code: ref, product_id: id }).catch(() => {});
+      trackProductClick(id);
     }
-  }, [id, ref]);
+  }, [id, ref, trackProductClick]);
 
   if (loading) return (
     <main className="min-h-screen bg-[var(--bg)] pt-16">
@@ -146,9 +147,9 @@ export default function ProductPage() {
 
       <div className="home-shell py-8 sm:py-12 lg:py-14">
         <nav className="mb-8 flex items-center gap-2 text-xs tracking-[0.06em] text-[var(--text-secondary)] sm:text-sm">
-          <Link href={getAffiliateUrl('/')} className="transition hover:text-teal-700">{t('home')}</Link>
+          <Link href={getAffiliateUrl('/')} className="transition hover:text-neutral-950">{t('home')}</Link>
           <span>/</span>
-          <Link href={getAffiliateUrl('/products')} className="transition hover:text-teal-700">{t('all_products')}</Link>
+          <Link href={getAffiliateUrl('/products')} className="transition hover:text-neutral-950">{t('all_products')}</Link>
           <span>/</span>
           <span className="max-w-[200px] truncate text-[var(--text)]">{name}</span>
         </nav>
@@ -170,7 +171,7 @@ export default function ProductPage() {
               />
               {hasDiscount && (
                 <div className="absolute left-4 top-4">
-                  <span className="bg-teal-700 px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] text-white uppercase">
+                  <span className="bg-neutral-950 px-3 py-1.5 text-[11px] font-semibold tracking-[0.12em] text-white uppercase">
                     -{Math.round(((product.price - product.sale_price) / product.price) * 100)}% off
                   </span>
                 </div>
@@ -232,9 +233,9 @@ export default function ProductPage() {
                 <span>{product.sold_count || 0} {t('sold')}</span>
                 <span className="text-[var(--border)]">·</span>
                 {product.stock > 0 ? (
-                  <span className="font-medium text-teal-700 dark:text-teal-300">{t('in_stock')}</span>
+                  <span className="font-medium text-neutral-950 dark:text-white">{t('in_stock')}</span>
                 ) : (
-                  <span className="font-medium text-red-500">{t('out_of_stock')}</span>
+                  <span className="font-medium text-neutral-950">{t('out_of_stock')}</span>
                 )}
               </div>
             </div>
@@ -257,7 +258,7 @@ export default function ProductPage() {
                     key={star}
                     className={`h-4 w-4 ${
                       star <= Math.round(product.rating || 0)
-                        ? 'fill-current text-amber-400'
+                        ? 'fill-current text-neutral-950'
                         : 'text-[var(--border)]'
                     }`}
                   />
@@ -363,7 +364,7 @@ export default function ProductPage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleAddToCart}
                 disabled={product.stock === 0}
-                className="flex min-h-[52px] items-center justify-center gap-2 bg-neutral-950 px-4 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="flex min-h-[52px] items-center justify-center gap-2 bg-neutral-950 px-4 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 <ShoppingBag className="h-4 w-4" />
                 {t('add_to_cart')}
@@ -386,7 +387,7 @@ export default function ProductPage() {
                 { icon: Shield, label: 'Authentic', sub: '100% genuine' },
               ].map(({ icon: Icon, label, sub }) => (
                 <div key={label} className="border border-[var(--border)] p-3.5 text-center sm:p-4">
-                  <Icon className="mx-auto mb-2 h-4 w-4 text-teal-700 dark:text-teal-300" />
+                  <Icon className="mx-auto mb-2 h-4 w-4 text-neutral-950 dark:text-white" />
                   <p className="text-xs font-semibold tracking-tight text-[var(--text)]">{label}</p>
                   <p className="mt-0.5 text-[10px] text-[var(--text-secondary)]">{sub}</p>
                 </div>

@@ -199,9 +199,9 @@ export default function AboutPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="border border-[var(--border)] bg-[var(--bg-card)] p-6 transition hover:border-teal-700/40"
+                className="border border-[var(--border)] bg-[var(--bg-card)] p-6 transition hover:border-neutral-950/40"
               >
-                <span className="font-display text-sm font-semibold tracking-[0.18em] text-teal-700 uppercase dark:text-teal-300">
+                <span className="font-display text-sm font-semibold tracking-[0.18em] text-neutral-950 uppercase dark:text-white">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <h3 className="mt-4 font-display text-xl font-semibold tracking-tight text-[var(--text)]">
@@ -229,7 +229,7 @@ export default function AboutPage() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="inline-flex items-center gap-2 bg-neutral-950 px-6 py-3.5 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
               >
                 {content.cta.shop} <ArrowRight className="h-4 w-4" />
               </Link>

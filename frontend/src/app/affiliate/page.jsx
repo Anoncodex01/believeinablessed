@@ -23,10 +23,10 @@ const tiers = [
   {
     name: 'Bronze',
     icon: '🥉',
-    color: 'from-orange-600 to-orange-400',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/30',
-    textColor: 'text-orange-500',
+    color: 'from-neutral-950 to-neutral-600',
+    bgColor: 'bg-neutral-100',
+    borderColor: 'border-neutral-300',
+    textColor: 'text-neutral-950',
     commission: '5%',
     minOrders: '0-19',
     payoutTime: '2 Weeks',
@@ -53,10 +53,10 @@ const tiers = [
   {
     name: 'Gold',
     icon: '🥇',
-    color: 'from-yellow-500 to-yellow-300',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/30',
-    textColor: 'text-yellow-500',
+    color: 'from-neutral-800 to-neutral-400',
+    bgColor: 'bg-neutral-100',
+    borderColor: 'border-neutral-300',
+    textColor: 'text-neutral-950',
     commission: '7%',
     minOrders: '100-199',
     payoutTime: '3 Days',
@@ -143,13 +143,13 @@ const tiers = [
             {/* Conditional CTA based on user status */}
             {user ? (
               isAffiliate ? (
-                <Link href="/affiliate/dashboard" className="btn-primary text-base px-8 py-4 hover:scale-105 transition-transform bg-green-600 hover:bg-green-700">
+                <Link href="/affiliate/dashboard" className="btn-primary text-base px-8 py-4 hover:scale-105 transition-transform bg-neutral-950 hover:bg-neutral-800">
                   Go to Dashboard →
                 </Link>
               ) : isPending ? (
                 <div className="space-y-3">
-                  <div className="inline-block px-6 py-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
-                    <p className="text-yellow-500 font-semibold flex items-center gap-2">
+                  <div className="inline-block px-6 py-4 bg-neutral-100 border border-neutral-300 rounded-xl">
+                    <p className="text-neutral-950 font-semibold flex items-center gap-2">
                       <Clock className="w-5 h-5" />
                       Application Pending - Dashboard Available
                     </p>
@@ -158,15 +158,15 @@ const tiers = [
                     </p>
                   </div>
                   <div>
-                    <Link href="/affiliate/dashboard" className="btn-primary text-base px-8 py-4 hover:scale-105 transition-transform bg-yellow-600 hover:bg-yellow-700">
+                    <Link href="/affiliate/dashboard" className="btn-primary text-base px-8 py-4 hover:scale-105 transition-transform bg-neutral-950 hover:bg-neutral-800">
                       Open Dashboard →
                     </Link>
                   </div>
                 </div>
               ) : isRejected ? (
                 <div className="space-y-3">
-                  <div className="inline-block px-6 py-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <p className="text-red-500 font-semibold flex items-center gap-2">
+                  <div className="inline-block px-6 py-4 bg-neutral-100 border border-neutral-300 rounded-xl">
+                    <p className="text-neutral-950 font-semibold flex items-center gap-2">
                       <UserX className="w-5 h-5" />
                       Application Not Approved
                     </p>
@@ -436,7 +436,7 @@ const tiers = [
           <div className="flex flex-wrap gap-4 justify-center">
             {user ? (
               isAffiliate || isPending ? (
-                <Link href="/affiliate/dashboard" className="btn-primary text-base px-10 py-4 hover:scale-105 transition-transform inline-flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                <Link href="/affiliate/dashboard" className="btn-primary text-base px-10 py-4 hover:scale-105 transition-transform inline-flex items-center gap-2 bg-neutral-950 hover:bg-neutral-800">
                   <Award className="w-5 h-5" />
                   Go to Dashboard
                 </Link>

@@ -175,8 +175,8 @@ export default function SnippePayment({
 
       {phase === 'waiting' && (
         <div className="flex flex-col items-center gap-3 py-4">
-          <div className="w-14 h-14 rounded-full bg-[#00A651]/10 flex items-center justify-center">
-            <Smartphone className="w-7 h-7 text-[#00A651]" />
+          <div className="w-14 h-14 rounded-full bg-neutral-100 flex items-center justify-center">
+            <Smartphone className="w-7 h-7 text-neutral-950" />
           </div>
           <p className="font-semibold text-[var(--text)] text-center">
             Check your phone
@@ -193,16 +193,16 @@ export default function SnippePayment({
 
       {phase === 'paid' && (
         <div className="flex flex-col items-center gap-3 py-6">
-          <CheckCircle className="w-10 h-10 text-green-500" />
+          <CheckCircle className="w-10 h-10 text-neutral-950" />
           <p className="font-semibold text-[var(--text)]">Payment confirmed</p>
         </div>
       )}
 
       {phase === 'failed' && (
         <div className="flex flex-col items-center gap-3 py-4">
-          <AlertCircle className="w-10 h-10 text-red-500" />
+          <AlertCircle className="w-10 h-10 text-neutral-950" />
           <p className="font-semibold text-[var(--text)]">Payment unsuccessful</p>
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && <p className="text-sm text-neutral-950 text-center">{error}</p>}
           {onClose && (
             <button
               type="button"

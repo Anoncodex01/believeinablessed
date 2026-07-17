@@ -9,8 +9,8 @@ import { ArrowRight, Users } from 'lucide-react';
 
 const TIER_CONFIG = {
   bronze: {
-    color: 'text-orange-700 dark:text-orange-300',
-    bgColor: 'bg-orange-500/10',
+    color: 'text-neutral-950 dark:text-white',
+    bgColor: 'bg-neutral-100',
     label: 'Bronze',
     commission: '5%',
     withdrawRequirement: '19 orders',
@@ -25,16 +25,16 @@ const TIER_CONFIG = {
     payoutTime: '1 Week',
   },
   gold: {
-    color: 'text-amber-600 dark:text-amber-300',
-    bgColor: 'bg-amber-500/10',
+    color: 'text-neutral-950 dark:text-white',
+    bgColor: 'bg-neutral-100',
     label: 'Gold',
     commission: '7%',
     withdrawRequirement: '5 orders',
     payoutTime: '3 Days',
   },
   platinum: {
-    color: 'text-teal-700 dark:text-teal-300',
-    bgColor: 'bg-teal-500/10',
+    color: 'text-neutral-950 dark:text-white',
+    bgColor: 'bg-neutral-950/10',
     label: 'Platinum',
     commission: '8%',
     withdrawRequirement: '3 orders',
@@ -120,7 +120,7 @@ export default function LeaderboardSection({ limit = 6, showViewAllLink = true }
             <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--text-secondary)] uppercase">
               Total earned
             </p>
-            <p className="mt-1 font-display text-lg font-semibold tracking-tight text-teal-700 dark:text-teal-300 sm:text-xl">
+            <p className="mt-1 font-display text-lg font-semibold tracking-tight text-neutral-950 dark:text-white sm:text-xl">
               {formatPrice(totalEarnings)}
             </p>
           </div>
@@ -172,7 +172,7 @@ export default function LeaderboardSection({ limit = 6, showViewAllLink = true }
                     {i + 1}
                   </div>
 
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-teal-700 text-sm font-bold text-white">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-neutral-950 text-sm font-bold text-white">
                     {leader.name?.[0]?.toUpperCase() || '?'}
                   </div>
 
@@ -191,7 +191,7 @@ export default function LeaderboardSection({ limit = 6, showViewAllLink = true }
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <p className="text-sm font-semibold tracking-tight text-teal-700 dark:text-teal-300">
+                    <p className="text-sm font-semibold tracking-tight text-neutral-950 dark:text-white">
                       {formatPrice(leader.total_earnings || 0)}
                     </p>
                     <p className="text-[10px] text-[var(--text-secondary)]">{tierInfo.payoutTime}</p>

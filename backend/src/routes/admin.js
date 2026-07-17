@@ -129,22 +129,254 @@ router.get('/users/by-referral/:code', authenticate, requireAdmin, async (req, r
   }
 });
 
-// PUT /api/admin/users/:id
+// GET /api/admin/users/:id — full profile: account, affiliate, orders, commissions, withdrawals
+router.get('/users/:id', authenticate, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data: userRaw, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (userError || !userRaw) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { password, ...user } = userRaw;
+
+    const [
+      customerOrdersRes,
+      affiliateOrdersRes,
+      referredOrdersRes,
+      withdrawalsRes,
+      clicksRes,
+    ] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('id, order_number, customer_name, customer_phone, customer_email, total, status, payment_status, payment_method, commission_total, commission_status, affiliate_id, referral_code, created_at, items')
+        .eq('user_id', id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('affiliate_orders')
+        .select('id, order_id, product_name, order_amount, commission, commission_rate, status, tier_at_time, referral_code, created_at, confirmed_at, cancelled_at, cancellation_reason')
+        .eq('affiliate_id', id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('orders')
+        .select('id, order_number, customer_name, customer_phone, customer_email, total, status, payment_status, payment_method, commission_total, commission_status, created_at')
+        .eq('affiliate_id', id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('withdrawals')
+        .select('id, amount, status, method, account_details, admin_notes, created_at, updated_at')
+        .eq('affiliate_id', id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('affiliate_clicks')
+        .select('id, product_id, referral_code, created_at')
+        .eq('affiliate_id', id)
+        .order('created_at', { ascending: false })
+        .limit(100),
+    ]);
+
+    if (customerOrdersRes.error) console.error('customer orders:', customerOrdersRes.error.message);
+    if (affiliateOrdersRes.error) console.error('affiliate orders:', affiliateOrdersRes.error.message);
+    if (referredOrdersRes.error) console.error('referred orders:', referredOrdersRes.error.message);
+    if (withdrawalsRes.error) console.error('withdrawals:', withdrawalsRes.error.message);
+    if (clicksRes.error) console.error('clicks:', clicksRes.error.message);
+
+    const customerOrders = customerOrdersRes.data || [];
+    const affiliateOrderRows = affiliateOrdersRes.data || [];
+    const referredOrders = referredOrdersRes.data || [];
+    const withdrawals = withdrawalsRes.data || [];
+    const clicks = clicksRes.data || [];
+
+    // Enrich clicks with product names
+    const productIds = [...new Set(clicks.map((c) => c.product_id).filter(Boolean))];
+    let productMap = {};
+    if (productIds.length) {
+      const { data: products } = await supabase
+        .from('products')
+        .select('id, name')
+        .in('id', productIds);
+      productMap = Object.fromEntries((products || []).map((p) => [p.id, p.name]));
+    }
+    const enrichedClicks = clicks.map((c) => ({
+      ...c,
+      product_name: c.product_id ? (productMap[c.product_id] || 'Product') : 'Landing / general',
+    }));
+
+    const { count: totalClicksCount } = await supabase
+      .from('affiliate_clicks')
+      .select('id', { count: 'exact', head: true })
+      .eq('affiliate_id', id);
+
+    const countByStatus = (rows, key = 'status') =>
+      rows.reduce((acc, row) => {
+        const s = row[key] || 'unknown';
+        acc[s] = (acc[s] || 0) + 1;
+        return acc;
+      }, {});
+
+    const confirmedCommission = affiliateOrderRows
+      .filter((r) => r.status === 'confirmed')
+      .reduce((s, r) => s + Number(r.commission || 0), 0);
+    const pendingCommission = affiliateOrderRows
+      .filter((r) => r.status === 'pending')
+      .reduce((s, r) => s + Number(r.commission || 0), 0);
+    const cancelledCommission = affiliateOrderRows
+      .filter((r) => r.status === 'cancelled')
+      .reduce((s, r) => s + Number(r.commission || 0), 0);
+
+    const distinctConfirmedOrderIds = new Set(
+      affiliateOrderRows.filter((r) => r.status === 'confirmed').map((r) => r.order_id).filter(Boolean)
+    );
+    const distinctPendingOrderIds = new Set(
+      affiliateOrderRows.filter((r) => r.status === 'pending').map((r) => r.order_id).filter(Boolean)
+    );
+
+    const paidReferred = referredOrders.filter((o) => o.payment_status === 'paid');
+    const unpaidReferred = referredOrders.filter((o) => o.payment_status !== 'paid' && o.status !== 'cancelled');
+    const cancelledReferred = referredOrders.filter((o) => o.status === 'cancelled');
+
+    // Keep displayed pending in sync with live commission rows
+    if (Number(user.pending_earnings || 0) !== pendingCommission) {
+      user.pending_earnings = pendingCommission;
+    }
+    if (Number(user.total_earnings || 0) !== confirmedCommission) {
+      // Prefer live ledger for admin view accuracy
+      user.total_earnings = confirmedCommission;
+    }
+
+    const role = String(user.role || '').toLowerCase();
+    const isAffiliate =
+      role === 'affiliate' ||
+      role === 'affiliate_pending' ||
+      !!user.affiliate_approved ||
+      !!user.affiliate_requested_at ||
+      !!user.referral_code ||
+      paidReferred.length > 0 ||
+      unpaidReferred.length > 0 ||
+      affiliateOrderRows.length > 0 ||
+      (totalClicksCount || 0) > 0;
+
+    res.json({
+      user: {
+        ...user,
+        is_affiliate: isAffiliate,
+      },
+      summary: {
+        customer_orders: customerOrders.length,
+        customer_orders_by_status: countByStatus(customerOrders),
+        customer_paid: customerOrders.filter((o) => o.payment_status === 'paid').length,
+        customer_unpaid: customerOrders.filter((o) => o.payment_status !== 'paid' && o.status !== 'cancelled').length,
+        customer_spent: customerOrders
+          .filter((o) => o.payment_status === 'paid' || o.status === 'delivered')
+          .reduce((s, o) => s + Number(o.total || 0), 0),
+        referred_orders: referredOrders.length,
+        referred_orders_by_status: countByStatus(referredOrders),
+        referred_paid: paidReferred.length,
+        referred_unpaid: unpaidReferred.length,
+        referred_cancelled: cancelledReferred.length,
+        referred_revenue: paidReferred.reduce((s, o) => s + Number(o.total || 0), 0),
+        affiliate_order_rows: affiliateOrderRows.length,
+        affiliate_orders_by_status: countByStatus(affiliateOrderRows),
+        confirmed_orders: distinctConfirmedOrderIds.size,
+        pending_orders: distinctPendingOrderIds.size,
+        confirmed_commission: confirmedCommission,
+        pending_commission: pendingCommission,
+        cancelled_commission: cancelledCommission,
+        total_clicks: totalClicksCount ?? enrichedClicks.length,
+        withdrawals: withdrawals.length,
+        withdrawals_by_status: countByStatus(withdrawals),
+        withdrawn_total: withdrawals
+          .filter((w) => ['approved', 'paid', 'completed', 'processing'].includes(w.status))
+          .reduce((s, w) => s + Number(w.amount || 0), 0),
+      },
+      customer_orders: customerOrders,
+      referred_orders: referredOrders,
+      affiliate_orders: affiliateOrderRows,
+      withdrawals,
+      clicks: enrichedClicks,
+    });
+  } catch (err) {
+    console.error('Get user detail error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/users/:id — edit profile, role, tier, ban/suspend
 router.put('/users/:id', authenticate, requireAdmin, async (req, res) => {
   try {
-    const { status, affiliate_level, role, affiliate_approved } = req.body;
+    const {
+      status,
+      affiliate_level,
+      role,
+      affiliate_approved,
+      name,
+      email,
+      phone,
+      affiliate_phone,
+      affiliate_social_media,
+      affiliate_experience,
+      affiliate_experience_years,
+      affiliate_admin_notes,
+      referral_code,
+    } = req.body;
+
     const updates = {};
-    if (status !== undefined) updates.status = status;
+    if (status !== undefined) {
+      if (!['active', 'suspended', 'pending'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Use active, suspended, or pending.' });
+      }
+      updates.status = status;
+    }
     if (affiliate_level !== undefined) updates.affiliate_level = affiliate_level;
-    if (role !== undefined) updates.role = role;
-    if (affiliate_approved !== undefined) updates.affiliate_approved = affiliate_approved;
+    if (role !== undefined) {
+      if (!['customer', 'affiliate', 'admin'].includes(role)) {
+        return res.status(400).json({ error: 'Invalid role' });
+      }
+      updates.role = role;
+    }
+    if (affiliate_approved !== undefined) {
+      updates.affiliate_approved = !!affiliate_approved;
+      if (affiliate_approved) {
+        updates.affiliate_approved_at = new Date().toISOString();
+        if (!updates.affiliate_level) updates.affiliate_level = 'bronze';
+      }
+    }
+    if (name !== undefined) updates.name = String(name).trim();
+    if (email !== undefined) updates.email = String(email).trim().toLowerCase();
+    if (phone !== undefined) updates.phone = phone || null;
+    if (affiliate_phone !== undefined) updates.affiliate_phone = affiliate_phone || null;
+    if (affiliate_social_media !== undefined) updates.affiliate_social_media = affiliate_social_media || null;
+    if (affiliate_experience !== undefined) updates.affiliate_experience = affiliate_experience || null;
+    if (affiliate_experience_years !== undefined) updates.affiliate_experience_years = affiliate_experience_years;
+    if (affiliate_admin_notes !== undefined) updates.affiliate_admin_notes = affiliate_admin_notes || null;
+    if (referral_code !== undefined) {
+      updates.referral_code = String(referral_code).trim().toUpperCase() || null;
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
     updates.updated_at = new Date().toISOString();
 
     const { data, error } = await supabase
       .from('users')
       .update(updates)
       .eq('id', req.params.id)
-      .select()
+      .select(`
+        id, name, email, phone, role, avatar_url, status, referral_code, referred_by,
+        affiliate_level, total_earnings, pending_earnings, withdrawable_balance,
+        affiliate_approved, affiliate_requested_at, affiliate_approved_at,
+        affiliate_phone, affiliate_social_media, affiliate_experience,
+        affiliate_experience_years, affiliate_admin_notes,
+        created_at, updated_at
+      `)
       .single();
 
     if (error) throw error;

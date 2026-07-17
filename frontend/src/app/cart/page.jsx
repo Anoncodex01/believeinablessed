@@ -31,7 +31,7 @@ function CartContent() {
     <main className="min-h-screen bg-[var(--bg)] pt-16">
       <Navbar />
       <div className="mx-auto max-w-[900px] px-4 py-24 text-center sm:px-8">
-        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#f6f4f0] text-neutral-950">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100 text-neutral-950">
           <ShoppingBag className="h-9 w-9" />
         </div>
         <h2 className="font-display text-4xl font-semibold text-[var(--text)]">{t('empty_cart')}</h2>
@@ -49,7 +49,7 @@ function CartContent() {
     <main className="min-h-screen bg-[var(--bg)] pt-16 pb-24 md:pb-0">
       <Navbar />
       <div className="mx-auto max-w-[1500px] px-4 py-8 sm:px-8 lg:px-12 lg:py-12">
-        <div className="mb-8 rounded-[28px] bg-[#f6f4f0] px-5 py-8 sm:px-8 lg:px-10 dark:bg-white/5">
+        <div className="mb-8 rounded-[28px] bg-neutral-50 px-5 py-8 sm:px-8 lg:px-10 dark:bg-white/5">
           <p className="mb-3 text-xs font-semibold uppercase text-[var(--text-secondary)]">Shopping Bag</p>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -83,7 +83,7 @@ function CartContent() {
                     className="rounded-[22px] border border-black/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5"
                   >
                     <div className="flex gap-4">
-                      <Link href={productLink} className="relative h-28 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-[#f7f6f4] sm:h-32 sm:w-28">
+                      <Link href={productLink} className="relative h-28 w-24 flex-shrink-0 overflow-hidden rounded-2xl bg-neutral-100 sm:h-32 sm:w-28">
                         <Image src={image} alt={name} fill className="object-contain p-3" sizes="120px" />
                       </Link>
                       <div className="min-w-0 flex-1">
@@ -96,14 +96,14 @@ function CartContent() {
                               {item.size ? (
                                 <span className="border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-1">{t('size')}: {item.size}</span>
                               ) : item.sizes?.length > 0 ? (
-                                <Link href={productLink} className="border border-amber-600/30 bg-amber-500/10 px-3 py-1 text-amber-700">
+                                <Link href={productLink} className="border border-neutral-950/20 bg-neutral-100 px-3 py-1 text-neutral-950">
                                   Select size
                                 </Link>
                               ) : null}
                               {item.color ? (
                                 <span className="border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-1">{t('color')}: {item.color}</span>
                               ) : item.colors?.length > 0 ? (
-                                <Link href={productLink} className="border border-amber-600/30 bg-amber-500/10 px-3 py-1 text-amber-700">
+                                <Link href={productLink} className="border border-neutral-950/20 bg-neutral-100 px-3 py-1 text-neutral-950">
                                   Select color
                                 </Link>
                               ) : null}
@@ -113,7 +113,7 @@ function CartContent() {
                         </div>
 
                         <div className="mt-5 flex items-center justify-between gap-3">
-                          <div className="inline-flex items-center rounded-full border border-black/10 bg-[#f7f6f4] p-1 dark:border-white/10 dark:bg-white/5">
+                          <div className="inline-flex items-center rounded-full border border-black/10 bg-neutral-100 p-1 dark:border-white/10 dark:bg-white/5">
                             <button onClick={() => updateQuantity(item.cartKey, item.quantity - 1)}
                               className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white dark:hover:bg-white/10">
                               <Minus className="h-3.5 w-3.5" />
@@ -124,7 +124,7 @@ function CartContent() {
                               <Plus className="h-3.5 w-3.5" />
                             </button>
                           </div>
-                          <button onClick={() => removeItem(item.cartKey)} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-red-500 transition hover:bg-red-500/10">
+                          <button onClick={() => removeItem(item.cartKey)} className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm text-neutral-950 transition hover:bg-neutral-100">
                             <Trash2 className="h-4 w-4" />
                             Remove
                           </button>
@@ -170,8 +170,8 @@ function CartContent() {
               </motion.button>
             </Link>
 
-            <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[#f7f6f4] p-4 text-xs text-[var(--text-secondary)] dark:bg-white/5">
-              <ShieldCheck className="h-4 w-4 text-green-600" />
+            <div className="mt-5 flex items-center gap-2 rounded-2xl bg-neutral-100 p-4 text-xs text-[var(--text-secondary)] dark:bg-white/5">
+              <ShieldCheck className="h-4 w-4 text-neutral-950" />
               Secure checkout and WhatsApp order confirmation.
             </div>
 

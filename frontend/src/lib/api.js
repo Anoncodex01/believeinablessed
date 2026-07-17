@@ -135,6 +135,7 @@ export const updateOrder = (id, data) => api.put(`/orders/admin/${id}`, data);
 
 // Users Management
 export const getAdminUsers = () => api.get('/admin/users');
+export const getAdminUser = (id) => api.get(`/admin/users/${id}`);
 export const updateUser = (id, data) => api.put(`/admin/users/${id}`, data);
 
 // Affiliates Management

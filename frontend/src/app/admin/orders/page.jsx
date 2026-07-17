@@ -147,10 +147,12 @@ export default function AdminOrdersPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const load = async () => {
-    setLoading(true);
+  const load = async ({ soft = false } = {}) => {
+    if (!soft) setLoading(true);
     try {
       const { data } = await getAdminOrders({
+        limit: 500,
+        offset: 0,
         ...(filter ? { status: filter } : {}),
         ...(paymentFilter ? { payment_method: paymentFilter } : {}),
       });
@@ -159,7 +161,7 @@ export default function AdminOrdersPage() {
       console.error('Failed to load orders:', error);
       toast.error('Failed to load orders');
     } finally {
-      setLoading(false);
+      if (!soft) setLoading(false);
     }
   };
 
@@ -173,9 +175,67 @@ export default function AdminOrdersPage() {
 
   const refresh = async () => {
     setRefreshing(true);
-    await load();
+    await load({ soft: true });
     setRefreshing(false);
     toast.success('Orders refreshed');
+  };
+
+  const patchLocalOrder = (orderId, patch) => {
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? normalizeOrder({ ...o, ...patch }) : o)));
+    setSelected((prev) => (prev?.id === orderId ? normalizeOrder({ ...prev, ...patch }) : prev));
+  };
+
+  const handleStatus = async (order, nextStatus) => {
+    if (!nextStatus || nextStatus === order.status) return;
+
+    if (nextStatus === 'cancelled') {
+      if (order.status === 'delivered') {
+        toast.error('Delivered orders cannot be cancelled. Handle as return/refund instead.');
+        return;
+      }
+      if (!window.confirm('Cancel this order? Affiliate commission will be removed.')) return;
+    }
+
+    const previous = { status: order.status, commission_status: order.commission_status };
+    setUpdating(order.id);
+    // Optimistic UI — keep select on the new value while request runs
+    patchLocalOrder(order.id, {
+      status: nextStatus,
+      ...(nextStatus === 'cancelled' ? { commission_status: 'cancelled' } : {}),
+    });
+
+    try {
+      const { data } = await updateOrder(order.id, { status: nextStatus });
+      if (data?.order) {
+        patchLocalOrder(order.id, data.order);
+      }
+      toast.success(`Order marked ${nextStatus}`);
+      await load({ soft: true });
+    } catch (error) {
+      patchLocalOrder(order.id, previous);
+      toast.error(error.response?.data?.error || 'Failed to update order');
+    } finally {
+      setUpdating('');
+    }
+  };
+
+  const handlePaymentStatus = async (order, nextPayment) => {
+    if (!nextPayment || nextPayment === order.payment_status) return;
+    const previous = { payment_status: order.payment_status, commission_status: order.commission_status };
+    setUpdating(`${order.id}-pay`);
+    patchLocalOrder(order.id, { payment_status: nextPayment });
+
+    try {
+      const { data } = await updateOrder(order.id, { payment_status: nextPayment });
+      if (data?.order) patchLocalOrder(order.id, data.order);
+      toast.success(nextPayment === 'paid' ? 'Payment marked paid / success' : `Payment set to ${nextPayment}`);
+      await load({ soft: true });
+    } catch (error) {
+      patchLocalOrder(order.id, previous);
+      toast.error(error.response?.data?.error || 'Failed to update payment');
+    } finally {
+      setUpdating('');
+    }
   };
 
   const affiliates = useMemo(() => {
@@ -218,32 +278,17 @@ export default function AdminOrdersPage() {
     delivered: filtered.filter(order => order.status === 'delivered').length,
   }), [filtered]);
 
-  const handleStatus = async (order, nextStatus) => {
-    if (nextStatus === 'cancelled') {
-      if (order.status === 'delivered') {
-        toast.error('Delivered orders cannot be cancelled. Handle as return/refund instead.');
-        return;
-      }
-      if (!window.confirm('Cancel this order? Affiliate commission will be removed.')) return;
-    }
-
-    setUpdating(order.id);
-    try {
-      await updateOrder(order.id, { status: nextStatus });
-      toast.success(`Order marked ${nextStatus}`);
-      await load();
-      setSelected(prev => prev?.id === order.id ? { ...prev, status: nextStatus } : prev);
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to update order');
-    } finally {
-      setUpdating('');
-    }
-  };
-
   const commissionText = (order) => {
     if (!order.affiliate_id) return { text: 'Direct', tone: 'text-[var(--text-secondary)]' };
-    if (order.status === 'cancelled') return { text: 'Removed', tone: 'text-red-600' };
-    if (order.status === 'delivered' && order.commission_total > 0) return { text: formatPrice(order.commission_total), tone: 'text-emerald-600' };
+    if (order.status === 'cancelled' || order.commission_status === 'cancelled') {
+      return { text: 'Removed', tone: 'text-red-600' };
+    }
+    if (order.commission_status === 'confirmed' || (order.payment_status === 'paid' && order.commission_total > 0 && order.commission_status !== 'pending')) {
+      return { text: formatPrice(order.commission_total), tone: 'text-emerald-600' };
+    }
+    if (order.commission_total > 0) {
+      return { text: `${formatPrice(order.commission_total)} pending`, tone: 'text-amber-600' };
+    }
     return { text: 'Pending', tone: 'text-amber-600' };
   };
 
@@ -422,7 +467,18 @@ export default function AdminOrdersPage() {
               <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
                 <p className="section-kicker">Payment</p>
                 <div className="mt-2"><PaymentBadge method={selected.payment_method} paid={selected.payment_status === 'paid'} /></div>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">Status: {selected.payment_status || 'pending'}</p>
+                <select
+                  value={selected.payment_status || 'pending'}
+                  disabled={updating === `${selected.id}-pay` || updating === selected.id}
+                  onChange={(event) => handlePaymentStatus(selected, event.target.value)}
+                  className="mt-3 input h-10 w-full text-sm font-semibold"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="verifying">Verifying</option>
+                  <option value="paid">Paid / success</option>
+                  <option value="failed">Failed</option>
+                  <option value="refunded">Refunded</option>
+                </select>
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
                 <p className="section-kicker">Affiliate</p>
@@ -478,10 +534,12 @@ export default function AdminOrdersPage() {
                 {selectableStatuses(selected.status).map(status => (
                   <button
                     key={status}
+                    type="button"
+                    disabled={updating === selected.id || updating === `${selected.id}-pay`}
                     onClick={() => handleStatus(selected, status)}
-                    className={`h-11 border text-sm font-semibold uppercase tracking-wide transition ${selected.status === status ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white dark:bg-white dark:text-neutral-950' : 'border-[var(--border)] text-[var(--text)] hover:border-teal-700'}`}
+                    className={`h-11 border text-sm font-semibold uppercase tracking-wide transition disabled:opacity-50 ${selected.status === status ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white dark:bg-white dark:text-neutral-950' : 'border-[var(--border)] text-[var(--text)] hover:border-teal-700'}`}
                   >
-                    {status}
+                    {updating === selected.id && selected.status === status ? 'Saving…' : status}
                   </button>
                 ))}
               </div>

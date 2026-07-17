@@ -30,9 +30,9 @@ function formatPrice(n) {
 const TIER_CONFIG = {
   bronze: {
     icon: 'B',
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/20',
+    color: 'text-neutral-950',
+    bgColor: 'bg-neutral-100',
+    borderColor: 'border-neutral-300',
     label: 'Bronze',
     commission: '5%',
     payout: '2 Weeks',
@@ -56,9 +56,9 @@ const TIER_CONFIG = {
   },
   gold: {
     icon: 'G',
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/20',
+    color: 'text-neutral-950',
+    bgColor: 'bg-neutral-100',
+    borderColor: 'border-neutral-300',
     label: 'Gold',
     commission: '7%',
     payout: '3 Days',
@@ -128,18 +128,26 @@ function getTierEarningsBreakdown(orders) {
   };
 
   orders?.forEach(order => {
-    // Only count orders that are delivered or confirmed (earned commission)
-    const isEarned = order.status === 'confirmed' || order.status === 'delivered';
+    if (order.status === 'cancelled') return;
 
-    if (isEarned && order.tier_at_time) {
-      const tier = order.tier_at_time.toLowerCase();
-      if (breakdown[tier]) {
-        breakdown[tier].count++;
-        breakdown[tier].earnings += order.commission || 0;
-        breakdown[tier].orders.push(order);
-      }
+    const isEarned = order.status === 'confirmed' || order.status === 'delivered';
+    if (!isEarned || !order.tier_at_time) return;
+
+    const tier = order.tier_at_time.toLowerCase();
+    if (!breakdown[tier]) return;
+
+    breakdown[tier].earnings += order.commission || 0;
+    breakdown[tier].orders.push(order);
+
+    const orderKey = order.order_id || order.id;
+    if (!breakdown[tier]._seen) breakdown[tier]._seen = new Set();
+    if (!breakdown[tier]._seen.has(orderKey)) {
+      breakdown[tier]._seen.add(orderKey);
+      breakdown[tier].count++;
     }
   });
+
+  Object.values(breakdown).forEach((tier) => delete tier._seen);
 
   return breakdown;
 }
@@ -329,13 +337,18 @@ export default function AffiliateDashboard() {
   const chartData = data?.chart_data || [];
   const orders = data?.orders || [];
 
-  // Calculate order counts based on actual order data
   const deliveredOrders = orders.filter(o => o.status === 'delivered' || o.status === 'confirmed');
   const pendingOrders = orders.filter(o => o.status === 'pending');
   const cancelledOrders = orders.filter(o => o.status === 'cancelled');
-  const totalOrders = deliveredOrders.length; // Only delivered/confirmed count for tier
 
-  const currentTier = getTierByOrderCount(totalOrders);
+  const distinctConfirmedOrderIds = new Set(
+    deliveredOrders.map((o) => o.order_id).filter(Boolean)
+  );
+  const totalOrders = stats.total_orders ?? distinctConfirmedOrderIds.size;
+  const deliveredOrderCount = distinctConfirmedOrderIds.size;
+
+  // Use backend-reconciled tier so dashboard matches admin
+  const currentTier = (stats.affiliate_level || stats.tier_info?.current || 'bronze').toLowerCase();
   const currentTierInfo = getTierInfo(currentTier);
   const nextTier = getNextTier(currentTier);
 
@@ -371,12 +384,12 @@ export default function AffiliateDashboard() {
   const pendingEarnings = pendingOrders.reduce((sum, o) => sum + (o.commission || 0), 0);
 
   const statCards = [
-    { label: 'Total Earnings', val: formatPrice(stats.total_earnings || earningsFromDelivered), icon: DollarSign, color: 'text-green-500 bg-green-500/10' },
-    { label: 'Pending Earnings', val: formatPrice(stats.pending_earnings || pendingEarnings), icon: Clock, color: 'text-yellow-500 bg-yellow-500/10' },
-    { label: 'Withdrawable', val: formatPrice(stats.withdrawable_balance || 0), icon: ArrowUpRight, color: 'text-teal-700 bg-teal-500/10 dark:text-teal-300' },
-    { label: 'Total Clicks', val: stats.total_clicks || 0, icon: MousePointer, color: 'text-teal-700 bg-teal-500/10 dark:text-teal-300' },
-    { label: 'Delivered Orders', val: deliveredOrders.length || 0, icon: Truck, color: 'text-green-500 bg-green-500/10' },
-    { label: 'Pending Orders', val: pendingOrders.length || 0, icon: Clock, color: 'text-yellow-500 bg-yellow-500/10' },
+    { label: 'Total Earnings', val: formatPrice(stats.total_earnings || earningsFromDelivered), icon: DollarSign, color: 'text-neutral-950 bg-neutral-950/10' },
+    { label: 'Pending Earnings', val: formatPrice(stats.pending_earnings || pendingEarnings), icon: Clock, color: 'text-neutral-950 bg-neutral-100' },
+    { label: 'Withdrawable', val: formatPrice(stats.withdrawable_balance || 0), icon: ArrowUpRight, color: 'text-neutral-950 bg-neutral-950/10 dark:text-white' },
+    { label: 'Total Clicks', val: stats.total_clicks || 0, icon: MousePointer, color: 'text-neutral-950 bg-neutral-950/10 dark:text-white' },
+    { label: 'Delivered Orders', val: deliveredOrderCount || 0, icon: Truck, color: 'text-neutral-950 bg-neutral-950/10' },
+    { label: 'Pending Orders', val: pendingOrders.length || 0, icon: Clock, color: 'text-neutral-950 bg-neutral-100' },
   ];
 
   const tabs = [
@@ -398,11 +411,11 @@ export default function AffiliateDashboard() {
   // Status badge for orders
   const getStatusBadge = (status) => {
     const statusMap = {
-      'pending': { color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400', icon: <Clock className="w-3 h-3" />, label: 'Pending Delivery' },
-      'confirmed': { color: 'bg-teal-500/10 text-teal-700 dark:text-teal-300', icon: <CheckCircle className="w-3 h-3" />, label: 'Confirmed' },
-      'delivered': { color: 'bg-green-500/10 text-green-600 dark:text-green-400', icon: <Truck className="w-3 h-3" />, label: 'Delivered' },
-      'cancelled': { color: 'bg-red-500/10 text-red-600 dark:text-red-400', icon: <XCircle className="w-3 h-3" />, label: 'Cancelled' },
-      'paid': { color: 'bg-teal-500/10 text-teal-700 dark:text-teal-300', icon: <DollarSign className="w-3 h-3" />, label: 'Paid' }
+      'pending': { color: 'bg-neutral-100 text-neutral-950 dark:text-neutral-950', icon: <Clock className="w-3 h-3" />, label: 'Pending Delivery' },
+      'confirmed': { color: 'bg-neutral-950/10 text-neutral-950 dark:text-white', icon: <CheckCircle className="w-3 h-3" />, label: 'Confirmed' },
+      'delivered': { color: 'bg-neutral-950/10 text-neutral-950 dark:text-white', icon: <Truck className="w-3 h-3" />, label: 'Delivered' },
+      'cancelled': { color: 'bg-neutral-100 text-neutral-950 dark:text-white', icon: <XCircle className="w-3 h-3" />, label: 'Cancelled' },
+      'paid': { color: 'bg-neutral-950/10 text-neutral-950 dark:text-white', icon: <DollarSign className="w-3 h-3" />, label: 'Paid' }
     };
     return statusMap[status] || statusMap.pending;
   };
@@ -460,7 +473,7 @@ export default function AffiliateDashboard() {
               <button
                 type="button"
                 onClick={() => copyToClipboard(stats.referral_code || '', 'sidebar-code')}
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                 aria-label="Copy referral code"
               >
                 {copied === 'sidebar-code' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -493,7 +506,7 @@ export default function AffiliateDashboard() {
                 logout();
                 router.push('/');
               }}
-              className="flex items-center justify-center gap-1 p-2 text-xs text-red-600 dark:text-red-400 transition hover:bg-red-500/10"
+              className="flex items-center justify-center gap-1 p-2 text-xs text-neutral-950 dark:text-white transition hover:bg-neutral-100"
             >
               <LogOut className="h-3.5 w-3.5" />
               Logout
@@ -535,7 +548,7 @@ export default function AffiliateDashboard() {
               type="button"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="hidden h-10 items-center gap-2 border border-[var(--border)] px-3 text-sm font-medium transition hover:border-teal-700 dark:hover:border-teal-300 sm:flex"
+              className="hidden h-10 items-center gap-2 border border-[var(--border)] px-3 text-sm font-medium transition hover:border-neutral-950 dark:hover:border-white sm:flex"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               {refreshing ? 'Updating' : 'Refresh'}
@@ -543,7 +556,7 @@ export default function AffiliateDashboard() {
             <button
               type="button"
               onClick={() => copyToClipboard(productReferralLink, 'product')}
-              className="flex h-10 items-center gap-2 bg-neutral-950 px-3 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+              className="flex h-10 items-center gap-2 bg-neutral-950 px-3 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
             >
               {copied === 'product' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               <span className="hidden sm:inline">Share Store</span>
@@ -559,7 +572,7 @@ export default function AffiliateDashboard() {
           <div className="border border-[var(--border)] bg-[var(--surface-warm)] p-5 mb-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center bg-yellow-500/15 text-yellow-600 dark:text-yellow-400">
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center bg-neutral-100 text-neutral-950 dark:text-neutral-950">
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
@@ -581,7 +594,7 @@ export default function AffiliateDashboard() {
         <div className="border border-[var(--border)] bg-[var(--bg-card)] mb-6 overflow-hidden">
           <div className="flex items-center justify-between gap-4 px-6 py-5">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center bg-teal-700/10 text-sm font-bold text-teal-700 dark:bg-teal-300/10 dark:text-teal-300 flex-shrink-0">{currentTierInfo.icon}</span>
+              <span className="flex h-11 w-11 items-center justify-center bg-neutral-950/10 text-sm font-bold text-neutral-950 dark:bg-white/10 dark:text-white flex-shrink-0">{currentTierInfo.icon}</span>
               <div>
                 <h3 className="font-display font-bold tracking-tight text-[var(--text)]">{currentTierInfo.label} Tier</h3>
                 <p className="text-sm text-[var(--text-secondary)]">{currentTierInfo.commission} commission · {currentTierInfo.payout} payout</p>
@@ -609,7 +622,7 @@ export default function AffiliateDashboard() {
                   initial={{ width: 0 }}
                   animate={{ width: `${progressToNext}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="h-full bg-teal-700 dark:bg-teal-300"
+                  className="h-full bg-neutral-950 dark:bg-white"
                 />
               </div>
             </div>
@@ -617,7 +630,7 @@ export default function AffiliateDashboard() {
 
           {!isEligibleForWithdraw && (
             <div className="mx-6 mb-5 flex items-center gap-2.5 border border-[var(--border)] bg-[var(--surface-warm)] px-4 py-3">
-              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+              <AlertCircle className="h-4 w-4 text-neutral-950 dark:text-neutral-950 flex-shrink-0" />
               <p className="text-sm text-[var(--text-secondary)]">Need {currentTierInfo.withdrawRequirement - totalOrders} more delivered orders to unlock withdrawals</p>
             </div>
           )}
@@ -643,7 +656,7 @@ export default function AffiliateDashboard() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-[var(--text)]">Pending Earnings</p>
-                <p className="text-xs text-yellow-600 dark:text-yellow-400">Awaiting delivery</p>
+                <p className="text-xs text-neutral-950 dark:text-neutral-950">Awaiting delivery</p>
               </div>
             </div>
             <p className="text-base font-bold text-[var(--text)]">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
@@ -656,7 +669,7 @@ export default function AffiliateDashboard() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-[var(--text)]">Withdrawable</p>
-                <p className="text-xs text-teal-700 dark:text-teal-300">Ready to withdraw</p>
+                <p className="text-xs text-neutral-950 dark:text-white">Ready to withdraw</p>
               </div>
             </div>
             <p className="text-base font-bold text-[var(--text)]">{formatPrice(stats.withdrawable_balance || 0)}</p>
@@ -668,15 +681,15 @@ export default function AffiliateDashboard() {
               <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Clicks</p>
             </div>
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-teal-700 dark:text-teal-300">{deliveredOrders.length}</p>
+              <p className="text-lg font-bold text-neutral-950 dark:text-white">{deliveredOrderCount}</p>
               <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Delivered</p>
             </div>
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{pendingOrders.length}</p>
+              <p className="text-lg font-bold text-neutral-950 dark:text-neutral-950">{pendingOrders.length}</p>
               <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Pending</p>
             </div>
             <div className="px-4 py-4 text-center">
-              <p className="text-lg font-bold text-red-600 dark:text-red-400">{cancelledOrders.length}</p>
+              <p className="text-lg font-bold text-neutral-950 dark:text-white">{cancelledOrders.length}</p>
               <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">Cancelled</p>
             </div>
           </div>
@@ -694,15 +707,15 @@ export default function AffiliateDashboard() {
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="affGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0f766e" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#0f766e" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#171717" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#171717" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d.slice(5)} />
                     <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${(v / 1000).toFixed(0)}K`} />
                     <Tooltip formatter={(v) => formatPrice(v)} labelFormatter={l => `Date: ${l}`} />
-                    <Area type="monotone" dataKey="earnings" stroke="#0f766e" fill="url(#affGradient)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="earnings" stroke="#171717" fill="url(#affGradient)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -725,7 +738,7 @@ export default function AffiliateDashboard() {
                         }`}
                       >
                         {filter === 'all' ? 'All' : filter}
-                        {filter === 'delivered' && ` (${deliveredOrders.length})`}
+                        {filter === 'delivered' && ` (${deliveredOrderCount})`}
                         {filter === 'pending' && ` (${pendingOrders.length})`}
                         {filter === 'cancelled' && ` (${cancelledOrders.length})`}
                       </button>
@@ -764,18 +777,18 @@ export default function AffiliateDashboard() {
                         <div className="text-right">
                           {isDelivered ? (
                             <div>
-                              <p className="text-sm font-bold text-green-600 dark:text-green-400">+{formatPrice(order.commission)}</p>
-                              <p className="text-[10px] text-green-600 dark:text-green-400">Earned</p>
+                              <p className="text-sm font-bold text-neutral-950 dark:text-white">+{formatPrice(order.commission)}</p>
+                              <p className="text-[10px] text-neutral-950 dark:text-white">Earned</p>
                             </div>
                           ) : isCancelled ? (
                             <div>
-                              <p className="text-sm font-bold text-red-600 dark:text-red-400">Cancelled</p>
-                              <p className="text-[10px] text-red-600 dark:text-red-400">No commission</p>
+                              <p className="text-sm font-bold text-neutral-950 dark:text-white">Cancelled</p>
+                              <p className="text-[10px] text-neutral-950 dark:text-white">No commission</p>
                             </div>
                           ) : (
                             <div>
-                              <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400">Pending</p>
-                              <p className="text-[10px] text-yellow-600 dark:text-yellow-400">Awaiting delivery</p>
+                              <p className="text-sm font-bold text-neutral-950 dark:text-neutral-950">Pending</p>
+                              <p className="text-[10px] text-neutral-950 dark:text-neutral-950">Awaiting delivery</p>
                             </div>
                           )}
                           <p className="text-xs text-[var(--text-secondary)]">{formatPrice(order.order_amount)}</p>
@@ -808,9 +821,9 @@ export default function AffiliateDashboard() {
                   <div key={affiliate.id || affiliate.referral_code || index} className="flex items-center justify-between gap-4 p-4">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center text-sm font-bold ${
-                        index === 0 ? 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' :
+                        index === 0 ? 'bg-neutral-100 text-neutral-950 dark:text-neutral-950' :
                         index === 1 ? 'bg-slate-400/15 text-slate-600 dark:text-slate-300' :
-                        index === 2 ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400' :
+                        index === 2 ? 'bg-neutral-100 text-neutral-950 dark:text-white' :
                         'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                       }`}>
                         {index + 1}
@@ -823,7 +836,7 @@ export default function AffiliateDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-teal-700 dark:text-teal-300">{formatPrice(affiliate.total_earnings || 0)}</p>
+                      <p className="font-bold text-neutral-950 dark:text-white">{formatPrice(affiliate.total_earnings || 0)}</p>
                       <p className="text-xs text-[var(--text-secondary)]">earned</p>
                     </div>
                   </div>
@@ -876,7 +889,7 @@ export default function AffiliateDashboard() {
                         <div className="absolute left-4 top-4 border border-[var(--border)] bg-[var(--bg-card)]/90 px-3 py-1 text-xs font-semibold text-[var(--text)]">
                           {formatPrice(price)}
                         </div>
-                        <div className="absolute right-4 top-4 bg-teal-700 px-3 py-1 text-xs font-semibold text-white dark:bg-teal-300 dark:text-neutral-950">
+                        <div className="absolute right-4 top-4 bg-neutral-950 px-3 py-1 text-xs font-semibold text-white dark:bg-white dark:text-neutral-950">
                           {formatPrice(commission)}
                         </div>
                       </div>
@@ -884,7 +897,7 @@ export default function AffiliateDashboard() {
                       <div className="space-y-4 p-4">
                         <div>
                           <p className="truncate text-base font-semibold text-[var(--text)]">{product.name}</p>
-                          <p className="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                          <p className="mt-1 text-sm text-neutral-950 dark:text-white">
                             Earn {formatPrice(commission)} per sale
                           </p>
                         </div>
@@ -898,7 +911,7 @@ export default function AffiliateDashboard() {
                             <button
                               type="button"
                               onClick={() => copyToClipboard(shareableLink, `copy-${product.id}`)}
-                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center bg-neutral-950 text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                               aria-label="Copy affiliate link"
                             >
                               {copied === `copy-${product.id}` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -912,14 +925,14 @@ export default function AffiliateDashboard() {
                               href={`https://wa.me/?text=${encodeURIComponent(`Check this out: ${product.name} ${shareableLink}`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex h-11 items-center justify-center bg-green-600 text-sm font-semibold text-white transition hover:bg-green-700"
+                              className="inline-flex h-11 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800"
                             >
                               WhatsApp
                             </a>
                             <button
                               type="button"
                               onClick={() => copyToClipboard(shareableLink, `tiktok-${product.id}`)}
-                              className="inline-flex h-11 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                              className="inline-flex h-11 items-center justify-center bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                             >
                               TikTok
                             </button>
@@ -928,7 +941,7 @@ export default function AffiliateDashboard() {
                           <button
                             type="button"
                             onClick={() => handleGenerateLink(product.id)}
-                            className="inline-flex h-11 w-full items-center justify-center gap-2 bg-neutral-950 text-sm font-semibold text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                            className="inline-flex h-11 w-full items-center justify-center gap-2 bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                           >
                             <Zap className="h-4 w-4" />
                             Generate Link
@@ -953,14 +966,14 @@ export default function AffiliateDashboard() {
                 <p className="text-[10px] text-white/60 dark:text-black/50">From delivered orders</p>
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
+                <p className="text-2xl font-bold text-neutral-950 dark:text-neutral-950">{formatPrice(stats.pending_earnings || pendingEarnings)}</p>
                 <p className="text-xs text-[var(--text-secondary)] mt-1">Pending</p>
-                <p className="text-[10px] text-yellow-600 dark:text-yellow-400">Awaiting delivery</p>
+                <p className="text-[10px] text-neutral-950 dark:text-neutral-950">Awaiting delivery</p>
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
-                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{formatPrice(stats.withdrawable_balance || 0)}</p>
+                <p className="text-2xl font-bold text-neutral-950 dark:text-white">{formatPrice(stats.withdrawable_balance || 0)}</p>
                 <p className="text-xs text-[var(--text-secondary)] mt-1">Available</p>
-                <p className="text-[10px] text-teal-700 dark:text-teal-300">Ready to withdraw</p>
+                <p className="text-[10px] text-neutral-950 dark:text-white">Ready to withdraw</p>
               </div>
             </div>
 
@@ -971,9 +984,9 @@ export default function AffiliateDashboard() {
                   const tierInfo = getTierInfo(tier);
                   return (
                     <div key={tier} className="text-center p-3 bg-[var(--bg-secondary)]">
-                      <div className="text-xs font-bold text-teal-700 dark:text-teal-300">{tierInfo.icon}</div>
+                      <div className="text-xs font-bold text-neutral-950 dark:text-white">{tierInfo.icon}</div>
                       <div className="text-xs font-semibold text-[var(--text)]">{tierInfo.label}</div>
-                      <div className="text-sm font-bold text-green-600 dark:text-green-400">{formatPrice(data.earnings)}</div>
+                      <div className="text-sm font-bold text-neutral-950 dark:text-white">{formatPrice(data.earnings)}</div>
                       <div className="text-[10px] text-[var(--text-secondary)]">{data.count} delivered orders</div>
                     </div>
                   );
@@ -1035,11 +1048,11 @@ export default function AffiliateDashboard() {
                         </div>
                         <div className="text-right">
                           {isDelivered ? (
-                            <p className="font-bold text-green-600 dark:text-green-400">+{formatPrice(order.commission)}</p>
+                            <p className="font-bold text-neutral-950 dark:text-white">+{formatPrice(order.commission)}</p>
                           ) : isCancelled ? (
-                            <p className="font-bold text-red-600 dark:text-red-400">Cancelled</p>
+                            <p className="font-bold text-neutral-950 dark:text-white">Cancelled</p>
                           ) : (
-                            <p className="font-bold text-yellow-600 dark:text-yellow-400">Pending</p>
+                            <p className="font-bold text-neutral-950 dark:text-neutral-950">Pending</p>
                           )}
                         </div>
                       </div>
@@ -1074,7 +1087,7 @@ export default function AffiliateDashboard() {
                 </div>
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-[var(--text-secondary)]">Withdrawable:</span>
-                  <span className={`font-semibold ${isEligibleForWithdraw ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'}`}>
+                  <span className={`font-semibold ${isEligibleForWithdraw ? 'text-neutral-950 dark:text-white' : 'text-neutral-950 dark:text-neutral-950'}`}>
                     {isEligibleForWithdraw ? 'Eligible' : `${currentTierInfo.withdrawRequirement - totalOrders} more orders needed`}
                   </span>
                 </div>
@@ -1107,7 +1120,7 @@ export default function AffiliateDashboard() {
                   className="input"
                   disabled={!isEligibleForWithdraw} />
                 <button onClick={handleWithdraw}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                   disabled={!isEligibleForWithdraw}>
                   {isEligibleForWithdraw ? 'Request Withdrawal' : `Need ${currentTierInfo.withdrawRequirement - totalOrders} More Orders`}
                 </button>
@@ -1125,10 +1138,10 @@ export default function AffiliateDashboard() {
                         <p className="text-xs text-[var(--text-secondary)]">{w.method} • {new Date(w.created_at).toLocaleDateString()}</p>
                       </div>
                       <span className={`text-xs px-2 py-1 font-medium ${
-                        w.status === 'paid' ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300'
-                        : w.status === 'approved' ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300'
-                        : w.status === 'rejected' ? 'bg-red-500/10 text-red-600 dark:text-red-400'
-                        : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+                        w.status === 'paid' ? 'bg-neutral-950/10 text-neutral-950 dark:text-white'
+                        : w.status === 'approved' ? 'bg-neutral-950/10 text-neutral-950 dark:text-white'
+                        : w.status === 'rejected' ? 'bg-neutral-100 text-neutral-950 dark:text-white'
+                        : 'bg-neutral-100 text-neutral-950 dark:text-neutral-950'
                       }`}>{w.status}</span>
                     </div>
                   ))}
@@ -1159,17 +1172,17 @@ export default function AffiliateDashboard() {
                     <input readOnly value={productReferralLink}
                       className="input flex-1" />
                     <button onClick={() => copyToClipboard(productReferralLink, 'store-share')}
-                      className="px-3 bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                      className="px-3 bg-neutral-950 text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                       {copied === 'store-share' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => shareOnWhatsApp(productReferralLink, 'Check out BelieveinaBlessed Fashion Store!')}
-                      className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors">
+                      className="flex-1 py-2 bg-neutral-950 hover:bg-neutral-800 text-white text-sm font-semibold transition-colors">
                       WhatsApp
                     </button>
                     <button onClick={() => shareOnTikTok(productReferralLink)}
-                      className="flex-1 py-2 bg-neutral-950 hover:bg-teal-700 text-white text-sm font-semibold transition-colors dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                      className="flex-1 py-2 bg-neutral-950 hover:bg-neutral-800 text-white text-sm font-semibold transition-colors dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                       TikTok
                     </button>
                   </div>
@@ -1191,17 +1204,17 @@ export default function AffiliateDashboard() {
                     <input readOnly value={registrationLink}
                       className="input flex-1" />
                     <button onClick={() => copyToClipboard(registrationLink, 'recruit-share')}
-                      className="px-3 bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                      className="px-3 bg-neutral-950 text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                       {copied === 'recruit-share' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => shareOnWhatsApp(registrationLink, 'Join the BelieveinaBlessed Affiliate Program and earn money!')}
-                      className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors">
+                      className="flex-1 py-2 bg-neutral-950 hover:bg-neutral-800 text-white text-sm font-semibold transition-colors">
                       WhatsApp
                     </button>
                     <button onClick={() => shareOnTikTok(registrationLink)}
-                      className="flex-1 py-2 bg-neutral-950 hover:bg-teal-700 text-white text-sm font-semibold transition-colors dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                      className="flex-1 py-2 bg-neutral-950 hover:bg-neutral-800 text-white text-sm font-semibold transition-colors dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                       TikTok
                     </button>
                   </div>
@@ -1216,7 +1229,7 @@ export default function AffiliateDashboard() {
                   {stats.referral_code || 'N/A'}
                 </div>
                 <button onClick={() => copyToClipboard(stats.referral_code || '', 'code')}
-                  className="p-3 bg-neutral-950 text-white transition hover:bg-teal-700 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                  className="p-3 bg-neutral-950 text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                   {copied === 'code' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                 </button>
               </div>
@@ -1229,12 +1242,12 @@ export default function AffiliateDashboard() {
               <h3 className="font-display font-semibold tracking-tight text-[var(--text)] mb-3">Quick Share</h3>
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => shareOnWhatsApp(homeLink, 'Shop with me on BelieveinaBlessed! Use my code:')}
-                  className="flex-1 min-w-[120px] py-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                  className="flex-1 min-w-[120px] py-3 bg-neutral-950 hover:bg-neutral-800 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                   WhatsApp
                 </button>
                 <button onClick={() => shareOnTikTok(homeLink)}
-                  className="flex-1 min-w-[120px] py-3 bg-neutral-950 hover:bg-teal-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                  className="flex-1 min-w-[120px] py-3 bg-neutral-950 hover:bg-neutral-800 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200">
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 0 006.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
                   TikTok
                 </button>
@@ -1248,15 +1261,15 @@ export default function AffiliateDashboard() {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
-                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{stats.total_clicks || 0}</p>
+                <p className="text-2xl font-bold text-neutral-950 dark:text-white">{stats.total_clicks || 0}</p>
                 <p className="text-xs text-[var(--text-secondary)]">Total Clicks</p>
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
-                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{deliveredOrders.length || 0}</p>
+                <p className="text-2xl font-bold text-neutral-950 dark:text-white">{deliveredOrderCount || 0}</p>
                 <p className="text-xs text-[var(--text-secondary)]">Delivered Orders</p>
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
-                <p className="text-2xl font-bold text-teal-700 dark:text-teal-300">{stats.conversion_rate || 0}%</p>
+                <p className="text-2xl font-bold text-neutral-950 dark:text-white">{stats.conversion_rate || 0}%</p>
                 <p className="text-xs text-[var(--text-secondary)]">Conversion Rate</p>
               </div>
             </div>
