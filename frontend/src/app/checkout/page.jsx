@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle, ShoppingBag, Smartphone, CreditCard, Search,
   ChevronDown, ChevronUp, Truck, RotateCcw, Lock, X,
-  Loader2, ArrowRight, Trash2, Plus, Minus
+  Loader2, ArrowRight, Trash2, Plus, Minus, Banknote
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
@@ -208,7 +208,7 @@ function CheckoutContent() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const createOrderWithSnippe = async () => {
+  const createCheckoutOrder = async (paymentMethod) => {
     const fullPhone = getFullPhoneNumber(form.customer_phone, form.country_code);
     const countryInfo = countryCodes[form.country_code];
 
@@ -229,7 +229,7 @@ function CheckoutContent() {
       country_code: form.country_code,
       country_name: countryInfo?.name || 'Tanzania',
       shipping_address: { city: form.city.trim(), address: form.address.trim() },
-      payment_method: 'snippe',
+      payment_method: paymentMethod,
       coupon_code: form.coupon_code || undefined,
       referral_code: ref || undefined,
     });
@@ -250,7 +250,17 @@ function CheckoutContent() {
 
     setIsCreatingOrder(true);
     try {
-      const createdOrder = await createOrderWithSnippe();
+      if (form.payment_type === 'cod') {
+        const createdOrder = await createCheckoutOrder('cash_on_delivery');
+        clearCart();
+        toast.success('Order placed — pay cash on delivery');
+        router.push(
+          `/checkout/success?order=${encodeURIComponent(createdOrder.order_number)}&cod=1`
+        );
+        return;
+      }
+
+      const createdOrder = await createCheckoutOrder('snippe');
       setSnippePaymentData({
         orderId: createdOrder.id,
         orderNumber: createdOrder.order_number,
@@ -545,7 +555,7 @@ function CheckoutContent() {
 
             <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 sm:p-6">
               <h2 className="mb-5 font-display text-lg font-semibold tracking-tight text-[var(--text)]">
-                Pay with Snippe <span className="text-neutral-950">*</span>
+                Payment method <span className="text-neutral-950">*</span>
               </h2>
               <div className="space-y-3">
                 <button
@@ -558,32 +568,44 @@ function CheckoutContent() {
                   }`}
                 >
                   <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-12 w-12 flex-shrink-0 items-center justify-center ${
-                        form.payment_type === 'mobile'
-                          ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
-                          : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
-                      }`}
-                    >
-                      <Smartphone className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
                         <p className="text-base font-semibold tracking-tight text-[var(--text)]">Mobile Money</p>
-                        {form.payment_type === 'mobile' && <CheckCircle className="h-5 w-5 text-neutral-950" />}
+                        {form.payment_type === 'mobile' && <CheckCircle className="h-5 w-5 shrink-0 text-neutral-950" />}
                       </div>
                       <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                        M-Pesa, Airtel Money, Tigo Pesa & more — USSD prompt on your phone
+                        Pay via USSD prompt on your phone
                       </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {[
+                          { src: '/payments/mpesa.jpg', alt: 'M-Pesa' },
+                          { src: '/payments/airtel-money.png', alt: 'Airtel Money' },
+                          { src: '/payments/mixx_logo.jpg', alt: 'Mixx by Yas' },
+                          { src: '/payments/halopesa.png', alt: 'Halopesa' },
+                        ].map((logo) => (
+                          <span
+                            key={logo.alt}
+                            className="inline-flex h-9 items-center justify-center border border-[var(--border)] bg-white px-2"
+                          >
+                            <Image
+                              src={logo.src}
+                              alt={logo.alt}
+                              width={72}
+                              height={28}
+                              className="h-7 w-auto max-w-[72px] object-contain"
+                            />
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setField('payment_type', 'card')}
+                  onClick={() => setField('payment_type', 'cod')}
                   className={`w-full border-2 p-4 text-left transition-all ${
-                    form.payment_type === 'card'
+                    form.payment_type === 'cod'
                       ? 'border-neutral-950 bg-neutral-950/[0.03] dark:border-white dark:bg-white/10'
                       : 'border-[var(--border)] hover:border-neutral-400'
                   }`}
@@ -591,20 +613,20 @@ function CheckoutContent() {
                   <div className="flex items-start gap-4">
                     <div
                       className={`flex h-12 w-12 flex-shrink-0 items-center justify-center ${
-                        form.payment_type === 'card'
+                        form.payment_type === 'cod'
                           ? 'bg-neutral-950 text-white dark:bg-white dark:text-neutral-950'
                           : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'
                       }`}
                     >
-                      <CreditCard className="h-6 w-6" />
+                      <Banknote className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="text-base font-semibold tracking-tight text-[var(--text)]">Card</p>
-                        {form.payment_type === 'card' && <CheckCircle className="h-5 w-5 text-neutral-950" />}
+                        <p className="text-base font-semibold tracking-tight text-[var(--text)]">Cash on Delivery</p>
+                        {form.payment_type === 'cod' && <CheckCircle className="h-5 w-5 text-neutral-950" />}
                       </div>
                       <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                        Visa / Mastercard — secure redirect via Snippe
+                        Pay with cash when your order arrives
                       </p>
                     </div>
                   </div>
@@ -803,10 +825,10 @@ function CheckoutContent() {
                     <Loader2 className="h-5 w-5 animate-spin" />
                     Creating Order...
                   </>
-                ) : form.payment_type === 'card' ? (
+                ) : form.payment_type === 'cod' ? (
                   <>
-                    <CreditCard className="h-5 w-5" />
-                    Pay with Card
+                    <Banknote className="h-5 w-5" />
+                    Place COD Order
                     <ArrowRight className="h-4 w-4" />
                   </>
                 ) : (
@@ -818,7 +840,9 @@ function CheckoutContent() {
                 )}
               </motion.button>
               <p className="mt-3 text-center text-xs text-[var(--text-secondary)]">
-                Secure payment by Snippe · WhatsApp +255 747 110 777
+                {form.payment_type === 'cod'
+                  ? 'Pay cash when your order is delivered · WhatsApp +255 747 110 777'
+                  : 'Secure payment by Snippe · WhatsApp +255 747 110 777'}
               </p>
             </div>
           </div>

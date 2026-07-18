@@ -406,7 +406,14 @@ function TrackContent() {
               </div>
 
               <div className="flex items-center justify-between border-t border-black/5 px-5 py-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Total Amount</p>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Total Amount</p>
+                  {(order.payment_method === 'cash_on_delivery' || order.payment_method === 'cash') && (
+                    <p className="mt-1 text-xs font-medium text-amber-700">
+                      {order.payment_status === 'paid' ? 'Paid on delivery' : 'Pay cash on delivery'}
+                    </p>
+                  )}
+                </div>
                 <p className="text-xl font-bold text-neutral-950">{formatPrice(order.total)}</p>
               </div>
 

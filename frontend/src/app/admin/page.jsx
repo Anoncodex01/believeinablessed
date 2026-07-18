@@ -141,7 +141,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard dark icon={DollarSign} label="Total revenue" value={formatPrice(stats.total_revenue)} note={`${stats.total_orders || 0} total orders`} />
+        <StatCard dark icon={DollarSign} label="Total revenue" value={formatPrice(stats.total_revenue)} note={`${stats.total_orders || 0} active orders${stats.cancelled_orders ? ` · ${stats.cancelled_orders} cancelled` : ''}`} />
         <StatCard icon={ShoppingBag} label="Pending orders" value={stats.pending_orders || 0} note="Need admin attention" />
         <StatCard icon={Award} label="Pending commission" value={formatPrice(stats.pending_commissions)} note={`${stats.total_affiliates || 0} active affiliates`} />
         <StatCard icon={Package} label="Active products" value={stats.total_products || 0} note={`${stats.total_users || 0} customers and users`} />

@@ -1,8 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Loader2, Smartphone, CreditCard, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { createSnippePayment, getSnippePaymentStatus } from '@/lib/api';
+
+const MOBILE_PAYMENT_LOGOS = [
+  { src: '/payments/mpesa.jpg', alt: 'M-Pesa' },
+  { src: '/payments/airtel-money.png', alt: 'Airtel Money' },
+  { src: '/payments/mixx_logo.jpg', alt: 'Mixx by Yas' },
+  { src: '/payments/halopesa.png', alt: 'Halopesa' },
+];
 
 /**
  * Snippe checkout panel
@@ -184,6 +192,22 @@ export default function SnippePayment({
           <p className="text-sm text-[var(--text-secondary)] text-center max-w-xs">
             Enter your PIN on the USSD prompt to complete payment with Snippe.
           </p>
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+            {MOBILE_PAYMENT_LOGOS.map((logo) => (
+              <span
+                key={logo.alt}
+                className="inline-flex h-8 items-center justify-center border border-[var(--border)] bg-white px-2"
+              >
+                <Image
+                  src={logo.src}
+                  alt={logo.alt}
+                  width={64}
+                  height={24}
+                  className="h-6 w-auto max-w-[64px] object-contain"
+                />
+              </span>
+            ))}
+          </div>
           <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mt-2">
             <Loader2 className="w-4 h-4 animate-spin" />
             Waiting for confirmation… {secondsLeft}s

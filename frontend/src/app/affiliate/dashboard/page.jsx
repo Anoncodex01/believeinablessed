@@ -138,16 +138,8 @@ function getTierEarningsBreakdown(orders) {
 
     breakdown[tier].earnings += order.commission || 0;
     breakdown[tier].orders.push(order);
-
-    const orderKey = order.order_id || order.id;
-    if (!breakdown[tier]._seen) breakdown[tier]._seen = new Set();
-    if (!breakdown[tier]._seen.has(orderKey)) {
-      breakdown[tier]._seen.add(orderKey);
-      breakdown[tier].count++;
-    }
+    breakdown[tier].count++;
   });
-
-  Object.values(breakdown).forEach((tier) => delete tier._seen);
 
   return breakdown;
 }
@@ -341,11 +333,9 @@ export default function AffiliateDashboard() {
   const pendingOrders = orders.filter(o => o.status === 'pending');
   const cancelledOrders = orders.filter(o => o.status === 'cancelled');
 
-  const distinctConfirmedOrderIds = new Set(
-    deliveredOrders.map((o) => o.order_id).filter(Boolean)
-  );
-  const totalOrders = stats.total_orders ?? distinctConfirmedOrderIds.size;
-  const deliveredOrderCount = distinctConfirmedOrderIds.size;
+  // Each confirmed product line counts (multi-product checkout = multiple sales)
+  const deliveredOrderCount = deliveredOrders.length;
+  const totalOrders = stats.total_orders ?? deliveredOrderCount;
 
   // Use backend-reconciled tier so dashboard matches admin
   const currentTier = (stats.affiliate_level || stats.tier_info?.current || 'bronze').toLowerCase();
@@ -388,8 +378,8 @@ export default function AffiliateDashboard() {
     { label: 'Pending Earnings', val: formatPrice(stats.pending_earnings || pendingEarnings), icon: Clock, color: 'text-neutral-950 bg-neutral-100' },
     { label: 'Withdrawable', val: formatPrice(stats.withdrawable_balance || 0), icon: ArrowUpRight, color: 'text-neutral-950 bg-neutral-950/10 dark:text-white' },
     { label: 'Total Clicks', val: stats.total_clicks || 0, icon: MousePointer, color: 'text-neutral-950 bg-neutral-950/10 dark:text-white' },
-    { label: 'Delivered Orders', val: deliveredOrderCount || 0, icon: Truck, color: 'text-neutral-950 bg-neutral-950/10' },
-    { label: 'Pending Orders', val: pendingOrders.length || 0, icon: Clock, color: 'text-neutral-950 bg-neutral-100' },
+    { label: 'Products Sold', val: deliveredOrderCount || 0, icon: Truck, color: 'text-neutral-950 bg-neutral-950/10' },
+    { label: 'Pending Sales', val: pendingOrders.length || 0, icon: Clock, color: 'text-neutral-950 bg-neutral-100' },
   ];
 
   const tabs = [
@@ -1078,7 +1068,7 @@ export default function AffiliateDashboard() {
                   <span className={`font-semibold ${currentTierInfo.color}`}>{currentTierInfo.label}</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-[var(--text-secondary)]">Delivered Orders:</span>
+                  <span className="text-[var(--text-secondary)]">Products Sold:</span>
                   <span className="font-semibold text-[var(--text)]">{totalOrders} / {currentTierInfo.withdrawRequirement} required</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
@@ -1266,7 +1256,7 @@ export default function AffiliateDashboard() {
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
                 <p className="text-2xl font-bold text-neutral-950 dark:text-white">{deliveredOrderCount || 0}</p>
-                <p className="text-xs text-[var(--text-secondary)]">Delivered Orders</p>
+                <p className="text-xs text-[var(--text-secondary)]">Products Sold</p>
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-card)] p-5 text-center">
                 <p className="text-2xl font-bold text-neutral-950 dark:text-white">{stats.conversion_rate || 0}%</p>

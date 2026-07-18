@@ -422,7 +422,7 @@ export default function ProductPage() {
                   <h3 className="font-display text-base font-semibold tracking-tight text-[var(--text)]">
                     Shipping Information
                   </h3>
-                  <p className="text-sm text-[var(--text-secondary)]">Local and international delivery</p>
+                  <p className="text-sm text-[var(--text-secondary)]">7 days delivery · Local and international</p>
                 </div>
               </div>
               {shippingExpanded ? <ChevronUp className="h-4 w-4 text-[var(--text-secondary)]" /> : <ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />}

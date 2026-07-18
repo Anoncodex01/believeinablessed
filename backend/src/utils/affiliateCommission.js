@@ -59,20 +59,20 @@ export function getTierByOrderCount(orderCount) {
   return TIER_CONFIG.vip;
 }
 
-/** Count distinct paid/confirmed orders (not line items). */
+/** Count confirmed product sales (each line item), not distinct checkouts. */
 export async function countConfirmedAffiliateOrders(affiliateId) {
-  const { data, error } = await supabase
+  const { count, error } = await supabase
     .from('affiliate_orders')
-    .select('order_id')
+    .select('id', { count: 'exact', head: true })
     .eq('affiliate_id', affiliateId)
     .eq('status', 'confirmed');
 
   if (error) {
-    console.error('Error counting confirmed orders:', error);
+    console.error('Error counting confirmed affiliate product sales:', error);
     return 0;
   }
 
-  return new Set((data || []).map((row) => row.order_id).filter(Boolean)).size;
+  return count || 0;
 }
 
 export async function getAffiliateCurrentTier(affiliateId) {

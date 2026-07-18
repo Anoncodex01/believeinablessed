@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import {
   Award,
+  Banknote,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
@@ -50,7 +51,7 @@ function formatAddress(value) {
 }
 
 const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
-const PAYMENT_FILTERS = ['', 'snippe', 'mpesa', 'airtel_money', 'tigo_pesa', 'card'];
+const PAYMENT_FILTERS = ['', 'snippe', 'mpesa', 'airtel_money', 'tigo_pesa', 'card', 'cash_on_delivery'];
 
 const STATUS_TONES = {
   pending: 'border-amber-600/25 bg-amber-500/10 text-amber-700 dark:text-amber-400',
@@ -69,8 +70,9 @@ const PAYMENT_LABELS = {
   tigo_pesa: 'Tigo Pesa',
   tigo: 'Tigo Pesa',
   card: 'Card',
+  cash_on_delivery: 'Cash on Delivery',
+  cash: 'Cash on Delivery',
   pesapal: 'Pesapal (legacy)',
-  cash: 'Cash (legacy)',
   stripe: 'Card (legacy)',
 };
 
@@ -92,12 +94,16 @@ function StatusBadge({ status }) {
 
 function PaymentBadge({ method, paid }) {
   const isMobile = ['mpesa', 'airtel_money', 'airtel', 'tigo_pesa', 'tigo', 'snippe'].includes(method);
-  const Icon = isMobile ? Smartphone : CreditCard;
+  const isCod = method === 'cash_on_delivery' || method === 'cash';
+  const Icon = isCod ? Banknote : isMobile ? Smartphone : CreditCard;
   return (
     <span className="inline-flex items-center gap-1.5 border border-[var(--border)] bg-[var(--bg-secondary)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text)]">
       <Icon className="h-3.5 w-3.5" />
       {PAYMENT_LABELS[method] || method || 'Payment'}
       {paid && <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />}
+      {isCod && !paid && (
+        <span className="text-[10px] font-medium text-amber-700 dark:text-amber-400">Collect</span>
+      )}
     </span>
   );
 }
@@ -107,7 +113,7 @@ function TierBadge({ tier }) {
   return <span className={`inline-flex border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${TIER_TONES[tier] || TIER_TONES.bronze}`}>{tier}</span>;
 }
 
-function StatCard({ label, value, icon: Icon, dark = false }) {
+function StatCard({ label, value, icon: Icon, dark = false, detail }) {
   return (
     <div className={`border p-5 ${dark ? 'border-neutral-900 bg-neutral-950 text-white' : 'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text)]'}`}>
       <div className={`mb-4 flex h-10 w-10 items-center justify-center ${dark ? 'bg-white/10' : 'bg-teal-700/10 text-teal-700'}`}>
@@ -115,6 +121,9 @@ function StatCard({ label, value, icon: Icon, dark = false }) {
       </div>
       <p className="font-display text-2xl font-semibold tracking-tight">{value}</p>
       <p className={`mt-1 text-[11px] font-semibold tracking-[0.14em] uppercase ${dark ? 'text-white/55' : 'text-[var(--text-secondary)]'}`}>{label}</p>
+      {detail && (
+        <p className={`mt-2 text-xs ${dark ? 'text-white/45' : 'text-[var(--text-secondary)]'}`}>{detail}</p>
+      )}
     </div>
   );
 }
@@ -269,14 +278,21 @@ export default function AdminOrdersPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
-  const stats = useMemo(() => ({
-    total: filtered.length,
-    revenue: filtered.reduce((sum, order) => sum + Number(order.total || 0), 0),
-    affiliateOrders: filtered.filter(order => order.affiliate_id).length,
-    commission: filtered.reduce((sum, order) => sum + Number(order.commission_total || 0), 0),
-    pending: filtered.filter(order => order.status === 'pending').length,
-    delivered: filtered.filter(order => order.status === 'delivered').length,
-  }), [filtered]);
+  const stats = useMemo(() => {
+    const active = filtered.filter((order) => order.status !== 'cancelled');
+    return {
+      total: filtered.length,
+      revenue: active.reduce((sum, order) => sum + Number(order.total || 0), 0),
+      affiliateOrders: active.filter((order) => order.affiliate_id).length,
+      commission: active.reduce((sum, order) => {
+        if (order.commission_status === 'cancelled') return sum;
+        return sum + Number(order.commission_total || 0);
+      }, 0),
+      pending: filtered.filter((order) => order.status === 'pending').length,
+      delivered: filtered.filter((order) => order.status === 'delivered').length,
+      cancelled: filtered.filter((order) => order.status === 'cancelled').length,
+    };
+  }, [filtered]);
 
   const commissionText = (order) => {
     if (!order.affiliate_id) return { text: 'Direct', tone: 'text-[var(--text-secondary)]' };
@@ -306,7 +322,7 @@ export default function AdminOrdersPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard dark icon={ShoppingBag} label="Orders in view" value={stats.total} />
-        <StatCard icon={CreditCard} label="Revenue in view" value={formatPrice(stats.revenue)} />
+        <StatCard icon={CreditCard} label="Revenue in view" value={formatPrice(stats.revenue)} detail={stats.cancelled ? `${stats.cancelled} cancelled excluded` : undefined} />
         <StatCard icon={Award} label="Affiliate orders" value={stats.affiliateOrders} />
         <StatCard icon={Clock} label="Commission in view" value={formatPrice(stats.commission)} />
       </div>
@@ -479,6 +495,12 @@ export default function AdminOrdersPage() {
                   <option value="failed">Failed</option>
                   <option value="refunded">Refunded</option>
                 </select>
+                {(selected.payment_method === 'cash_on_delivery' || selected.payment_method === 'cash') &&
+                  selected.payment_status !== 'paid' && (
+                  <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                    COD: mark as delivered to auto-collect payment, or set Paid when cash is received.
+                  </p>
+                )}
               </div>
               <div className="border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
                 <p className="section-kicker">Affiliate</p>

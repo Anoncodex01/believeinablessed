@@ -105,8 +105,13 @@ function OrderStatusBadge({ status }) {
 
 function OrderCard({ order, onTrack }) {
   const itemCount = getOrderItemsCount(order);
-  const paymentLabel = PAYMENT_LABELS[order.payment_status] || order.payment_status || 'Payment pending';
-  const canTrack = order.payment_status === 'paid';
+  const isCod = order.payment_method === 'cash_on_delivery' || order.payment_method === 'cash';
+  const paymentLabel = isCod && order.payment_status !== 'paid'
+    ? 'Cash on Delivery'
+    : PAYMENT_LABELS[order.payment_status] || order.payment_status || 'Payment pending';
+  const canTrack =
+    order.payment_status === 'paid' ||
+    (isCod && order.status !== 'cancelled');
   const shippingAddress = formatAddress(order.shipping_address);
 
   return (
@@ -207,14 +212,23 @@ export default function CustomerDashboardPage() {
     const active = orders.filter(order => ['confirmed', 'processing', 'shipped'].includes(order.status)).length;
     const delivered = orders.filter(order => order.status === 'delivered').length;
     const totalSpent = orders
-      .filter(order => order.payment_status === 'paid' && order.status !== 'cancelled')
+      .filter(order => {
+        if (order.status === 'cancelled') return false;
+        if (order.payment_status === 'paid') return true;
+        // COD delivered/in-progress still counts toward customer spend once placed
+        return order.payment_method === 'cash_on_delivery' || order.payment_method === 'cash';
+      })
       .reduce((sum, order) => sum + Number(order.total || 0), 0);
 
     return { pending, active, delivered, totalSpent };
   }, [orders]);
 
   const activeOrder = useMemo(() => (
-    orders.find(order => ['shipped', 'processing', 'confirmed'].includes(order.status) && order.payment_status === 'paid') ||
+    orders.find(order => ['shipped', 'processing', 'confirmed'].includes(order.status) && (
+      order.payment_status === 'paid' ||
+      order.payment_method === 'cash_on_delivery' ||
+      order.payment_method === 'cash'
+    )) ||
     orders.find(order => order.status === 'pending') ||
     orders[0]
   ), [orders]);

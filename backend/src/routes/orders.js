@@ -129,36 +129,38 @@ router.post('/', authenticate, async (req, res) => {
     if (!customer_name || !customer_phone) return res.status(400).json({ error: 'Customer info required' });
 
     const paymentMethod = payment_method || 'snippe';
+    const isCod = paymentMethod === 'cash_on_delivery' || paymentMethod === 'cash';
 
-    // Reuse existing unpaid order on payment retry (prevents duplicate rows)
-    const reusableOrder = await findReusablePendingOrder(req.user.id, paymentMethod);
-    if (reusableOrder) {
-      const { data: updatedOrder, error: reuseError } = await supabase
-        .from('orders')
-        .update({
-          customer_name,
-          customer_email: customer_email || null,
-          customer_phone,
-          shipping_address: shipping_address || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', reusableOrder.id)
-        .select()
-        .single();
+    // Reuse existing unpaid order on payment retry (online methods only)
+    if (!isCod) {
+      const reusableOrder = await findReusablePendingOrder(req.user.id, paymentMethod);
+      if (reusableOrder) {
+        const { data: updatedOrder, error: reuseError } = await supabase
+          .from('orders')
+          .update({
+            customer_name,
+            customer_email: customer_email || null,
+            customer_phone,
+            shipping_address: shipping_address || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', reusableOrder.id)
+          .select()
+          .single();
 
-      if (!reuseError && updatedOrder) {
-        console.log(`♻️ Reusing pending order ${updatedOrder.order_number} for payment retry`);
-        return res.status(200).json({
-          order: updatedOrder,
-          order_number: updatedOrder.order_number,
-          reused: true,
-          message: 'Resuming your pending order. Complete payment to finish checkout.',
-        });
+        if (!reuseError && updatedOrder) {
+          console.log(`♻️ Reusing pending order ${updatedOrder.order_number} for payment retry`);
+          return res.status(200).json({
+            order: updatedOrder,
+            order_number: updatedOrder.order_number,
+            reused: true,
+            message: 'Resuming your pending order. Complete payment to finish checkout.',
+          });
+        }
       }
+
+      await cancelStalePendingOrders(customer_phone, paymentMethod, req.user.id);
     }
-
-    await cancelStalePendingOrders(customer_phone, paymentMethod, req.user.id);
-
 
     let subtotal = 0;
     const enrichedItems = [];
@@ -257,8 +259,9 @@ router.post('/', authenticate, async (req, res) => {
       subtotal,
       discount,
       total,
-      payment_method: payment_method || 'snippe',
-      status: 'pending',
+      payment_method: isCod ? 'cash_on_delivery' : paymentMethod,
+      // COD: confirm fulfilment immediately; payment collected on delivery
+      status: isCod ? 'confirmed' : 'pending',
       affiliate_id: affiliateId,
       referral_code: affiliateInfo?.referral_code || normalizedRef || null,
       user_id: req.user.id,
@@ -298,31 +301,44 @@ router.post('/', authenticate, async (req, res) => {
       await supabase.rpc('decrement_stock', { product_id: item.product_id, qty: item.quantity });
     }
 
-    // Handle affiliate commission
+    // Handle affiliate commission — one ledger row per product unit
+    // (4 items in one checkout = 4 affiliate sales toward tier)
     if (affiliateId && affiliateInfo) {
       let totalCommission = 0;
       const currentTier = await getAffiliateCurrentTier(affiliateId);
-      
+      const affiliateRows = [];
+
       for (const item of enrichedItems) {
-        const commission = (item.unit_price * item.quantity * currentTier.commission_rate) / 100;
-        totalCommission += commission;
-        
-        await supabase
-          .from('affiliate_orders')
-          .insert({
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        const unitCommission = (item.unit_price * currentTier.commission_rate) / 100;
+
+        for (let i = 0; i < qty; i++) {
+          totalCommission += unitCommission;
+          affiliateRows.push({
             affiliate_id: affiliateId,
             order_id: order.id,
             product_id: item.product_id,
-            order_amount: item.unit_price * item.quantity,
-            commission: commission,
+            order_amount: item.unit_price,
+            commission: unitCommission,
             status: 'pending',
             referral_code: affiliateInfo?.referral_code || normalizedRef,
             product_name: item.product_name,
             commission_rate: currentTier.commission_rate,
             tier_at_time: currentTier.level,
             is_confirmed: false,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           });
+        }
+      }
+
+      if (affiliateRows.length) {
+        const { error: affInsertError } = await supabase
+          .from('affiliate_orders')
+          .insert(affiliateRows);
+
+        if (affInsertError) {
+          console.error('⚠️ Failed to insert affiliate order rows:', affInsertError.message);
+        }
       }
 
       if (totalCommission > 0) {
@@ -357,6 +373,28 @@ router.post('/', authenticate, async (req, res) => {
       }
     }
 
+    if (isCod) {
+      try {
+        await supabase.from('notifications').insert({
+          type: 'order_cod',
+          title: `Cash on Delivery · ${order.order_number}`,
+          message: `${customer_name} placed a COD order for TZS ${Number(total).toLocaleString()}. Collect payment on delivery.`,
+          link: `/admin/orders`,
+          data: {
+            order_id: order.id,
+            order_number: order.order_number,
+            amount: total,
+            payment_method: 'cash_on_delivery',
+            affiliate_id: affiliateId || null,
+          },
+          is_read: false,
+          created_at: new Date().toISOString(),
+        });
+      } catch (notifErr) {
+        console.warn('⚠️ Failed to create COD notification:', notifErr.message);
+      }
+    }
+
     res.status(201).json({ 
       order, 
       order_number: orderNumber,
@@ -365,7 +403,9 @@ router.post('/', authenticate, async (req, res) => {
         name: affiliateInfo.name,
         referral_code: affiliateInfo.referral_code
       } : null,
-      message: 'Order placed successfully! Awaiting admin confirmation.'
+      message: isCod
+        ? 'Order placed successfully! Pay cash when your order is delivered.'
+        : 'Order placed successfully! Awaiting payment confirmation.',
     });
   } catch (err) {
     console.error('❌ Order creation error:', err);
@@ -433,8 +473,24 @@ router.put('/admin/:id', authenticate, requireAdmin, async (req, res) => {
     console.log(`📦 Order: ${existingOrder.order_number}, current: ${existingOrder.status}/${existingOrder.payment_status}, affiliate: ${existingOrder.affiliate_id}`);
 
     const nextStatus = updateData.status ?? existingOrder.status;
-    const nextPayment = updateData.payment_status ?? existingOrder.payment_status;
+    let nextPayment = updateData.payment_status ?? existingOrder.payment_status;
     const hasAffiliate = !!existingOrder.affiliate_id;
+    const isCod =
+      existingOrder.payment_method === 'cash_on_delivery' ||
+      existingOrder.payment_method === 'cash';
+
+    // COD: collecting cash on delivery — mark paid when delivered
+    if (
+      isCod &&
+      nextStatus === 'delivered' &&
+      existingOrder.status !== 'delivered' &&
+      nextPayment !== 'paid' &&
+      nextPayment !== 'refunded'
+    ) {
+      updateData.payment_status = 'paid';
+      nextPayment = 'paid';
+      console.log(`💵 COD order ${existingOrder.order_number}: auto-marking paid on delivery`);
+    }
 
     // Affiliate commission side-effects (before writing order, so balances stay consistent)
     if (hasAffiliate) {
@@ -545,12 +601,12 @@ router.get('/track/:orderNumber', async (req, res) => {
 
     if (error || !order) return res.status(404).json({ error: 'Order not found' });
 
-    // An order only becomes trackable once payment is confirmed. Pesapal
-    // flips payment_status to 'paid' via its callback/IPN; manual M-Pesa
-    // flips it to 'paid' once an admin verifies the submitted code. Until
-    // then we tell the customer we're confirming payment rather than
-    // showing delivery-tracking details for something that isn't paid yet.
-    if (order.payment_status !== 'paid') {
+    const isCod =
+      order.payment_method === 'cash_on_delivery' || order.payment_method === 'cash';
+
+    // COD orders are trackable before payment (cash collected on delivery).
+    // Online payments stay gated until payment_status === 'paid'.
+    if (order.payment_status !== 'paid' && !isCod) {
       return res.json({
         order: null,
         paymentPending: true,
@@ -564,6 +620,10 @@ router.get('/track/:orderNumber', async (req, res) => {
             ? 'This payment was not successful. Please try paying again.'
             : 'Payment has not been completed for this order yet.',
       });
+    }
+
+    if (isCod && order.status === 'cancelled') {
+      return res.status(404).json({ error: 'Order not found' });
     }
 
     res.json({ order });
@@ -703,14 +763,19 @@ router.get('/admin/all', authenticate, requireAdmin, async (req, res) => {
       );
     }
 
+    const activeOrders = filteredOrders.filter((o) => o.status !== 'cancelled');
     const summary = {
       total_orders: count || 0,
       filtered_orders: filteredOrders.length,
-      total_revenue: filteredOrders.reduce((sum, o) => sum + (o.total || 0), 0),
-      total_commission: filteredOrders.reduce((sum, o) => sum + (o.commission_total || 0), 0),
-      affiliate_orders: filteredOrders.filter(o => o.affiliate_id).length,
-      paid_orders: filteredOrders.filter(o => o.payment_status === 'paid').length,
-      stripe_orders: filteredOrders.filter(o => o.payment_method === 'stripe' || o.payment_method === 'bank').length,
+      // Cancelled orders must not count toward revenue / commission
+      total_revenue: activeOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+      total_commission: activeOrders.reduce((sum, o) => {
+        if (o.commission_status === 'cancelled') return sum;
+        return sum + (o.commission_total || 0);
+      }, 0),
+      affiliate_orders: activeOrders.filter((o) => o.affiliate_id).length,
+      paid_orders: activeOrders.filter((o) => o.payment_status === 'paid').length,
+      stripe_orders: activeOrders.filter((o) => o.payment_method === 'stripe' || o.payment_method === 'bank').length,
       status_counts: {
         pending: filteredOrders.filter(o => o.status === 'pending').length,
         confirmed: filteredOrders.filter(o => o.status === 'confirmed').length,

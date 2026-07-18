@@ -37,13 +37,15 @@ export default function Footer() {
       <div className="home-shell py-14 sm:py-16">
         <div className="mb-12 grid gap-10 border-b border-neutral-800 pb-12 lg:grid-cols-[1.3fr_0.9fr] lg:items-end">
           <div>
-            <Image
-              src="/logo.png"
-              alt="Believe in a Blessed"
-              width={170}
-              height={72}
-              className="h-auto w-36 object-contain brightness-0 invert sm:w-40"
-            />
+            <div className="relative h-12 w-[6.5rem] overflow-hidden sm:h-14 sm:w-32">
+              <Image
+                src="/logo.png"
+                alt="Believe in a Blessed"
+                width={320}
+                height={140}
+                className="h-full w-full origin-center scale-[2.1] object-contain brightness-0 invert"
+              />
+            </div>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400 sm:text-base">
               Tanzania&apos;s modern fashion destination for clean, confident everyday style —
               built on faith, purpose, and self-belief.

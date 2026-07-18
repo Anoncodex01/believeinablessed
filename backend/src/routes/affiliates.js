@@ -986,19 +986,20 @@ router.get('/admin/overview', authenticate, requireAdmin, async (req, res) => {
       const pendingOrders = affiliateOrders.filter(order => order.status === 'pending');
       const paidOrders = affiliateOrders.filter(order => order.status === 'paid');
       const cancelledOrders = affiliateOrders.filter(order => order.status === 'cancelled');
-      const distinctConfirmedOrders = new Set(confirmedOrders.map((o) => o.order_id).filter(Boolean)).size;
-      const tier = getTierByOrderCount(distinctConfirmedOrders);
+      // Count each product line as a sale (4 products in one checkout = 4)
+      const confirmedProductSales = confirmedOrders.length;
+      const tier = getTierByOrderCount(confirmedProductSales);
 
       return {
         ...user,
         approval_status: user.affiliate_approved ? 'approved' : 'pending',
-        order_count: distinctConfirmedOrders,
+        order_count: confirmedProductSales,
         total_orders: affiliateOrders.length,
         pending_orders: pendingOrders.length,
         paid_orders: paidOrders.length,
         cancelled_orders: cancelledOrders.length,
         clicks: affiliateClicks.length,
-        conversion_rate: affiliateClicks.length ? Number(((distinctConfirmedOrders / affiliateClicks.length) * 100).toFixed(1)) : 0,
+        conversion_rate: affiliateClicks.length ? Number(((confirmedProductSales / affiliateClicks.length) * 100).toFixed(1)) : 0,
         sales_volume: affiliateOrders
           .filter(order => order.status !== 'cancelled')
           .reduce((sum, order) => sum + Number(order.order_amount || 0), 0),

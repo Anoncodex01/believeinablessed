@@ -23,9 +23,8 @@ router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
     const affiliates = affiliatesRes.data || [];
     const affOrders = affOrdersRes.data || [];
 
-    const totalRevenue = orders
-      .filter(o => o.status !== 'cancelled')
-      .reduce((s, o) => s + (o.total || 0), 0);
+    const activeOrders = orders.filter((o) => o.status !== 'cancelled');
+    const totalRevenue = activeOrders.reduce((s, o) => s + (o.total || 0), 0);
 
     const pendingCommissions = affOrders
       .filter(o => o.status === 'pending')
@@ -35,8 +34,8 @@ router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
       .filter(o => o.status === 'confirmed')
       .reduce((s, o) => s + (o.commission || 0), 0);
 
-    // Orders with affiliates count
-    const affiliateOrders = orders.filter(o => o.affiliate_id).length;
+    // Orders with affiliates count (exclude cancelled)
+    const affiliateOrders = activeOrders.filter((o) => o.affiliate_id).length;
 
     // Revenue last 30 days
     const revenueChart = buildRevenueChart(orders);
@@ -44,7 +43,8 @@ router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
     res.json({
       stats: {
         total_revenue: totalRevenue,
-        total_orders: orders.length,
+        total_orders: activeOrders.length,
+        cancelled_orders: orders.filter((o) => o.status === 'cancelled').length,
         pending_orders: orders.filter(o => o.status === 'pending').length,
         total_users: users.filter(u => u.role !== 'admin').length,
         total_affiliates: affiliates.length,
@@ -230,12 +230,8 @@ router.get('/users/:id', authenticate, requireAdmin, async (req, res) => {
       .filter((r) => r.status === 'cancelled')
       .reduce((s, r) => s + Number(r.commission || 0), 0);
 
-    const distinctConfirmedOrderIds = new Set(
-      affiliateOrderRows.filter((r) => r.status === 'confirmed').map((r) => r.order_id).filter(Boolean)
-    );
-    const distinctPendingOrderIds = new Set(
-      affiliateOrderRows.filter((r) => r.status === 'pending').map((r) => r.order_id).filter(Boolean)
-    );
+    const confirmedProductSales = affiliateOrderRows.filter((r) => r.status === 'confirmed').length;
+    const pendingProductSales = affiliateOrderRows.filter((r) => r.status === 'pending').length;
 
     const paidReferred = referredOrders.filter((o) => o.payment_status === 'paid');
     const unpaidReferred = referredOrders.filter((o) => o.payment_status !== 'paid' && o.status !== 'cancelled');
@@ -283,8 +279,8 @@ router.get('/users/:id', authenticate, requireAdmin, async (req, res) => {
         referred_revenue: paidReferred.reduce((s, o) => s + Number(o.total || 0), 0),
         affiliate_order_rows: affiliateOrderRows.length,
         affiliate_orders_by_status: countByStatus(affiliateOrderRows),
-        confirmed_orders: distinctConfirmedOrderIds.size,
-        pending_orders: distinctPendingOrderIds.size,
+        confirmed_orders: confirmedProductSales,
+        pending_orders: pendingProductSales,
         confirmed_commission: confirmedCommission,
         pending_commission: pendingCommission,
         cancelled_commission: cancelledCommission,
