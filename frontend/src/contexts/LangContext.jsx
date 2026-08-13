@@ -129,6 +129,21 @@ const translations = {
     shoes: 'Shoes',
     accessories: 'Accessories',
 
+    // Nav extras
+    about: 'About',
+    contact: 'Contact Us',
+    my_account: 'My Account',
+    all_products_label: 'All Products',
+    view_all_products: 'View all products',
+    shop_by_category: 'Shop by category',
+    browse_edit: 'Browse the full BelieveinaBlessed edit',
+    view_all: 'View all',
+    shop_now: 'Shop now',
+    become_affiliate_short: 'Become Affiliate',
+    search_collection: 'Search the collection',
+    search_placeholder: 'Search trousers, hoodies, tees...',
+    menu: 'Menu',
+
     // Misc
     loading: 'Loading...',
     no_products: 'No products found',
@@ -274,6 +289,21 @@ const translations = {
     jackets: 'Jaketi',
     shoes: 'Viatu',
     accessories: 'Vipande',
+
+    // Nav extras
+    about: 'Kuhusu',
+    contact: 'Wasiliana Nasi',
+    my_account: 'Akaunti Yangu',
+    all_products_label: 'Bidhaa Zote',
+    view_all_products: 'Ona bidhaa zote',
+    shop_by_category: 'Nunua kwa aina',
+    browse_edit: 'Tazama mkusanyiko wetu wote',
+    view_all: 'Ona zote',
+    shop_now: 'Nunua sasa',
+    become_affiliate_short: 'Kuwa Mshirika',
+    search_collection: 'Tafuta katika mkusanyiko',
+    search_placeholder: 'Tafuta suruali, huvio, fulana...',
+    menu: 'Menyu',
 
     // Misc
     loading: 'Inapakia...',

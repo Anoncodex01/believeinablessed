@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, ArrowUpRight, ChevronDown, Menu, Moon, Search, ShoppingBag, Sun, User, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ChevronDown, Globe, Menu, Moon, Search, ShoppingBag, Sun, User, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -26,7 +26,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { t } = useLang();
+  const { t, lang, toggleLang } = useLang();
   const { user, logout } = useAuth();
   const { count } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,6 +99,10 @@ export default function Navbar() {
         : 'text-[var(--text-secondary)] hover:text-neutral-950'
     }`;
 
+  const iconBtnClass = `hidden h-10 w-10 items-center justify-center transition sm:flex ${
+    overHero ? 'hover:bg-white/10' : 'hover:bg-[var(--bg-secondary)]'
+  }`;
+
   return (
     <>
       <nav
@@ -127,13 +131,14 @@ export default function Navbar() {
             />
           </Link>
 
+          {/* Desktop nav links */}
           <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 lg:flex">
             <Link
               href="/"
               onClick={(event) => handleNavClick(event, '/')}
               className={navLinkClass('/')}
             >
-              Home
+              {t('home')}
             </Link>
 
             <div
@@ -155,7 +160,7 @@ export default function Navbar() {
                 }`}
                 aria-expanded={desktopProductsOpen}
               >
-                All Products
+                {t('all_products_label')}
                 <ChevronDown className={`h-3.5 w-3.5 transition ${desktopProductsOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -171,10 +176,10 @@ export default function Navbar() {
                     <div className="mb-4 flex items-end justify-between gap-4 border-b border-[var(--border)] px-1 pb-4">
                       <div>
                         <p className="font-display text-lg font-semibold tracking-tight text-[var(--text)]">
-                          Shop by category
+                          {t('shop_by_category')}
                         </p>
                         <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                          Browse the full BelieveinaBlessed edit
+                          {t('browse_edit')}
                         </p>
                       </div>
                       <Link
@@ -182,7 +187,7 @@ export default function Navbar() {
                         onClick={(event) => handleNavClick(event, '/products')}
                         className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold tracking-tight text-neutral-950 transition hover:opacity-70"
                       >
-                        View all <ArrowRight className="h-3.5 w-3.5" />
+                        {t('view_all')} <ArrowRight className="h-3.5 w-3.5" />
                       </Link>
                     </div>
 
@@ -214,7 +219,7 @@ export default function Navbar() {
                                 {label}
                               </span>
                               <span className="mt-0.5 block text-[11px] text-[var(--text-secondary)]">
-                                Shop now
+                                {t('shop_now')}
                               </span>
                             </span>
                             <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[var(--text-secondary)] opacity-0 transition group-hover:opacity-100" />
@@ -229,14 +234,14 @@ export default function Navbar() {
                         onClick={(event) => handleNavClick(event, '/products?trending=true')}
                         className="border border-[var(--border)] px-3 py-2.5 text-center text-xs font-semibold tracking-tight text-[var(--text)] transition hover:border-neutral-950 hover:text-neutral-950"
                       >
-                        Trending
+                        {t('trending')}
                       </Link>
                       <Link
                         href="/affiliate"
                         onClick={(event) => handleNavClick(event, '/affiliate')}
                         className="bg-neutral-950 px-3 py-2.5 text-center text-xs font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
                       >
-                        Become Affiliate
+                        {t('become_affiliate_short')}
                       </Link>
                     </div>
                   </motion.div>
@@ -249,7 +254,7 @@ export default function Navbar() {
               onClick={(event) => handleNavClick(event, '/about')}
               className={navLinkClass('/about')}
             >
-              About
+              {t('about')}
             </Link>
 
             <Link
@@ -257,22 +262,34 @@ export default function Navbar() {
               onClick={(event) => handleNavClick(event, '/contact')}
               className={navLinkClass('/contact')}
             >
-              Contact Us
+              {t('contact')}
             </Link>
           </div>
 
+          {/* Desktop right icons */}
           <div
             className={`relative z-10 flex items-center gap-0.5 sm:gap-1 ${
               overHero ? 'text-white' : 'text-[var(--text)]'
             }`}
           >
+            {/* Language toggle */}
+            <button
+              type="button"
+              onClick={toggleLang}
+              className={`${iconBtnClass} gap-1`}
+              aria-label="Toggle language"
+            >
+              <Globe className="h-4 w-4" />
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${overHero ? 'text-white' : 'text-[var(--text)]'}`}>
+                {lang === 'en' ? 'SW' : 'EN'}
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              className={`hidden h-10 w-10 items-center justify-center transition sm:flex ${
-                overHero ? 'hover:bg-white/10' : 'hover:bg-[var(--bg-secondary)]'
-              }`}
-              aria-label="Search"
+              className={iconBtnClass}
+              aria-label={t('search')}
             >
               <Search className="h-4 w-4" />
             </button>
@@ -280,9 +297,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className={`hidden h-10 w-10 items-center justify-center transition sm:flex ${
-                overHero ? 'hover:bg-white/10' : 'hover:bg-[var(--bg-secondary)]'
-              }`}
+              className={iconBtnClass}
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -292,10 +307,8 @@ export default function Navbar() {
               <Link
                 href={accountHref}
                 onClick={(event) => handleNavClick(event, accountHref)}
-                className={`hidden h-10 w-10 items-center justify-center transition sm:flex ${
-                  overHero ? 'hover:bg-white/10' : 'hover:bg-[var(--bg-secondary)]'
-                }`}
-                aria-label="My account"
+                className={iconBtnClass}
+                aria-label={t('my_account')}
               >
                 <User className="h-4 w-4" />
               </Link>
@@ -303,9 +316,7 @@ export default function Navbar() {
               <Link
                 href="/auth/login"
                 onClick={(event) => handleNavClick(event, '/auth/login')}
-                className={`hidden h-10 w-10 items-center justify-center transition sm:flex ${
-                  overHero ? 'hover:bg-white/10' : 'hover:bg-[var(--bg-secondary)]'
-                }`}
+                className={iconBtnClass}
                 aria-label={t('login')}
               >
                 <User className="h-4 w-4" />
@@ -320,7 +331,7 @@ export default function Navbar() {
               }`}
             >
               <ShoppingBag className="h-4 w-4 sm:hidden" />
-              <span className="hidden text-[13px] font-medium sm:inline">Cart</span>
+              <span className="hidden text-[13px] font-medium sm:inline">{t('cart')}</span>
               <span
                 className={`flex h-5 min-w-5 items-center justify-center px-1.5 text-[11px] font-semibold ${
                   overHero
@@ -346,6 +357,7 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* Search overlay */}
       <AnimatePresence>
         {searchOpen && (
           <motion.div
@@ -357,7 +369,7 @@ export default function Navbar() {
             <div className="mx-auto mt-20 max-w-2xl">
               <div className="mb-5 flex items-center justify-between">
                 <p className="font-display text-2xl font-semibold tracking-tight text-[var(--text)]">
-                  Search the collection
+                  {t('search_collection')}
                 </p>
                 <button
                   type="button"
@@ -373,14 +385,14 @@ export default function Navbar() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   className="h-12 flex-1 border border-[var(--border)] bg-[var(--bg-card)] px-5 text-sm outline-none focus:border-neutral-950"
-                  placeholder="Search trousers, hoodies, tees..."
+                  placeholder={t('search_placeholder')}
                   autoFocus
                 />
                 <button
                   type="submit"
                   className="bg-neutral-950 px-6 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950"
                 >
-                  Search
+                  {t('search')}
                 </button>
               </form>
             </div>
@@ -388,6 +400,7 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
+      {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -405,16 +418,28 @@ export default function Navbar() {
               className="ml-auto h-full w-full max-w-sm overflow-y-auto border-l border-[var(--border)] bg-[var(--bg-card)] p-6 shadow-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="mb-8 flex items-center justify-between">
-                <p className="font-display text-2xl font-semibold tracking-tight">Menu</p>
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen(false)}
-                  className="p-2 transition hover:bg-[var(--bg-secondary)]"
-                  aria-label="Close menu"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <div className="mb-6 flex items-center justify-between">
+                <p className="font-display text-2xl font-semibold tracking-tight">{t('menu')}</p>
+                <div className="flex items-center gap-2">
+                  {/* Language toggle in mobile menu */}
+                  <button
+                    type="button"
+                    onClick={toggleLang}
+                    className="flex items-center gap-1.5 border border-[var(--border)] px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white"
+                    aria-label="Toggle language"
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    {lang === 'en' ? 'Swahili' : 'English'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMenuOpen(false)}
+                    className="p-2 transition hover:bg-[var(--bg-secondary)]"
+                    aria-label="Close menu"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -423,7 +448,7 @@ export default function Navbar() {
                   onClick={(event) => handleNavClick(event, '/')}
                   className="border border-[var(--border)] px-4 py-3.5 text-base font-medium tracking-tight transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-neutral-950"
                 >
-                  Home
+                  {t('home')}
                 </Link>
 
                 <div className="border border-[var(--border)] p-2">
@@ -433,7 +458,7 @@ export default function Navbar() {
                     className="flex w-full items-center justify-between px-3 py-3 text-left text-base font-medium tracking-tight transition hover:bg-[var(--bg-secondary)]"
                     aria-expanded={productMenuOpen}
                   >
-                    <span>All Products</span>
+                    <span>{t('all_products_label')}</span>
                     <ChevronDown className={`h-5 w-5 transition ${productMenuOpen ? 'rotate-180' : ''}`} />
                   </button>
 
@@ -452,7 +477,7 @@ export default function Navbar() {
                             onClick={(event) => handleNavClick(event, '/products')}
                             className="flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-neutral-950 transition hover:bg-[var(--bg-secondary)]"
                           >
-                            View all products <ArrowRight className="h-3.5 w-3.5" />
+                            {t('view_all_products')} <ArrowRight className="h-3.5 w-3.5" />
                           </Link>
                           {productCategories.map((label) => {
                             const href = productCategoryHref(label);
@@ -479,7 +504,7 @@ export default function Navbar() {
                   onClick={(event) => handleNavClick(event, '/about')}
                   className="border border-[var(--border)] px-4 py-3.5 text-base font-medium tracking-tight transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-neutral-950"
                 >
-                  About
+                  {t('about')}
                 </Link>
 
                 <Link
@@ -487,7 +512,7 @@ export default function Navbar() {
                   onClick={(event) => handleNavClick(event, '/contact')}
                   className="border border-[var(--border)] px-4 py-3.5 text-base font-medium tracking-tight transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-neutral-950"
                 >
-                  Contact Us
+                  {t('contact')}
                 </Link>
 
                 {user ? (
@@ -497,7 +522,7 @@ export default function Navbar() {
                       onClick={(event) => handleNavClick(event, accountHref)}
                       className="border border-[var(--border)] px-4 py-3.5 text-base font-medium tracking-tight transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-neutral-950"
                     >
-                      My Account
+                      {t('my_account')}
                     </Link>
                     <button
                       type="button"
@@ -508,7 +533,7 @@ export default function Navbar() {
                       }}
                       className="border border-[var(--border)] px-4 py-3.5 text-left text-base font-medium text-neutral-950 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white"
                     >
-                      Logout
+                      {t('logout')}
                     </button>
                   </>
                 ) : (
@@ -517,7 +542,7 @@ export default function Navbar() {
                     onClick={(event) => handleNavClick(event, '/auth/login')}
                     className="border border-[var(--border)] px-4 py-3.5 text-base font-medium tracking-tight transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white dark:hover:border-white dark:hover:bg-white dark:hover:text-neutral-950"
                   >
-                    Login
+                    {t('login')}
                   </Link>
                 )}
               </div>
