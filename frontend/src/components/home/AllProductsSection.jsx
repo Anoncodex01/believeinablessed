@@ -9,10 +9,12 @@ import ProductCard from '@/components/product/ProductCard';
 import ProductsGrid from '@/components/product/ProductsGrid';
 import { productCategories, productCategoryHref } from '@/lib/productCategories';
 import { ArrowRight } from 'lucide-react';
+import { useLang } from '@/contexts/LangContext';
 
 export default function AllProductsSection({ refCode = '' }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     getProducts({ limit: 12 })
@@ -36,12 +38,12 @@ export default function AllProductsSection({ refCode = '' }) {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="mb-10 max-w-2xl sm:mb-12"
         >
-          <p className="section-kicker">The full edit</p>
+          <p className="section-kicker">{t('the_full_edit')}</p>
           <h2 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl lg:text-[3.5rem]">
-            Our Collections
+            {t('our_collections')}
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-            Curated looks for every day — browse by category or explore everything.
+            {t('collections_desc')}
           </p>
         </motion.div>
 
@@ -65,7 +67,7 @@ export default function AllProductsSection({ refCode = '' }) {
             href={`/products${refCode ? `?ref=${refCode}` : ''}`}
             className="section-link"
           >
-            View all <ArrowRight className="h-4 w-4" />
+            {t('view_all')} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -92,7 +94,7 @@ export default function AllProductsSection({ refCode = '' }) {
               whileTap={{ scale: 0.98 }}
               className="inline-flex items-center gap-2 bg-neutral-950 px-8 py-4 text-sm font-semibold tracking-tight text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200"
             >
-              Explore full collection <ArrowRight className="h-4 w-4" />
+              {t('explore_collection')} <ArrowRight className="h-4 w-4" />
             </motion.span>
           </Link>
         </div>

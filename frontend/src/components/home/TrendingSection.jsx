@@ -8,10 +8,12 @@ import { homeProductFallbacks } from '@/lib/homeProductFallbacks';
 import ProductCard from '@/components/product/ProductCard';
 import ProductsGrid from '@/components/product/ProductsGrid';
 import { ArrowRight } from 'lucide-react';
+import { useLang } from '@/contexts/LangContext';
 
 export default function TrendingSection({ refCode = '' }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     getProducts({ trending: 'true', limit: 8 })
@@ -36,19 +38,19 @@ export default function TrendingSection({ refCode = '' }) {
           className="mb-10 flex items-end justify-between gap-6 sm:mb-12"
         >
           <div>
-            <p className="section-kicker">Just dropped</p>
+            <p className="section-kicker">{t('just_dropped')}</p>
             <h2 className="font-display text-4xl font-semibold tracking-tight text-[var(--text)] sm:text-5xl lg:text-[3.5rem]">
-              New & Trending
+              {t('new_trending_title')}
             </h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-              Fresh pieces people are wearing right now — clean cuts, everyday fits.
+              {t('trending_section_desc')}
             </p>
           </div>
           <Link
             href={`/products?trending=true${refCode ? `&ref=${refCode}` : ''}`}
             className="section-link hidden sm:inline-flex"
           >
-            View all <ArrowRight className="h-4 w-4" />
+            {t('view_all')} <ArrowRight className="h-4 w-4" />
           </Link>
         </motion.div>
 
@@ -73,7 +75,7 @@ export default function TrendingSection({ refCode = '' }) {
             href={`/products?trending=true${refCode ? `&ref=${refCode}` : ''}`}
             className="section-link"
           >
-            View all <ArrowRight className="h-4 w-4" />
+            {t('view_all')} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>

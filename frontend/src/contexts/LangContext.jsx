@@ -162,6 +162,15 @@ const translations = {
     minutes: 'Minutes',
     seconds: 'Seconds',
     whatsapp_chat: 'Chat on WhatsApp',
+
+    // Home sections
+    just_dropped: 'Just dropped',
+    new_trending_title: 'New & Trending',
+    trending_section_desc: 'Fresh pieces people are wearing right now — clean cuts, everyday fits.',
+    the_full_edit: 'The full edit',
+    our_collections: 'Our Collections',
+    collections_desc: 'Curated looks for every day — browse by category or explore everything.',
+    explore_collection: 'Explore full collection',
   },
   sw: {
     // Nav
@@ -323,6 +332,15 @@ const translations = {
     minutes: 'Dakika',
     seconds: 'Sekunde',
     whatsapp_chat: 'Zungumza WhatsApp',
+
+    // Home sections
+    just_dropped: 'Imefika Tu',
+    new_trending_title: 'Mpya & Inayopanda',
+    trending_section_desc: 'Vipande vipya vinavyovaliwa sasa — mipango safi, nguo za kila siku.',
+    the_full_edit: 'Mkusanyiko Wote',
+    our_collections: 'Mkusanyiko Wetu',
+    collections_desc: 'Mitindo ya kila siku — angalia kwa aina au chunguza yote.',
+    explore_collection: 'Chunguza mkusanyiko wote',
   },
 };
 
