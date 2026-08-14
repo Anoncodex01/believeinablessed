@@ -116,7 +116,7 @@ export default function Navbar() {
           <Link
             href="/"
             onClick={(event) => handleNavClick(event, '/')}
-            className="relative z-10 flex h-11 w-[5.75rem] shrink-0 items-center overflow-hidden sm:h-12 sm:w-[6.5rem]"
+            className="relative z-10 flex h-12 w-24 shrink-0 items-center sm:h-14 sm:w-28"
             aria-label="Believe in a Blessed home"
           >
             <Image
@@ -125,7 +125,7 @@ export default function Navbar() {
               width={320}
               height={140}
               priority
-              className={`h-full w-full origin-center scale-[2.1] object-contain ${
+              className={`h-full w-full object-contain ${
                 overHero ? 'brightness-0 invert' : 'dark:brightness-0 dark:invert'
               }`}
             />

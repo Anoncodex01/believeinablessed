@@ -37,13 +37,13 @@ export default function Footer() {
       <div className="home-shell py-14 sm:py-16">
         <div className="mb-12 grid gap-10 border-b border-neutral-800 pb-12 lg:grid-cols-[1.3fr_0.9fr] lg:items-end">
           <div>
-            <div className="relative h-12 w-[6.5rem] overflow-hidden sm:h-14 sm:w-32">
+            <div className="relative h-16 w-32 sm:h-20 sm:w-40">
               <Image
                 src="/logo.png"
                 alt="Believe in a Blessed"
                 width={320}
                 height={140}
-                className="h-full w-full origin-center scale-[2.1] object-contain brightness-0 invert"
+                className="h-full w-full object-contain brightness-0 invert"
               />
             </div>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400 sm:text-base">
