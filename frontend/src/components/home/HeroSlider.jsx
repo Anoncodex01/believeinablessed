@@ -6,16 +6,19 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const brandSlides = [
   {
-    image_url: '/hero/slide-1.png',
+    desktop: '/hero/slide-1.png',
+    mobile: '/hero/slide-1-mobile.png',
     alt: 'BelieveinaBlessed black tank and shorts set',
   },
   {
-    image_url: '/hero/slide-2.png',
+    desktop: '/hero/slide-2.png',
+    mobile: '/hero/slide-2-mobile.png',
     alt: 'BelieveinaBlessed white tee and cap',
   },
   {
-    image_url: '/hero/slide-3.jpg',
-    alt: 'BelieveinaBlessed black cap',
+    desktop: '/hero/slide-3.jpg',
+    mobile: '/hero/slide-3-mobile.jpg',
+    alt: 'BelieveinaBlessed collection',
   },
 ];
 
@@ -45,7 +48,9 @@ export default function HeroSlider() {
   }, [current]);
 
   const slide = slides[current] || slides[0];
-  const heroImage = imageFailed ? brandSlides[0].image_url : slide.image_url;
+  const fallback = brandSlides[0];
+  const desktopSrc = imageFailed ? fallback.desktop : slide.desktop;
+  const mobileSrc = imageFailed ? fallback.mobile : slide.mobile;
 
   return (
     <section
@@ -64,12 +69,22 @@ export default function HeroSlider() {
           className="absolute inset-0"
         >
           <Image
-            src={heroImage}
+            src={mobileSrc}
             alt={slide.alt || 'BelieveinaBlessed'}
             fill
             priority={current === 0}
             sizes="100vw"
-            className="object-contain object-center"
+            className="object-cover object-center md:hidden"
+            quality={90}
+            onError={() => setImageFailed(true)}
+          />
+          <Image
+            src={desktopSrc}
+            alt={slide.alt || 'BelieveinaBlessed'}
+            fill
+            priority={current === 0}
+            sizes="100vw"
+            className="hidden object-contain object-center md:block"
             quality={90}
             onError={() => setImageFailed(true)}
           />
