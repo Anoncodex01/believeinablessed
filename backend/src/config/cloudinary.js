@@ -31,7 +31,7 @@ const productStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'believeinablessed/products',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif'],
     transformation: [{ quality: 'auto', fetch_format: 'auto' }],
   },
 });
@@ -51,7 +51,7 @@ const avatarStorage = new CloudinaryStorage({
 // Create multer instances
 export const upload = multer({ 
   storage: productStorage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 15 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);

@@ -18,6 +18,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { createProduct, deleteProduct, getCategories, getProducts, updateProduct } from '@/lib/api';
+import { compressImages } from '@/lib/compressImage';
 
 const BLANK = {
   name: '',
@@ -45,7 +46,7 @@ function formatPrice(value) {
 }
 
 function productImage(product) {
-  return product.images?.[0] || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=240&h=240&fit=crop';
+  return product.images?.[0] || '';
 }
 
 function stockTone(stock) {
@@ -140,14 +141,25 @@ export default function AdminProductsPage() {
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([key, value]) => fd.append(key, value));
-      files.forEach(file => fd.append('images', file));
+      if (files.length) {
+        const optimized = await compressImages(files);
+        optimized.forEach(file => fd.append('images', file));
+      }
 
+      let saved;
       if (editing) {
-        await updateProduct(editing.id, fd);
+        saved = await updateProduct(editing.id, fd);
         toast.success('Product updated');
       } else {
-        await createProduct(fd);
+        saved = await createProduct(fd);
         toast.success('Product created');
+      }
+
+      const savedImages = saved?.data?.product?.images || [];
+      if (files.length && savedImages.length === 0) {
+        toast.error('Product saved, but images did not upload. Try 1–2 smaller photos and save again.');
+      } else if (!files.length && !editing?.images?.length) {
+        toast('Saved without photos. Edit this product and upload images.');
       }
       setModalOpen(false);
       await load();
@@ -267,7 +279,13 @@ export default function AdminProductsPage() {
                   <tr key={product.id} className="align-middle">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <img src={productImage(product)} alt={product.name} className="h-14 w-14 object-cover" />
+                        {productImage(product) ? (
+                          <img src={productImage(product)} alt={product.name} className="h-14 w-14 object-cover" />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center bg-[var(--bg-secondary)] text-[9px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                            No img
+                          </div>
+                        )}
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-[var(--text)]">{product.name}</p>
                           {product.name_sw && <p className="truncate text-xs text-[var(--text-secondary)]">{product.name_sw}</p>}
@@ -394,10 +412,17 @@ export default function AdminProductsPage() {
                   <label className="flex cursor-pointer flex-col items-center justify-center border border-dashed border-[var(--border)] p-6 text-center transition hover:border-teal-700">
                     <Upload className="mb-2 h-6 w-6 text-[var(--text-secondary)]" />
                     <span className="text-sm font-semibold text-[var(--text)]">Upload images</span>
-                    <span className="mt-1 text-xs text-[var(--text-secondary)]">Up to 6 files</span>
-                    <input type="file" multiple accept="image/*" className="hidden" onChange={event => setFiles(Array.from(event.target.files || []))} />
+                    <span className="mt-1 text-xs text-[var(--text-secondary)]">Up to 6 photos. Phone photos are resized automatically.</span>
+                    <input type="file" multiple accept="image/*" className="hidden" onChange={event => setFiles(Array.from(event.target.files || []).slice(0, 6))} />
                   </label>
-                  {files.length > 0 && <p className="mt-2 text-xs font-semibold text-emerald-600">{files.length} file(s) selected</p>}
+                  {files.length > 0 && (
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {files.map((file, index) => (
+                        <img key={`${file.name}-${index}`} src={URL.createObjectURL(file)} alt="" className="h-14 w-full object-cover" />
+                      ))}
+                    </div>
+                  )}
+                  {files.length > 0 && <p className="mt-2 text-xs font-semibold text-emerald-600">{files.length} new file(s) selected</p>}
                   {editing?.images?.length > 0 && (
                     <div className="mt-3 grid grid-cols-4 gap-2">
                       {editing.images.map((image, index) => <img key={index} src={image} alt="" className="h-14 w-full object-cover" />)}

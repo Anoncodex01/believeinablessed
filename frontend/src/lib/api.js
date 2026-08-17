@@ -17,6 +17,24 @@ const api = axios.create({
 // Request interceptor to add token
 api.interceptors.request.use(
   (config) => {
+    const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+    if (isFormData) {
+      // Let the browser set multipart/form-data with a boundary.
+      // A default application/json header makes axios serialize FormData as JSON
+      // and drop the actual image files.
+      if (config.headers && typeof config.headers.set === 'function') {
+        config.headers.set('Content-Type', false);
+      }
+      if (config.headers && typeof config.headers.delete === 'function') {
+        config.headers.delete('Content-Type');
+        config.headers.delete('content-type');
+      } else if (config.headers) {
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+      }
+      config.timeout = Math.max(config.timeout || 0, 120000);
+    }
+
     if (typeof window !== 'undefined') {
       const token = Cookies.get('bib_token') || localStorage.getItem('bib_token');
       
@@ -162,8 +180,8 @@ export const updateSettings = (data) => api.put('/admin/settings', data);
 export const getTopProducts = () => api.get('/admin/analytics/top-products');
 
 // Products Management (Admin)
-export const createProduct = (formData) => api.post('/products', formData);
-export const updateProduct = (id, formData) => api.put(`/products/${id}`, formData);
+export const createProduct = (formData) => api.post('/products', formData, { timeout: 120000 });
+export const updateProduct = (id, formData) => api.put(`/products/${id}`, formData, { timeout: 120000 });
 export const deleteProduct = (id) => api.delete(`/products/${id}`);
 
 // Categories Management (Admin)

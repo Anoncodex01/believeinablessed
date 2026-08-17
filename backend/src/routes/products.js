@@ -3,8 +3,30 @@ import express from 'express';
 import supabase from '../config/supabase.js';
 import { authenticate, requireAdmin, optionalAuth } from '../middleware/auth.js';
 import { uploadProduct } from '../config/cloudinary.js';
+import multer from 'multer';
 
 const router = express.Router();
+
+const uploadedImageUrls = (files = []) =>
+  files
+    .map((file) => file.secure_url || file.path || file.url)
+    .filter(Boolean);
+
+const handleProductUpload = (req, res, next) => {
+  uploadProduct.array('images', 6)(req, res, (err) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'Each image must be under 15MB. Try fewer or smaller photos.' });
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({ error: 'You can upload up to 6 images.' });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    return res.status(400).json({ error: err.message || 'Image upload failed' });
+  });
+};
 
 // Helper function to parse array fields
 const parseArrayField = (value) => {
@@ -90,7 +112,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
 });
 
 // POST /api/products - admin only
-router.post('/', authenticate, requireAdmin, uploadProduct.array('images', 6), async (req, res) => {
+router.post('/', authenticate, requireAdmin, handleProductUpload, async (req, res) => {
   try {
     console.log('Creating product with body:', req.body);
     console.log('Files:', req.files?.length || 0);
@@ -102,7 +124,7 @@ router.post('/', authenticate, requireAdmin, uploadProduct.array('images', 6), a
       commission_rate, flash_sale_end_date,
     } = req.body;
 
-    const images = req.files?.map(f => f.path) || [];
+    const images = uploadedImageUrls(req.files);
 
     // Parse sizes and colors properly
     const parsedSizes = parseArrayField(sizes);
@@ -144,7 +166,7 @@ router.post('/', authenticate, requireAdmin, uploadProduct.array('images', 6), a
 });
 
 // PUT /api/products/:id - admin only (FIXED VERSION)
-router.put('/:id', authenticate, requireAdmin, uploadProduct.array('images', 6), async (req, res) => {
+router.put('/:id', authenticate, requireAdmin, handleProductUpload, async (req, res) => {
   try {
     console.log('Updating product ID:', req.params.id);
     console.log('Update body:', req.body);
@@ -202,7 +224,7 @@ router.put('/:id', authenticate, requireAdmin, uploadProduct.array('images', 6),
     
     // Update image array (append new images to existing)
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(f => f.path);
+      const newImages = uploadedImageUrls(req.files);
       updates.images = [...(updates.images || []), ...newImages];
     }
     

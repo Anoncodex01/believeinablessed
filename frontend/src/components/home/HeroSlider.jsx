@@ -6,19 +6,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const brandSlides = [
   {
-    image_url:
-      'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1920&h=1200&fit=crop&auto=format',
-    alt: 'BelieveinaBlessed fashion',
+    image_url: '/hero/slide-1.png',
+    alt: 'BelieveinaBlessed black tank and shorts set',
   },
   {
-    image_url:
-      'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&h=1200&fit=crop&auto=format',
-    alt: 'BelieveinaBlessed collection',
+    image_url: '/hero/slide-2.png',
+    alt: 'BelieveinaBlessed white tee and cap',
   },
   {
-    image_url:
-      'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=1920&h=1200&fit=crop&auto=format',
-    alt: 'BelieveinaBlessed essentials',
+    image_url: '/hero/slide-3.jpg',
+    alt: 'BelieveinaBlessed black cap',
   },
 ];
 
@@ -52,10 +49,11 @@ export default function HeroSlider() {
 
   return (
     <section
-      className="relative isolate min-h-[100svh] w-full overflow-hidden bg-white"
+      className="relative isolate w-full overflow-hidden bg-neutral-900 pt-16 lg:pt-[72px]"
       onMouseEnter={() => setIsAutoPlay(false)}
       onMouseLeave={() => setIsAutoPlay(true)}
     >
+      <div className="relative h-[calc(100svh-4rem)] w-full lg:h-[calc(100svh-72px)]">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
@@ -65,23 +63,16 @@ export default function HeroSlider() {
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="absolute inset-0"
         >
-          <motion.div
-            initial={{ scale: 1.06 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 6.5, ease: 'easeOut' }}
-            className="absolute inset-0"
-          >
-            <Image
-              src={heroImage}
-              alt={slide.alt || 'BelieveinaBlessed'}
-              fill
-              priority={current === 0}
-              sizes="100vw"
-              className="object-cover object-center"
-              quality={90}
-              onError={() => setImageFailed(true)}
-            />
-          </motion.div>
+          <Image
+            src={heroImage}
+            alt={slide.alt || 'BelieveinaBlessed'}
+            fill
+            priority={current === 0}
+            sizes="100vw"
+            className="object-contain object-center"
+            quality={90}
+            onError={() => setImageFailed(true)}
+          />
         </motion.div>
       </AnimatePresence>
 
@@ -120,6 +111,7 @@ export default function HeroSlider() {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }
