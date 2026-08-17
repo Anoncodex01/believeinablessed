@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getProducts } from '@/lib/api';
-import { homeProductFallbacks } from '@/lib/homeProductFallbacks';
 import ProductCard from '@/components/product/ProductCard';
 import ProductsGrid from '@/components/product/ProductsGrid';
 import { ArrowRight } from 'lucide-react';
@@ -16,13 +15,24 @@ export default function TrendingSection({ refCode = '' }) {
   const { t } = useLang();
 
   useEffect(() => {
-    getProducts({ trending: 'true', limit: 8 })
-      .then(({ data }) => {
-        const apiProducts = data.products || [];
-        setProducts(apiProducts.length ? apiProducts : homeProductFallbacks.slice(0, 4));
-      })
-      .catch(() => setProducts(homeProductFallbacks.slice(0, 4)))
-      .finally(() => setLoading(false));
+    async function load() {
+      try {
+        const { data: trendingData } = await getProducts({ trending: 'true', limit: 8 });
+        const trending = trendingData.products || [];
+        if (trending.length) {
+          setProducts(trending);
+          return;
+        }
+        // No trending flag set — show newest real products instead of placeholders
+        const { data: latestData } = await getProducts({ limit: 8 });
+        setProducts(latestData.products || []);
+      } catch {
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, []);
 
   return (
@@ -65,10 +75,18 @@ export default function TrendingSection({ refCode = '' }) {
                   </div>
                 </div>
               ))
-            : products.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
-              ))}
+            : products.length > 0
+              ? products.map((p, i) => (
+                  <ProductCard key={p.id} product={p} index={i} affiliateCode={refCode} />
+                ))
+              : null}
         </ProductsGrid>
+
+        {!loading && products.length === 0 && (
+          <p className="text-center text-sm text-[var(--text-secondary)]">
+            New products will appear here once added to the catalog.
+          </p>
+        )}
 
         <div className="mt-10 text-center sm:hidden">
           <Link

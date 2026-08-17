@@ -162,12 +162,8 @@ export const updateSettings = (data) => api.put('/admin/settings', data);
 export const getTopProducts = () => api.get('/admin/analytics/top-products');
 
 // Products Management (Admin)
-export const createProduct = (formData) => api.post('/products', formData, {
-  headers: { 'Content-Type': 'multipart/form-data' }
-});
-export const updateProduct = (id, formData) => api.put(`/products/${id}`, formData, {
-  headers: { 'Content-Type': 'multipart/form-data' }
-});
+export const createProduct = (formData) => api.post('/products', formData);
+export const updateProduct = (id, formData) => api.put(`/products/${id}`, formData);
 export const deleteProduct = (id) => api.delete(`/products/${id}`);
 
 // Categories Management (Admin)

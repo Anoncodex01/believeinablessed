@@ -152,7 +152,13 @@ export default function AdminProductsPage() {
       setModalOpen(false);
       await load();
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to save product');
+      const status = error.response?.status;
+      const serverMessage = error.response?.data?.error || error.response?.data?.message;
+      if (status === 413) {
+        toast.error('Images are too large. Use fewer photos or smaller images (max ~50MB total).');
+      } else {
+        toast.error(serverMessage || 'Failed to save product');
+      }
     } finally {
       setSaving(false);
     }
@@ -400,11 +406,11 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <button onClick={save} disabled={saving} className="inline-flex h-12 items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
+                  <button type="button" onClick={save} disabled={saving} className="inline-flex h-12 items-center justify-center gap-2 bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50 dark:bg-white dark:text-neutral-950 dark:hover:bg-teal-300">
                     <Check className="h-4 w-4" />
                     {saving ? 'Saving...' : editing ? 'Save changes' : 'Create product'}
                   </button>
-                  <button onClick={() => setModalOpen(false)} className="h-12 border border-[var(--border)] text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">Cancel</button>
+                  <button type="button" onClick={() => setModalOpen(false)} className="h-12 border border-[var(--border)] text-sm font-semibold text-[var(--text)] transition hover:border-teal-700">Cancel</button>
                 </div>
               </aside>
             </div>

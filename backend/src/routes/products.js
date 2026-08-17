@@ -115,7 +115,7 @@ router.post('/', authenticate, requireAdmin, uploadProduct.array('images', 6), a
       description_sw: description_sw || description,
       price: Number(price),
       sale_price: sale_price ? Number(sale_price) : null,
-      category_id,
+      category_id: category_id || null,
       stock: Number(stock) || 0,
       sizes: parsedSizes,
       colors: parsedColors,
@@ -187,7 +187,7 @@ router.put('/:id', authenticate, requireAdmin, uploadProduct.array('images', 6),
     if (name_sw !== undefined) updates.name_sw = name_sw;
     if (description !== undefined) updates.description = description;
     if (description_sw !== undefined) updates.description_sw = description_sw;
-    if (category_id !== undefined) updates.category_id = category_id;
+    if (category_id !== undefined) updates.category_id = category_id || null;
     if (status !== undefined) updates.status = status;
     
     // Update numeric fields

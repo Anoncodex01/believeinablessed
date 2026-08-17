@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getProducts } from '@/lib/api';
-import { homeProductFallbacks } from '@/lib/homeProductFallbacks';
 import ProductCard from '@/components/product/ProductCard';
 import ProductsGrid from '@/components/product/ProductsGrid';
 import { productCategories, productCategoryHref } from '@/lib/productCategories';
@@ -18,11 +17,8 @@ export default function AllProductsSection({ refCode = '' }) {
 
   useEffect(() => {
     getProducts({ limit: 12 })
-      .then(({ data }) => {
-        const apiProducts = data.products || [];
-        setProducts(apiProducts.length ? apiProducts : homeProductFallbacks.slice(4, 10));
-      })
-      .catch(() => setProducts(homeProductFallbacks.slice(4, 10)))
+      .then(({ data }) => setProducts(data.products || []))
+      .catch(() => setProducts([]))
       .finally(() => setLoading(false));
   }, []);
 
