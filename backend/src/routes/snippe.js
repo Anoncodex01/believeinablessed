@@ -8,6 +8,7 @@ import express from 'express';
 import { supabase } from '../config/supabase.js';
 import { snippe, SnippeService } from '../services/snippe.js';
 import { confirmOrderCommission } from '../utils/affiliateCommission.js';
+import { syncSoldCountOnOrderChange } from '../utils/sales.js';
 
 const router = express.Router();
 
@@ -116,6 +117,12 @@ async function markOrderPaid(order, paymentData = {}) {
     });
   } catch (notifErr) {
     console.warn('⚠️ Failed to create order_paid notification:', notifErr.message);
+  }
+
+  try {
+    await syncSoldCountOnOrderChange(workingOrder, finalOrder);
+  } catch (soldErr) {
+    console.warn('⚠️ Failed to sync product sold_count:', soldErr.message);
   }
 
   return { alreadyPaid: false, order: finalOrder };

@@ -11,6 +11,7 @@ import {
   updateAffiliateTier,
   reconcileAffiliateBalances,
 } from '../utils/affiliateCommission.js';
+import { syncSoldCountOnOrderChange } from '../utils/sales.js';
 
 const router = express.Router();
 
@@ -296,9 +297,21 @@ router.post('/', authenticate, async (req, res) => {
       });
     }
 
-    // Reduce stock
+    // Reduce stock only — sold_count is updated when payment succeeds or the order is delivered
     for (const item of enrichedItems) {
-      await supabase.rpc('decrement_stock', { product_id: item.product_id, qty: item.quantity });
+      const { data: product } = await supabase
+        .from('products')
+        .select('stock')
+        .eq('id', item.product_id)
+        .single();
+      if (!product) continue;
+      await supabase
+        .from('products')
+        .update({
+          stock: Math.max(0, Number(product.stock || 0) - Number(item.quantity || 0)),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', item.product_id);
     }
 
     // Handle affiliate commission — one ledger row per product unit
@@ -541,6 +554,15 @@ router.put('/admin/:id', authenticate, requireAdmin, async (req, res) => {
       return res.status(500).json({ error: 'Failed to update order: ' + updateError.message });
     }
 
+    try {
+      await syncSoldCountOnOrderChange(existingOrder, {
+        ...updatedOrder,
+        items: updatedOrder.items || existingOrder.items,
+      });
+    } catch (soldErr) {
+      console.warn('⚠️ Failed to sync product sold_count:', soldErr.message);
+    }
+
     if (hasAffiliate) {
       const updatedTier = await updateAffiliateTier(existingOrder.affiliate_id);
       await supabase
@@ -764,11 +786,13 @@ router.get('/admin/all', authenticate, requireAdmin, async (req, res) => {
     }
 
     const activeOrders = filteredOrders.filter((o) => o.status !== 'cancelled');
+    const completedSales = filteredOrders.filter(
+      (o) => o.status !== 'cancelled' && (o.payment_status === 'paid' || o.status === 'delivered')
+    );
     const summary = {
       total_orders: count || 0,
       filtered_orders: filteredOrders.length,
-      // Cancelled orders must not count toward revenue / commission
-      total_revenue: activeOrders.reduce((sum, o) => sum + (o.total || 0), 0),
+      total_revenue: completedSales.reduce((sum, o) => sum + (o.total || 0), 0),
       total_commission: activeOrders.reduce((sum, o) => {
         if (o.commission_status === 'cancelled') return sum;
         return sum + (o.commission_total || 0);

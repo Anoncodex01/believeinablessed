@@ -4,6 +4,7 @@
 import express from 'express';
 import supabase from '../config/supabase.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { syncSoldCountOnOrderChange } from '../utils/sales.js';
 
 const router = express.Router();
 
@@ -159,14 +160,30 @@ router.put('/manual-mobile/:id/verify', authenticate, requireAdmin, async (req, 
       .eq('id', id);
 
     if (approve) {
-      await supabase
+      const { data: previous } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', txn.order_id)
+        .single();
+
+      const { data: updated } = await supabase
         .from('orders')
         .update({
           payment_status: 'paid',
           status: 'confirmed',
           updated_at: new Date().toISOString(),
         })
-        .eq('id', txn.order_id);
+        .eq('id', txn.order_id)
+        .select('*')
+        .single();
+
+      if (previous && updated) {
+        try {
+          await syncSoldCountOnOrderChange(previous, updated);
+        } catch (soldErr) {
+          console.warn('⚠️ Failed to sync product sold_count:', soldErr.message);
+        }
+      }
 
       await supabase.from('notifications').insert({
         type: 'order_paid',

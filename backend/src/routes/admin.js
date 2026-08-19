@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
   try {
     const [ordersRes, usersRes, productsRes, affiliatesRes, affOrdersRes] = await Promise.all([
-      supabase.from('orders').select('total, status, created_at, affiliate_id, referral_code'),
+      supabase.from('orders').select('total, status, payment_status, created_at, affiliate_id, referral_code'),
       supabase.from('users').select('id, role, created_at').eq('status', 'active'),
       supabase.from('products').select('id, status, sold_count').eq('status', 'active'),
       supabase.from('users').select('id, name, email, referral_code, total_earnings, pending_earnings, withdrawable_balance').eq('role', 'affiliate'),
@@ -24,7 +24,10 @@ router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
     const affOrders = affOrdersRes.data || [];
 
     const activeOrders = orders.filter((o) => o.status !== 'cancelled');
-    const totalRevenue = activeOrders.reduce((s, o) => s + (o.total || 0), 0);
+    const completedSales = orders.filter(
+      (o) => o.status !== 'cancelled' && (o.payment_status === 'paid' || o.status === 'delivered')
+    );
+    const totalRevenue = completedSales.reduce((s, o) => s + (o.total || 0), 0);
 
     const pendingCommissions = affOrders
       .filter(o => o.status === 'pending')
@@ -43,6 +46,7 @@ router.get('/dashboard', authenticate, requireAdmin, async (req, res) => {
     res.json({
       stats: {
         total_revenue: totalRevenue,
+        completed_orders: completedSales.length,
         total_orders: activeOrders.length,
         cancelled_orders: orders.filter((o) => o.status === 'cancelled').length,
         pending_orders: orders.filter(o => o.status === 'pending').length,
@@ -77,7 +81,11 @@ function buildRevenueChart(orders) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split('T')[0];
-    const dayOrders = orders.filter(o => o.created_at?.startsWith(dateStr) && o.status !== 'cancelled');
+    const dayOrders = orders.filter(o =>
+      o.created_at?.startsWith(dateStr) &&
+      o.status !== 'cancelled' &&
+      (o.payment_status === 'paid' || o.status === 'delivered')
+    );
     const revenue = dayOrders.reduce((s, o) => s + (o.total || 0), 0);
     const affiliateOrders = dayOrders.filter(o => o.affiliate_id).length;
     last30.push({ 

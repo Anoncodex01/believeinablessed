@@ -280,9 +280,12 @@ export default function AdminOrdersPage() {
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
   const stats = useMemo(() => {
     const active = filtered.filter((order) => order.status !== 'cancelled');
+    const counted = filtered.filter((order) =>
+      order.status !== 'cancelled' && (order.payment_status === 'paid' || order.status === 'delivered')
+    );
     return {
       total: filtered.length,
-      revenue: active.reduce((sum, order) => sum + Number(order.total || 0), 0),
+      revenue: counted.reduce((sum, order) => sum + Number(order.total || 0), 0),
       affiliateOrders: active.filter((order) => order.affiliate_id).length,
       commission: active.reduce((sum, order) => {
         if (order.commission_status === 'cancelled') return sum;
@@ -322,7 +325,7 @@ export default function AdminOrdersPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard dark icon={ShoppingBag} label="Orders in view" value={stats.total} />
-        <StatCard icon={CreditCard} label="Revenue in view" value={formatPrice(stats.revenue)} detail={stats.cancelled ? `${stats.cancelled} cancelled excluded` : undefined} />
+        <StatCard icon={CreditCard} label="Revenue in view" value={formatPrice(stats.revenue)} detail="Paid or delivered only" />
         <StatCard icon={Award} label="Affiliate orders" value={stats.affiliateOrders} />
         <StatCard icon={Clock} label="Commission in view" value={formatPrice(stats.commission)} />
       </div>

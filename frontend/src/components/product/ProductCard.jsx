@@ -32,7 +32,7 @@ export default function ProductCard({ product, index = 0, affiliateCode = null }
     ? `/products/${product.id}?ref=${effectiveRef}`
     : `/products/${product.id}`;
 
-  const soldCount = 40 + ((Number(product.id) || index + 1) * 7) % 80;
+  const soldCount = Number(product.sold_count || 0);
   const needsVariant = (product.sizes?.length > 0) || (product.colors?.length > 0);
 
   const handleAddToCart = (event) => {
